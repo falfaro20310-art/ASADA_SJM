@@ -52,20 +52,74 @@ public class ApplicationDbContext : DbContext
         );
 
         modelBuilder.Entity<Averia>().HasData(
-            new Averia { IdAveria = 1, IdAbonado = 1, Descripcion = "Fuga en tubería principal", Estado = "Pendiente" },
-            new Averia { IdAveria = 2, IdAbonado = 2, IdUsuario = 2, Descripcion = "Baja presión de agua", Estado = "En proceso" },
-            new Averia { IdAveria = 3, IdAbonado = 3, IdUsuario = 2, Descripcion = "Medidor dañado", Estado = "Resuelto" }
+            new Averia
+            {
+                IdAveria = 1,
+                IdAbonado = 1,
+                Descripcion = "Fuga en tubería principal",
+                Estado = "Pendiente",
+                FechaReporte = new DateTime(2026, 9, 1, 8, 0, 0)
+            },
+            new Averia
+            {
+                IdAveria = 2,
+                IdAbonado = 2,
+                IdUsuario = 2,
+                Descripcion = "Baja presión de agua",
+                Estado = "En proceso",
+                FechaReporte = new DateTime(2026, 9, 2, 9, 30, 0)
+            },
+            new Averia
+            {
+                IdAveria = 3,
+                IdAbonado = 3,
+                IdUsuario = 2,
+                Descripcion = "Medidor dañado",
+                Estado = "Resuelto",
+                FechaReporte = new DateTime(2026, 9, 3, 10, 0, 0)
+            }
         );
-
         modelBuilder.Entity<Tramite>().HasData(
-            new Tramite { IdTramite = 1, IdAbonado = 1, TipoTramite = "Cambio de titular", Estado = "Pendiente" },
-            new Tramite { IdTramite = 2, IdAbonado = 2, TipoTramite = "Solicitud de conexión", Estado = "En revisión" },
-            new Tramite { IdTramite = 3, IdAbonado = 3, TipoTramite = "Reclamo de facturación", Estado = "Aprobado" }
+            new Tramite
+            {
+                IdTramite = 1,
+                IdAbonado = 1,
+                TipoTramite = "Cambio de titular",
+                Estado = "Pendiente",
+                FechaSolicitud = new DateTime(2026, 9, 1, 8, 30, 0)
+            },
+            new Tramite
+            {
+                IdTramite = 2,
+                IdAbonado = 2,
+                TipoTramite = "Solicitud de conexión",
+                Estado = "En revisión",
+                FechaSolicitud = new DateTime(2026, 9, 2, 10, 0, 0)
+            },
+            new Tramite
+            {
+                IdTramite = 3,
+                IdAbonado = 3,
+                TipoTramite = "Reclamo de facturación",
+                Estado = "Aprobado",
+                FechaSolicitud = new DateTime(2026, 9, 3, 11, 0, 0)
+            }
         );
-
         modelBuilder.Entity<Recibo>().HasData(
-            new Recibo { IdRecibo = 1, IdAbonado = 1, Monto = 6450 },
-            new Recibo { IdRecibo = 2, IdAbonado = 2, Monto = 5120 }
+            new Recibo
+            {
+                IdRecibo = 1,
+                IdAbonado = 1,
+                Monto = 6450,
+                FechaEmision = new DateTime(2026, 9, 1)
+            },
+            new Recibo
+            {
+                IdRecibo = 2,
+                IdAbonado = 2,
+                Monto = 5120,
+                FechaEmision = new DateTime(2026, 9, 1)
+            }
         );
     }
 }
