@@ -1,0 +1,23 @@
+@model List<Averia>
+@{ ViewData["Title"] = "Averías"; }
+
+<div class="panel">
+    <table class="table table-asada mb-0">
+        <thead><tr><th>Caso</th><th>Abonado</th><th>Descripción</th><th>Responsable</th><th>Estado</th></tr></thead>
+        <tbody>
+        @foreach (var a in Model)
+        {
+            <tr>
+                <td>#A-@a.IdAveria.ToString("000")</td>
+                <td>@a.Abonado?.Nombre</td>
+                <td>@a.Descripcion</td>
+                <td>@(a.Responsable?.Nombre ?? "Sin asignar")</td>
+                <td>
+                    @{ var css = a.Estado == "Pendiente" ? "pendiente" : a.Estado == "En proceso" ? "proceso" : "resuelto"; }
+                    <span class="estado @css">@a.Estado</span>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

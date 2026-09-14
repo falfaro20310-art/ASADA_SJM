@@ -1,0 +1,22 @@
+@model List<Tramite>
+@{ ViewData["Title"] = "Trámites"; }
+
+<div class="panel">
+    <table class="table table-asada mb-0">
+        <thead><tr><th>N°</th><th>Abonado</th><th>Tipo</th><th>Estado</th></tr></thead>
+        <tbody>
+        @foreach (var t in Model)
+        {
+            <tr>
+                <td>#T-@t.IdTramite.ToString("000")</td>
+                <td>@t.Abonado?.Nombre</td>
+                <td>@t.TipoTramite</td>
+                <td>
+                    @{ var css = t.Estado == "Pendiente" ? "pendiente" : t.Estado is "En revisión" ? "proceso" : "resuelto"; }
+                    <span class="estado @css">@t.Estado</span>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

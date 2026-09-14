@@ -1,0 +1,20 @@
+@model List<Recibo>
+@{ ViewData["Title"] = "Recibos"; }
+
+<div class="panel">
+    <table class="table table-asada mb-0">
+        <thead><tr><th>Recibo</th><th>Abonado</th><th>Monto</th><th>Fecha</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var r in Model)
+        {
+            <tr>
+                <td>#R-@r.IdRecibo.ToString("000")</td>
+                <td>@r.Abonado?.Nombre</td>
+                <td>₡@r.Monto.ToString("N0")</td>
+                <td>@r.FechaEmision.ToShortDateString()</td>
+                <td><i class="bi bi-download"></i></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

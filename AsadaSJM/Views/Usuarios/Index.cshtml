@@ -1,0 +1,19 @@
+@model List<Usuario>
+@{ ViewData["Title"] = "Usuarios y roles"; }
+
+<div class="panel">
+    <table class="table table-asada mb-0">
+        <thead><tr><th>Usuario</th><th>Correo</th><th>Rol</th><th>Estado</th></tr></thead>
+        <tbody>
+        @foreach (var u in Model)
+        {
+            <tr>
+                <td>@u.Nombre</td>
+                <td>@u.Correo</td>
+                <td>@u.Rol?.NombreRol</td>
+                <td><span class="estado @(u.Activo ? "resuelto" : "pendiente")">@(u.Activo ? "Activo" : "Inactivo")</span></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

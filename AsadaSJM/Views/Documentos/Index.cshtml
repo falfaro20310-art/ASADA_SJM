@@ -1,0 +1,19 @@
+@model List<Documento>
+@{ ViewData["Title"] = "Documentos"; }
+
+<div class="row g-3">
+@if (!Model.Any())
+{
+    <p class="text-muted">Aún no hay documentos cargados.</p>
+}
+@foreach (var d in Model)
+{
+    <div class="col-md-4">
+        <div class="panel">
+            <i class="bi bi-file-earmark-pdf-fill" style="color:var(--azul-agua);font-size:22px;"></i>
+            <strong>@d.NombreArchivo</strong>
+            <div class="text-muted" style="font-size:13px;">@d.Categoria · @d.FechaCarga.ToShortDateString()</div>
+        </div>
+    </div>
+}
+</div>

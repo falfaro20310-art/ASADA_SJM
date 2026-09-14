@@ -1,0 +1,11 @@
+@model Abonado
+@{ ViewData["Title"] = "Desactivar abonado"; }
+
+<div class="panel" style="max-width:520px;">
+    <p>¿Confirma que desea desactivar a <strong>@Model.Nombre</strong> (@Model.NumeroMedidor)?</p>
+    <form asp-action="Delete" method="post">
+        <input type="hidden" asp-for="IdAbonado" />
+        <button type="submit" class="btn btn-agua">Confirmar</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+    </form>
+</div>

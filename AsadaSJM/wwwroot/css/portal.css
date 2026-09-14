@@ -1,0 +1,53 @@
+:root{
+  --azul-agua:#004A99;
+  --verde-bosque:#2D5A27;
+  --gris-claro:#F5F5F5;
+  --gris-oscuro:#333333;
+}
+body{ font-family:'Roboto', sans-serif; color:var(--gris-oscuro); }
+h1,h2,h3,.brand{ font-family:'Montserrat', sans-serif; font-weight:700; }
+
+.navbar-asada{ background:#fff; border-bottom:1px solid #eee; padding:.75rem 0; }
+.navbar-asada .brand{ font-size:20px; color:var(--azul-agua); line-height:1.1; }
+.navbar-asada .brand small{ display:block; font-weight:500; font-size:12px; color:var(--verde-bosque); }
+.navbar-asada .nav-link{ color:var(--gris-oscuro); font-size:14.5px; font-weight:500; }
+.navbar-asada .nav-link.active{ color:var(--azul-agua); font-weight:600; border-bottom:2px solid var(--azul-agua); }
+
+.hero{
+  background:linear-gradient(rgba(0,20,40,.55),rgba(0,20,40,.35)),
+    linear-gradient(135deg,#5a7d5a 0%, #3f6b8f 60%, #2d4f6b 100%);
+  color:#fff; padding:5rem 0 4.5rem;
+}
+.hero h1{ font-size:40px; }
+.hero p{ font-size:16px; max-width:520px; }
+.btn-agua{ background:var(--azul-agua); border:none; color:#fff; font-weight:500; }
+.btn-agua:hover{ background:#003977; color:#fff; }
+.btn-verde{ background:var(--verde-bosque); border:none; color:#fff; font-weight:500; }
+.btn-verde:hover{ background:#234a1e; color:#fff; }
+
+.section{ padding:3rem 0; }
+.section-title{ font-size:22px; color:var(--gris-oscuro); }
+.card-inst{ border:1px solid #eee; border-radius:10px; padding:1.25rem; height:100%; transition:.2s; }
+.card-inst:hover{ box-shadow:0 4px 14px rgba(0,0,0,.08); }
+.card-inst .icon-circle{
+  width:42px;height:42px;border-radius:50%; display:flex;align-items:center;justify-content:center;
+  background:var(--gris-claro); color:var(--azul-agua); font-size:18px; margin-bottom:.75rem;
+}
+.card-inst h3{ font-size:16px; margin-bottom:.4rem; }
+.card-inst p{ font-size:13.5px; color:#666; }
+.card-inst a{ font-size:13.5px; color:var(--azul-agua); text-decoration:none; font-weight:500; }
+
+.news-card{ border:1px solid #eee; border-radius:8px; overflow:hidden; height:100%; }
+.news-card .body{ padding:.9rem; }
+.badge-tag{ font-size:11px; font-weight:600; padding:.25rem .5rem; border-radius:20px; }
+.badge-aviso{ background:#FFF3CD; color:#8a6d00; }
+.badge-info{ background:#DCEBFF; color:var(--azul-agua); }
+.badge-comunidad{ background:#E1F2DD; color:var(--verde-bosque); }
+.news-card h3{ font-size:14.5px; margin:.5rem 0 .3rem; }
+.news-card .meta{ font-size:12px; color:#888; }
+
+footer{ background:var(--azul-agua); color:#fff; padding:2.5rem 0 1rem; font-size:14px; }
+footer h3{ font-size:15px; color:#fff; }
+footer a{ color:#dce8f5; text-decoration:none; }
+footer a:hover{ color:#fff; }
+.footer-bottom{ background:var(--verde-bosque); color:#e9f0e6; font-size:12.5px; padding:.6rem 0; }

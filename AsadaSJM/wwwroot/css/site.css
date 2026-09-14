@@ -1,0 +1,53 @@
+:root{
+  --azul-agua:#004A99;
+  --azul-agua-hover:#003977;
+  --verde-bosque:#2D5A27;
+  --blanco:#FFFFFF;
+  --gris-claro:#F5F5F5;
+  --gris-oscuro:#333333;
+}
+body{ font-family:'Roboto', sans-serif; color:var(--gris-oscuro); background:var(--gris-claro); }
+h1,h2,h3,.brand,.nav-link{ font-family:'Montserrat', sans-serif; }
+h1{ font-weight:700; font-size:30px; color:var(--azul-agua); }
+h2{ font-weight:600; font-size:22px; color:var(--verde-bosque); }
+
+/* Login */
+.login-wrapper{ min-height:100vh; display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(135deg, var(--azul-agua) 0%, #00305e 100%); }
+.login-card{ background:var(--blanco); border-radius:12px; width:100%; max-width:380px; padding:2.5rem;
+  box-shadow:0 20px 40px rgba(0,0,0,.25); }
+.login-card .icon-drop{ width:56px;height:56px;border-radius:50%; background:var(--azul-agua); color:#fff;
+  display:flex;align-items:center;justify-content:center; font-size:26px; margin:0 auto 1rem; }
+.btn-agua{ background:var(--azul-agua); color:#fff; font-weight:500; border:none; }
+.btn-agua:hover{ background:var(--azul-agua-hover); color:#fff; }
+
+/* Layout con sidebar */
+.sidebar{ background:var(--blanco); min-height:100vh; border-right:1px solid #e5e5e5; width:250px;
+  position:fixed; top:0; left:0; bottom:0; overflow-y:auto; }
+.sidebar .brand{ padding:1.25rem 1.25rem .75rem; font-weight:700; color:var(--azul-agua); font-size:19px;
+  display:flex; align-items:center; gap:.5rem; }
+.sidebar .nav-link{ color:var(--gris-oscuro); font-size:14.5px; font-weight:500; padding:.65rem 1.25rem;
+  display:flex; align-items:center; gap:.65rem; border-left:3px solid transparent; }
+.sidebar .nav-link i{ font-size:16px; color:#888; width:18px; }
+.sidebar .nav-link:hover{ background:var(--gris-claro); }
+.sidebar .nav-link.active{ background:#EAF1FA; color:var(--azul-agua); border-left:3px solid var(--azul-agua); font-weight:600; }
+.sidebar .nav-link.active i{ color:var(--azul-agua); }
+.main-content{ margin-left:250px; padding:1.75rem 2rem; }
+
+.topbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; }
+.role-badge{ background:var(--verde-bosque); color:#fff; font-size:12px; padding:.25rem .65rem; border-radius:20px; font-weight:500; }
+
+.stat-card{ background:var(--blanco); border-radius:10px; padding:1.25rem; border-left:4px solid var(--azul-agua);
+  box-shadow:0 1px 4px rgba(0,0,0,.06); }
+.stat-card.verde{ border-left-color:var(--verde-bosque); }
+.stat-card .num{ font-family:'Montserrat',sans-serif; font-weight:700; font-size:28px; color:var(--azul-agua); }
+.stat-card.verde .num{ color:var(--verde-bosque); }
+.stat-card .lbl{ font-size:13px; color:#666; }
+
+.panel{ background:var(--blanco); border-radius:10px; padding:1.25rem 1.5rem; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+table.table-asada thead th{ font-size:12.5px; text-transform:uppercase; color:#777; border-bottom:2px solid var(--gris-claro); font-weight:600; }
+table.table-asada td{ font-size:14px; vertical-align:middle; }
+.estado{ font-size:12px; padding:.25rem .6rem; border-radius:20px; font-weight:500; }
+.estado.pendiente{ background:#FFF3CD; color:#8a6d00; }
+.estado.proceso{ background:#DCEBFF; color:var(--azul-agua); }
+.estado.resuelto{ background:#E1F2DD; color:var(--verde-bosque); }
