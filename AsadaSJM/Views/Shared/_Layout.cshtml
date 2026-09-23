@@ -4,40 +4,134 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Sistema Web ASADA SJM</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet" />
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"
+          rel="stylesheet" />
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css"
+          rel="stylesheet" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Roboto:wght@400;500&display=swap"
+          rel="stylesheet" />
+
     <link rel="stylesheet" href="~/css/site.css" />
 </head>
+
 <body>
+
     <nav class="sidebar">
-        <div class="brand"><i class="bi bi-droplet-fill"></i> ASADA SJM</div>
-        <div class="nav flex-column">
-            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")" asp-controller="Home" asp-action="Index"><i class="bi bi-house-fill"></i> Inicio</a>
-            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Abonados" ? "active" : "")" asp-controller="Abonados" asp-action="Index"><i class="bi bi-people-fill"></i> Abonados</a>
-            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Averias" ? "active" : "")" asp-controller="Averias" asp-action="Index"><i class="bi bi-exclamation-triangle-fill"></i> Averías</a>
-            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Tramites" ? "active" : "")" asp-controller="Tramites" asp-action="Index"><i class="bi bi-file-earmark-text-fill"></i> Trámites</a>
-            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Documentos" ? "active" : "")" asp-controller="Documentos" asp-action="Index"><i class="bi bi-folder-fill"></i> Documentos</a>
-            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Recibos" ? "active" : "")" asp-controller="Recibos" asp-action="Index"><i class="bi bi-receipt"></i> Recibos</a>
-            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Usuarios" ? "active" : "")" asp-controller="Usuarios" asp-action="Index"><i class="bi bi-person-badge-fill"></i> Usuarios y roles</a>
-            <hr class="mx-3" />
-            <a class="nav-link" asp-controller="Account" asp-action="Login"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a>
+
+        <div class="brand">
+            <i class="bi bi-droplet-fill"></i>
+            ASADA SJM
         </div>
+
+        <div class="nav flex-column">
+
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")"
+               asp-controller="Home"
+               asp-action="Index">
+                <i class="bi bi-house-fill"></i>
+                Inicio
+            </a>
+
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Abonados" ? "active" : "")"
+               asp-controller="Abonados"
+               asp-action="Index">
+                <i class="bi bi-people-fill"></i>
+                Abonados
+            </a>
+
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Averias" ? "active" : "")"
+               asp-controller="Averias"
+               asp-action="Index">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                Averías
+            </a>
+
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Tramites" ? "active" : "")"
+               asp-controller="Tramites"
+               asp-action="Index">
+                <i class="bi bi-file-earmark-text-fill"></i>
+                Trámites
+            </a>
+
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Documentos" ? "active" : "")"
+               asp-controller="Documentos"
+               asp-action="Index">
+                <i class="bi bi-folder-fill"></i>
+                Documentos
+            </a>
+
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Recibos" ? "active" : "")"
+               asp-controller="Recibos"
+               asp-action="Index">
+                <i class="bi bi-receipt"></i>
+                Recibos
+            </a>
+
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Expresidentes" ? "active" : "")"
+               asp-controller="Expresidentes"
+               asp-action="Index">
+                <i class="bi bi-person-lines-fill"></i>
+                Presidentes
+            </a>
+
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Usuarios" ? "active" : "")"
+               asp-controller="Usuarios"
+               asp-action="Index">
+                <i class="bi bi-person-badge-fill"></i>
+                Usuarios y roles
+            </a>
+
+            <hr class="mx-3" />
+
+            <a class="nav-link"
+               asp-controller="Account"
+               asp-action="Login">
+                <i class="bi bi-box-arrow-right"></i>
+                Cerrar sesión
+            </a>
+
+        </div>
+
     </nav>
 
+
     <main class="main-content">
+
         <div class="topbar">
+
             <div>
-                <h1>@ViewData["Title"]</h1>
-                <div class="text-muted" style="font-size:14px;">Panel administrativo — ASADA San José de la Montaña</div>
+
+                <h1>
+                    @ViewData["Title"]
+                </h1>
+
+                <div class="text-muted"
+                     style="font-size:14px;">
+                    Panel administrativo — ASADA San José de la Montaña
+                </div>
+
             </div>
-            <div class="text-end"><span class="role-badge">Administrador</span></div>
+
+            <div class="text-end">
+                <span class="role-badge">
+                    Administrador
+                </span>
+            </div>
+
         </div>
 
         @RenderBody()
+
     </main>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js">
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
+
 </body>
 </html>

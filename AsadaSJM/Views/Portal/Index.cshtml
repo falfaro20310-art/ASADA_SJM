@@ -1,175 +1,513 @@
 @{
     Layout = null;
     ViewData["Title"] = "ASADA San José de la Montaña";
+
+    var informacionContacto =
+        ViewBag.InformacionContacto as AsadaSJM.Models.InformacionInstitucional;
 }
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ASADA San José de la Montaña</title>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="~/css/portal.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASADA San José de la Montaña</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/portal.css">
 </head>
 <body>
 
-<!-- HEADER -->
-<nav class="navbar navbar-expand-lg navbar-asada">
-  <div class="container">
-    <a class="navbar-brand d-flex align-items-center gap-2" href="#">
-      <i class="bi bi-droplet-fill" style="font-size:26px;color:var(--azul-agua);"></i>
-      <span class="brand">ASADA<small>San José de la Montaña</small></span>
-    </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse justify-content-end" id="navMenu">
-      <ul class="navbar-nav gap-lg-3">
-        <li class="nav-item"><a class="nav-link active" href="#">Inicio</a></li>
-        <li class="nav-item"><a class="nav-link" href="#institucional">Nuestra ASADA</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Transparencia</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Servicios</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Ambiente y Comunidad</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Galería</a></li>
-        <li class="nav-item"><a class="nav-link" href="#contacto">Contacto</a></li>
-        <li class="nav-item"><a asp-controller="Account" asp-action="Login" class="nav-link">Ingresar</a></li>
-      </ul>
-    </div>
-  </div>
-</nav>
+    <!-- HEADER -->
+    <nav class="navbar navbar-expand-lg navbar-asada">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+                <i class="bi bi-droplet-fill" style="font-size:26px;color:var(--azul-agua);"></i>
+                <span class="brand">ASADA<small>San José de la Montaña</small></span>
+            </a>
 
-<!-- HERO -->
-<header class="hero">
-  <div class="container">
-    <h1>Transparencia, servicio y<br>compromiso con el agua</h1>
-    <p class="mb-4">Trabajamos cada día para garantizar agua potable de calidad, protegiendo nuestras fuentes y fortaleciendo nuestra comunidad.</p>
-    <a asp-controller="Recibos" asp-action="Index" class="btn btn-agua px-3 py-2 me-2"><i class="bi bi-receipt me-1"></i> Consultar recibos</a>
-    <a asp-controller="Averias" asp-action="Index" class="btn btn-verde px-3 py-2"><i class="bi bi-tools me-1"></i> Reportar avería</a>
-  </div>
-</header>
+            <button class="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-<!-- PORTAL INSTITUCIONAL -->
-<section class="section" id="institucional">
-  <div class="container">
-    <h2 class="section-title mb-1">Portal Institucional</h2>
-    <p class="text-muted mb-4" style="font-size:14px;">Conozca quiénes somos, nuestra historia, misión, visión y estructura organizacional.</p>
-    <div class="row g-3">
-      <div class="col-md-3">
-        <div class="card-inst">
-          <div class="icon-circle"><i class="bi bi-book-fill"></i></div>
-          <h3>Historia</h3>
-          <p>La ASADA San José de la Montaña fue fundada en 1992 por el esfuerzo de vecinos comprometidos con el bien común y el acceso al agua potable.</p>
-          <a href="#">Leer más →</a>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card-inst">
-          <div class="icon-circle"><i class="bi bi-bullseye"></i></div>
-          <h3>Misión</h3>
-          <p>Somos una organización comunitaria que administra el servicio de agua potable con eficiencia, responsabilidad y transparencia.</p>
-          <a href="#">Leer más →</a>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card-inst">
-          <div class="icon-circle"><i class="bi bi-eye-fill"></i></div>
-          <h3>Visión</h3>
-          <p>Ser una ASADA modelo en gestión comunitaria del agua, reconocida por la calidad del servicio y el compromiso ambiental.</p>
-          <a href="#">Leer más →</a>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card-inst">
-          <div class="icon-circle"><i class="bi bi-diagram-3-fill"></i></div>
-          <h3>Organigrama</h3>
-          <p>Nuestra estructura organizacional asegura una gestión participativa, transparente y enfocada en el servicio a la comunidad.</p>
-          <a href="#">Ver organigrama →</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+            <div class="collapse navbar-collapse justify-content-end"
+                 id="navMenu">
 
-<!-- NOTICIAS -->
-<section class="section" style="background:var(--gris-claro);">
-  <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h2 class="section-title mb-0">Noticias y Avisos</h2>
-      <a href="#" style="font-size:13.5px;color:var(--azul-agua);text-decoration:none;">Ver todas las noticias →</a>
-    </div>
-    <div class="row g-3">
-      <div class="col-md-4">
-        <div class="news-card bg-white">
-          <div style="height:130px;background:linear-gradient(135deg,#7a9c7a,#3f6b8f);"></div>
-          <div class="body">
-            <span class="badge-tag badge-aviso">Aviso</span>
-            <div class="meta mt-2">20 de mayo de 2024</div>
-            <h3>Mantenimiento programado en el sistema de distribución</h3>
-            <a href="#" style="font-size:13px;color:var(--azul-agua);text-decoration:none;">Leer más →</a>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="news-card bg-white">
-          <div style="height:130px;background:linear-gradient(135deg,#3f6b8f,#004A99);"></div>
-          <div class="body">
-            <span class="badge-tag badge-info">Información</span>
-            <div class="meta mt-2">15 de mayo de 2024</div>
-            <h3>Resultados de calidad del agua — Abril 2024</h3>
-            <a href="#" style="font-size:13px;color:var(--azul-agua);text-decoration:none;">Leer más →</a>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="news-card bg-white">
-          <div style="height:130px;background:linear-gradient(135deg,#2D5A27,#5a8c52);"></div>
-          <div class="body">
-            <span class="badge-tag badge-comunidad">Comunidad</span>
-            <div class="meta mt-2">5 de mayo de 2024</div>
-            <h3>Jornada de reforestación en la microcuenca</h3>
-            <a href="#" style="font-size:13px;color:var(--azul-agua);text-decoration:none;">Leer más →</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+                <ul class="navbar-nav gap-lg-3">
 
-<!-- FOOTER -->
-<footer id="contacto">
-  <div class="container">
-    <div class="row g-4">
-      <div class="col-md-3">
-        <div class="d-flex align-items-center gap-2 mb-2">
-          <i class="bi bi-droplet-fill" style="font-size:22px;"></i>
-          <strong>ASADA<br><small style="font-weight:400;">San José de la Montaña</small></strong>
-        </div>
-        <p style="font-size:13px;">Transparencia, servicio y compromiso con el agua.</p>
-      </div>
-      <div class="col-md-3">
-        <h3>Contacto</h3>
-        <p class="mb-1"><i class="bi bi-telephone-fill me-1"></i> 2450-1234</p>
-        <p class="mb-1"><i class="bi bi-envelope-fill me-1"></i> info@asadasjm.cr</p>
-        <p class="mb-0"><i class="bi bi-geo-alt-fill me-1"></i> San José de la Montaña, Heredia, Costa Rica</p>
-      </div>
-      <div class="col-md-3">
-        <h3>Horario de atención</h3>
-        <p class="mb-1">Lunes a viernes<br>7:30 a.m. – 3:30 p.m.</p>
-        <p class="mb-0">Jornada continua</p>
-      </div>
-      <div class="col-md-3">
-        <h3>Enlaces rápidos</h3>
-        <p class="mb-1"><a asp-controller="Recibos" asp-action="Index">Consultar recibos</a></p>
-        <p class="mb-1"><a asp-controller="Averias" asp-action="Index">Reportar avería</a></p>
-        <p class="mb-0"><a href="#">Reglamentos y tarifas</a></p>
-      </div>
-    </div>
-  </div>
-</footer>
-<div class="footer-bottom text-center">© 2026 ASADA San José de la Montaña. Todos los derechos reservados.</div>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">
+                            Inicio
+                        </a>
+                    </li>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#institucional">
+                            Nuestra ASADA
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            Transparencia
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            Servicios
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            Ambiente y Comunidad
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            Galería
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contacto">
+                            Contacto
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a asp-controller="Account"
+                           asp-action="Login"
+                           class="nav-link">
+                            Ingresar
+                        </a>
+                    </li>
+
+                </ul>
+
+            </div>
+        </div>
+    </nav>
+
+
+    <!-- HERO -->
+    <header class="hero">
+        <div class="container">
+
+            <h1>
+                Transparencia, servicio y<br>
+                compromiso con el agua
+            </h1>
+
+            <p class="mb-4">
+                Trabajamos cada día para garantizar agua potable de calidad,
+                protegiendo nuestras fuentes y fortaleciendo nuestra comunidad.
+            </p>
+
+            <a asp-controller="Recibos"
+               asp-action="Index"
+               class="btn btn-agua px-3 py-2 me-2">
+
+                <i class="bi bi-receipt me-1"></i>
+                Consultar recibos
+            </a>
+
+            <a asp-controller="Averias"
+               asp-action="Index"
+               class="btn btn-verde px-3 py-2">
+
+                <i class="bi bi-tools me-1"></i>
+                Reportar avería
+            </a>
+
+        </div>
+    </header>
+
+
+    <!-- PORTAL INSTITUCIONAL -->
+    <section class="section" id="institucional">
+        <div class="container">
+
+            <h2 class="section-title mb-1">
+                Portal Institucional
+            </h2>
+
+            <p class="text-muted mb-4"
+               style="font-size:14px;">
+                Conozca quiénes somos, nuestra historia, misión, visión y estructura organizacional.
+            </p>
+
+            <div class="row g-3">
+
+                <div class="col-md-3">
+                    <div class="card-inst">
+
+                        <div class="icon-circle">
+                            <i class="bi bi-book-fill"></i>
+                        </div>
+
+                        <h3>Historia</h3>
+
+                        <p>
+                            La ASADA San José de la Montaña fue fundada en 1992 por el esfuerzo de vecinos comprometidos con el bien común y el acceso al agua potable.
+                        </p>
+
+                        <a href="#">
+                            Leer más →
+                        </a>
+
+                    </div>
+                </div>
+
+
+                <div class="col-md-3">
+                    <div class="card-inst">
+
+                        <div class="icon-circle">
+                            <i class="bi bi-bullseye"></i>
+                        </div>
+
+                        <h3>Misión</h3>
+
+                        <p>
+                            Somos una organización comunitaria que administra el servicio de agua potable con eficiencia, responsabilidad y transparencia.
+                        </p>
+
+                        <a href="#">
+                            Leer más →
+                        </a>
+
+                    </div>
+                </div>
+
+
+                <div class="col-md-3">
+                    <div class="card-inst">
+
+                        <div class="icon-circle">
+                            <i class="bi bi-eye-fill"></i>
+                        </div>
+
+                        <h3>Visión</h3>
+
+                        <p>
+                            Ser una ASADA modelo en gestión comunitaria del agua, reconocida por la calidad del servicio y el compromiso ambiental.
+                        </p>
+
+                        <a href="#">
+                            Leer más →
+                        </a>
+
+                    </div>
+                </div>
+
+
+                <div class="col-md-3">
+                    <div class="card-inst">
+
+                        <div class="icon-circle">
+                            <i class="bi bi-diagram-3-fill"></i>
+                        </div>
+
+                        <h3>Organigrama</h3>
+
+                        <p>
+                            Nuestra estructura organizacional asegura una gestión participativa, transparente y enfocada en el servicio a la comunidad.
+                        </p>
+
+                        <a href="#">
+                            Ver organigrama →
+                        </a>
+
+                        <br>
+
+                        <a asp-controller="Portal"
+                           asp-action="Presidentes">
+                            Ver presidentes →
+                        </a>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- NOTICIAS -->
+    <section class="section"
+             style="background:var(--gris-claro);">
+
+        <div class="container">
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+
+                <h2 class="section-title mb-0">
+                    Noticias y Avisos
+                </h2>
+
+                <a href="#"
+                   style="font-size:13.5px;color:var(--azul-agua);text-decoration:none;">
+                    Ver todas las noticias →
+                </a>
+
+            </div>
+
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+
+                    <div class="news-card bg-white">
+
+                        <div style="height:130px;background:linear-gradient(135deg,#7a9c7a,#3f6b8f);">
+                        </div>
+
+                        <div class="body">
+
+                            <span class="badge-tag badge-aviso">
+                                Aviso
+                            </span>
+
+                            <div class="meta mt-2">
+                                20 de mayo de 2024
+                            </div>
+
+                            <h3>
+                                Mantenimiento programado en el sistema de distribución
+                            </h3>
+
+                            <a href="#"
+                               style="font-size:13px;color:var(--azul-agua);text-decoration:none;">
+                                Leer más →
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <div class="news-card bg-white">
+
+                        <div style="height:130px;background:linear-gradient(135deg,#3f6b8f,#004A99);">
+                        </div>
+
+                        <div class="body">
+
+                            <span class="badge-tag badge-info">
+                                Información
+                            </span>
+
+                            <div class="meta mt-2">
+                                15 de mayo de 2024
+                            </div>
+
+                            <h3>
+                                Resultados de calidad del agua — Abril 2024
+                            </h3>
+
+                            <a href="#"
+                               style="font-size:13px;color:var(--azul-agua);text-decoration:none;">
+                                Leer más →
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <div class="news-card bg-white">
+
+                        <div style="height:130px;background:linear-gradient(135deg,#2D5A27,#5a8c52);">
+                        </div>
+
+                        <div class="body">
+
+                            <span class="badge-tag badge-comunidad">
+                                Comunidad
+                            </span>
+
+                            <div class="meta mt-2">
+                                5 de mayo de 2024
+                            </div>
+
+                            <h3>
+                                Jornada de reforestación en la microcuenca
+                            </h3>
+
+                            <a href="#"
+                               style="font-size:13px;color:var(--azul-agua);text-decoration:none;">
+                                Leer más →
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- FOOTER -->
+    <footer id="contacto">
+
+        <div class="container">
+
+            <div class="row g-4">
+
+
+                <div class="col-md-3">
+
+                    <div class="d-flex align-items-center gap-2 mb-2">
+
+                        <i class="bi bi-droplet-fill"
+                           style="font-size:22px;"></i>
+
+                        <strong>
+                            ASADA<br>
+                            <small style="font-weight:400;">
+                                San José de la Montaña
+                            </small>
+                        </strong>
+
+                    </div>
+
+                    <p style="font-size:13px;">
+                        Transparencia, servicio y compromiso con el agua.
+                    </p>
+
+                </div>
+
+
+                <!-- CONTACTO -->
+                <div class="col-md-3">
+
+                    <h3>Contacto</h3>
+
+                    @if (informacionContacto != null)
+                    {
+                        @if (!string.IsNullOrWhiteSpace(informacionContacto.Telefono))
+                        {
+                            <p class="mb-1">
+                                <i class="bi bi-telephone-fill me-1"></i>
+                                @informacionContacto.Telefono
+                            </p>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(informacionContacto.Correo))
+                        {
+                            <p class="mb-1">
+                                <i class="bi bi-envelope-fill me-1"></i>
+                                @informacionContacto.Correo
+                            </p>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(informacionContacto.Direccion))
+                        {
+                            <p class="mb-0">
+                                <i class="bi bi-geo-alt-fill me-1"></i>
+                                @informacionContacto.Direccion
+                            </p>
+                        }
+                    }
+                    else
+                    {
+                        <p class="mb-0">
+                            Información de contacto no disponible.
+                        </p>
+                    }
+
+                </div>
+
+
+                <!-- HORARIO -->
+                <div class="col-md-3">
+
+                    <h3>Horario de atención</h3>
+
+                    @if (informacionContacto != null &&
+                         !string.IsNullOrWhiteSpace(informacionContacto.Horario))
+                    {
+                        <p class="mb-0">
+                            @informacionContacto.Horario
+                        </p>
+                    }
+                    else
+                    {
+                        <p class="mb-0">
+                            Horario no disponible.
+                        </p>
+                    }
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <h3>Enlaces rápidos</h3>
+
+                    <p class="mb-1">
+
+                        <a asp-controller="Recibos"
+                           asp-action="Index">
+                            Consultar recibos
+                        </a>
+
+                    </p>
+
+                    <p class="mb-1">
+
+                        <a asp-controller="Averias"
+                           asp-action="Index">
+                            Reportar avería
+                        </a>
+
+                    </p>
+
+                    <p class="mb-0">
+
+                        <a href="#">
+                            Reglamentos y tarifas
+                        </a>
+
+                    </p>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+    </footer>
+
+
+    <div class="footer-bottom text-center">
+        © 2026 ASADA San José de la Montaña. Todos los derechos reservados.
+    </div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js">
+    </script>
+
 </body>
 </html>

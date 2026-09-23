@@ -1,0 +1,410 @@
+﻿@model IEnumerable<AsadaSJM.Models.Expresidente>
+
+@{
+    Layout = null;
+    ViewData["Title"] = "Presidentes - ASADA San José de la Montaña";
+
+    var presidenteActual = ViewBag.PresidenteActual as AsadaSJM.Models.Expresidente;
+    var expresidentes = Model?.ToList() ?? new List<AsadaSJM.Models.Expresidente>();
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Presidentes - ASADA San José de la Montaña</title>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css"
+          rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Roboto:wght@400;500&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet" href="~/css/portal.css">
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <nav class="navbar navbar-expand-lg navbar-asada">
+        <div class="container">
+
+            <a class="navbar-brand d-flex align-items-center gap-2"
+               asp-controller="Portal"
+               asp-action="Index">
+
+                <i class="bi bi-droplet-fill"
+                   style="font-size:26px;color:var(--azul-agua);"></i>
+
+                <span class="brand">
+                    ASADA
+                    <small>San José de la Montaña</small>
+                </span>
+            </a>
+
+            <button class="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navMenu">
+
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse justify-content-end"
+                 id="navMenu">
+
+                <ul class="navbar-nav gap-lg-3">
+
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           asp-controller="Portal"
+                           asp-action="Index">
+                            Inicio
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link active"
+                           asp-controller="Portal"
+                           asp-action="Presidentes">
+                            Nuestra ASADA
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            Transparencia
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            Servicios
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            Ambiente y Comunidad
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            Galería
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           asp-controller="Portal"
+                           asp-action="Index"
+                           asp-fragment="contacto">
+                            Contacto
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a asp-controller="Account"
+                           asp-action="Login"
+                           class="nav-link">
+                            Ingresar
+                        </a>
+                    </li>
+
+                </ul>
+
+            </div>
+        </div>
+    </nav>
+
+
+    <!-- PRESIDENTES -->
+    <section class="section">
+        <div class="container">
+
+            <h2 class="section-title mb-1">
+                Presidentes de la ASADA
+            </h2>
+
+            <p class="text-muted mb-4"
+               style="font-size:14px;">
+                Conozca al presidente actual y a quienes han formado parte de la historia institucional de la ASADA San José de la Montaña.
+            </p>
+
+
+            <!-- PRESIDENTE ACTUAL -->
+            @if (presidenteActual != null)
+            {
+                <div class="mb-5">
+
+                    <h2 class="section-title mb-3">
+                        Presidente actual
+                    </h2>
+
+                    <div class="row">
+
+                        <div class="col-lg-8">
+
+                            <div class="card-inst">
+
+                                <div class="row g-3 align-items-center">
+
+                                    @if (!string.IsNullOrWhiteSpace(presidenteActual.Imagen))
+                                    {
+                                        <div class="col-md-4">
+
+                                            <img src="@presidenteActual.Imagen"
+                                                 alt="@presidenteActual.Nombre"
+                                                 class="img-fluid rounded">
+                                        </div>
+                                    }
+
+                                    <div class="@(string.IsNullOrWhiteSpace(presidenteActual.Imagen) ? "col-12" : "col-md-8")">
+
+                                        <div class="icon-circle">
+                                            <i class="bi bi-person-fill"></i>
+                                        </div>
+
+                                        <h3>
+                                            @presidenteActual.Nombre
+                                        </h3>
+
+                                        @if (!string.IsNullOrWhiteSpace(presidenteActual.Trayectoria))
+                                        {
+                                            <p class="mb-2">
+                                                <strong>Trayectoria</strong>
+                                            </p>
+
+                                            <p>
+                                                @presidenteActual.Trayectoria
+                                            </p>
+                                        }
+
+                                        @if (!string.IsNullOrWhiteSpace(presidenteActual.Proyectos))
+                                        {
+                                            <p class="mb-2">
+                                                <strong>Proyectos</strong>
+                                            </p>
+
+                                            <p class="mb-0">
+                                                @presidenteActual.Proyectos
+                                            </p>
+                                        }
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+
+            <!-- EXPRESIDENTES -->
+            @if (expresidentes.Any())
+            {
+                <div>
+
+                    <h2 class="section-title mb-3">
+                        Expresidentes
+                    </h2>
+
+                    <div class="row g-3">
+
+                        @foreach (var expresidente in expresidentes)
+                        {
+                            <div class="col-md-6 col-lg-4">
+
+                                <div class="card-inst">
+
+                                    @if (!string.IsNullOrWhiteSpace(expresidente.Imagen))
+                                    {
+                                        <img src="@expresidente.Imagen"
+                                             alt="@expresidente.Nombre"
+                                             class="img-fluid rounded mb-3">
+                                    }
+
+                                    <div class="icon-circle">
+                                        <i class="bi bi-person-fill"></i>
+                                    </div>
+
+                                    <h3>
+                                        @expresidente.Nombre
+                                    </h3>
+
+                                    @if (!string.IsNullOrWhiteSpace(expresidente.Trayectoria))
+                                    {
+                                        <p class="mb-2">
+                                            <strong>Trayectoria</strong>
+                                        </p>
+
+                                        <p>
+                                            @expresidente.Trayectoria
+                                        </p>
+                                    }
+
+                                    @if (!string.IsNullOrWhiteSpace(expresidente.Proyectos))
+                                    {
+                                        <p class="mb-2">
+                                            <strong>Proyectos</strong>
+                                        </p>
+
+                                        <p class="mb-0">
+                                            @expresidente.Proyectos
+                                        </p>
+                                    }
+
+                                </div>
+
+                            </div>
+                        }
+
+                    </div>
+
+                </div>
+            }
+
+
+            <!-- SIN INFORMACIÓN -->
+            @if (presidenteActual == null && !expresidentes.Any())
+            {
+                <div class="card-inst">
+
+                    <div class="icon-circle">
+                        <i class="bi bi-info-circle-fill"></i>
+                    </div>
+
+                    <h3>
+                        Información no disponible
+                    </h3>
+
+                    <p class="mb-0">
+                        No existen registros de presidentes disponibles en este momento.
+                    </p>
+
+                </div>
+            }
+
+        </div>
+    </section>
+
+
+    <!-- FOOTER -->
+    <footer id="contacto">
+        <div class="container">
+
+            <div class="row g-4">
+
+                <div class="col-md-3">
+
+                    <div class="d-flex align-items-center gap-2 mb-2">
+
+                        <i class="bi bi-droplet-fill"
+                           style="font-size:22px;"></i>
+
+                        <strong>
+                            ASADA<br>
+                            <small style="font-weight:400;">
+                                San José de la Montaña
+                            </small>
+                        </strong>
+
+                    </div>
+
+                    <p style="font-size:13px;">
+                        Transparencia, servicio y compromiso con el agua.
+                    </p>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <h3>Contacto</h3>
+
+                    <p class="mb-1">
+                        <i class="bi bi-telephone-fill me-1"></i>
+                        2450-1234
+                    </p>
+
+                    <p class="mb-1">
+                        <i class="bi bi-envelope-fill me-1"></i>
+                        info@asadasjm.cr
+                    </p>
+
+                    <p class="mb-0">
+                        <i class="bi bi-geo-alt-fill me-1"></i>
+                        San José de la Montaña, Heredia, Costa Rica
+                    </p>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <h3>Horario de atención</h3>
+
+                    <p class="mb-1">
+                        Lunes a viernes<br>
+                        7:30 a.m. – 3:30 p.m.
+                    </p>
+
+                    <p class="mb-0">
+                        Jornada continua
+                    </p>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <h3>Enlaces rápidos</h3>
+
+                    <p class="mb-1">
+                        <a asp-controller="Recibos"
+                           asp-action="Index">
+                            Consultar recibos
+                        </a>
+                    </p>
+
+                    <p class="mb-1">
+                        <a asp-controller="Averias"
+                           asp-action="Index">
+                            Reportar avería
+                        </a>
+                    </p>
+
+                    <p class="mb-0">
+                        <a href="#">
+                            Reglamentos y tarifas
+                        </a>
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+    </footer>
+
+
+    <div class="footer-bottom text-center">
+        © 2026 ASADA San José de la Montaña. Todos los derechos reservados.
+    </div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
