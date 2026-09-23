@@ -32,7 +32,18 @@
                 </div>
                 <button type="submit" class="btn btn-agua w-100 py-2 mt-2">Iniciar sesión</button>
             </form>
-            <p class="text-center text-muted mt-3 mb-0" style="font-size:12px;">Conexión segura HTTPS</p>
+
+            <p class="text-center text-muted mt-3 mb-0" style="font-size:12px;">
+                Conexión segura HTTPS
+            </p>
+
+            <p class="text-center mt-3 mb-0" style="font-size:13px;">
+                ¿No tienes una cuenta?
+                <a asp-controller="Account"
+                   asp-action="Registro">
+                    Crear cuenta
+                </a>
+            </p>
         </div>
     </div>
 </body>
