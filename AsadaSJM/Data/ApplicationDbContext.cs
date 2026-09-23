@@ -18,6 +18,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Documento> Documentos => Set<Documento>();
     public DbSet<Recibo> Recibos => Set<Recibo>();
     public DbSet<Bitacora> Bitacoras => Set<Bitacora>();
+    public DbSet<Expresidente> Expresidentes => Set<Expresidente>();
+    public DbSet<InformacionInstitucional> InformacionInstitucional => Set<InformacionInstitucional>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -50,6 +52,12 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<Bitacora>()
             .ToTable("BITACORA");
+
+        modelBuilder.Entity<Expresidente>()
+            .ToTable("EXPRESIDENTE");
+
+        modelBuilder.Entity<InformacionInstitucional>()
+            .ToTable("INFORMACION_INSTITUCIONAL");
 
 
         // =====================================================

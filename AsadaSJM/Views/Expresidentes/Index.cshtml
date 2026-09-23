@@ -1,0 +1,132 @@
+﻿@model List<AsadaSJM.Models.Expresidente>
+
+@{
+    ViewData["Title"] = "Presidentes";
+}
+
+<div class="panel">
+
+    <div class="d-flex justify-content-end mb-3">
+
+        <a asp-action="Create"
+           class="btn btn-agua">
+
+            <i class="bi bi-plus-lg"></i>
+            Registrar presidente
+
+        </a>
+
+    </div>
+
+    <div class="table-responsive">
+
+        <table class="table table-asada mb-0">
+
+            <thead>
+
+                <tr>
+                    <th>Nombre</th>
+                    <th>Trayectoria</th>
+                    <th>Proyectos</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                @if (Model.Count > 0)
+                {
+                    @foreach (var presidente in Model)
+                    {
+                        <tr>
+
+                            <td>
+                                @presidente.Nombre
+                            </td>
+
+                            <td>
+                                @(string.IsNullOrWhiteSpace(presidente.Trayectoria)
+                                    ? "No registrado"
+                                    : presidente.Trayectoria)
+                            </td>
+
+                            <td>
+                                @(string.IsNullOrWhiteSpace(presidente.Proyectos)
+                                    ? "No registrado"
+                                    : presidente.Proyectos)
+                            </td>
+
+                            <td>
+
+                                @if (presidente.Estado)
+                                {
+                                    <span>
+                                        Presidente actual
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span>
+                                        Expresidente
+                                    </span>
+                                }
+
+                            </td>
+
+                            <td>
+
+                                <div class="d-flex gap-2">
+
+                                    <a asp-action="Edit"
+                                       asp-route-id="@presidente.IdExpresidente"
+                                       title="Editar">
+
+                                        <i class="bi bi-pencil-square"></i>
+
+                                    </a>
+
+                                    <form asp-action="Delete"
+                                          asp-route-id="@presidente.IdExpresidente"
+                                          method="post"
+                                          onsubmit="return confirm('¿Está seguro de que desea eliminar este presidente?');">
+
+                                        <button type="submit"
+                                                class="btn btn-link p-0 border-0"
+                                                title="Eliminar">
+
+                                            <i class="bi bi-trash"></i>
+
+                                        </button>
+
+                                    </form>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+
+                        <td colspan="5"
+                            class="text-center">
+
+                            No existen presidentes registrados.
+
+                        </td>
+
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
