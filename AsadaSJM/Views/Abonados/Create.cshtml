@@ -1,26 +1,112 @@
-@model Abonado
-@{ ViewData["Title"] = "Registrar abonado"; }
+@model AsadaSJM.Models.Abonado
+
+@{
+    ViewData["Title"] = "Registrar abonado";
+}
 
 <div class="panel" style="max-width:520px;">
     <form asp-action="Create" method="post">
+
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
         <div class="mb-3">
-            <label class="form-label" asp-for="Nombre">Nombre</label>
-            <input asp-for="Nombre" class="form-control" required />
+            <label class="form-label" asp-for="IdUsuario">
+                Usuario
+            </label>
+            <input asp-for="IdUsuario"
+                   class="form-control"
+                   type="number"
+                   required />
+            <span asp-validation-for="IdUsuario"
+                  class="text-danger"></span>
         </div>
+
         <div class="mb-3">
-            <label class="form-label" asp-for="Direccion">Dirección</label>
-            <input asp-for="Direccion" class="form-control" required />
+            <label class="form-label" asp-for="NIS">
+                NIS
+            </label>
+            <input asp-for="NIS"
+                   class="form-control"
+                   required />
+            <span asp-validation-for="NIS"
+                  class="text-danger"></span>
         </div>
+
         <div class="mb-3">
-            <label class="form-label" asp-for="NumeroMedidor">N° de medidor</label>
-            <input asp-for="NumeroMedidor" class="form-control" required />
+            <label class="form-label" asp-for="NumeroPaja">
+                Número de paja
+            </label>
+            <input asp-for="NumeroPaja"
+                   class="form-control"
+                   required />
+            <span asp-validation-for="NumeroPaja"
+                  class="text-danger"></span>
         </div>
-        <div class="form-check mb-3">
-            <input asp-for="Activo" class="form-check-input" checked />
-            <label class="form-check-label" asp-for="Activo">Activo</label>
+
+        <div class="mb-3">
+            <label class="form-label" asp-for="NumeroFinca">
+                Número de finca
+            </label>
+            <input asp-for="NumeroFinca"
+                   class="form-control" />
+            <span asp-validation-for="NumeroFinca"
+                  class="text-danger"></span>
         </div>
-        <button type="submit" class="btn btn-agua">Guardar</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+
+        <div class="mb-3">
+            <label class="form-label" asp-for="NumeroPlano">
+                Número de plano
+            </label>
+            <input asp-for="NumeroPlano"
+                   class="form-control" />
+            <span asp-validation-for="NumeroPlano"
+                  class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" asp-for="Direccion">
+                Dirección
+            </label>
+            <textarea asp-for="Direccion"
+                      class="form-control"
+                      rows="3"
+                      required></textarea>
+            <span asp-validation-for="Direccion"
+                  class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" asp-for="IdTarifa">
+                Tarifa
+            </label>
+            <input asp-for="IdTarifa"
+                   class="form-control"
+                   type="number"
+                   required />
+            <span asp-validation-for="IdTarifa"
+                  class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" asp-for="IdSector">
+                Sector
+            </label>
+            <input asp-for="IdSector"
+                   class="form-control"
+                   type="number"
+                   required />
+            <span asp-validation-for="IdSector"
+                  class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-agua">
+            Guardar
+        </button>
+
+        <a asp-action="Index"
+           class="btn btn-outline-secondary">
+            Cancelar
+        </a>
+
     </form>
 </div>

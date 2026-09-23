@@ -5,7 +5,10 @@ namespace AsadaSJM.Data;
 
 public class ApplicationDbContext : DbContext
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        : base(options)
+    {
+    }
 
     public DbSet<Rol> Roles => Set<Rol>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
@@ -20,52 +23,76 @@ public class ApplicationDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Evitar múltiples cascadas conflictivas en Averia/Tramite -> Usuario
+        // =====================================================
+        // TABLAS REALES DE ASADA_SJM
+        // =====================================================
+
+        modelBuilder.Entity<Rol>()
+            .ToTable("AspNetRoles");
+
+        modelBuilder.Entity<Usuario>()
+            .ToTable("USUARIO");
+
+        modelBuilder.Entity<Abonado>()
+            .ToTable("ABONADO");
+
         modelBuilder.Entity<Averia>()
-            .HasOne(a => a.Responsable)
-            .WithMany()
-            .HasForeignKey(a => a.IdUsuario)
-            .OnDelete(DeleteBehavior.SetNull);
+            .ToTable("AVERIA");
 
         modelBuilder.Entity<Tramite>()
-            .HasOne(t => t.Gestor)
+            .ToTable("TRAMITE");
+
+        modelBuilder.Entity<Documento>()
+            .ToTable("TRAMITE_DOCUMENTO");
+
+        modelBuilder.Entity<Recibo>()
+            .ToTable("RECIBO");
+
+        modelBuilder.Entity<Bitacora>()
+            .ToTable("BITACORA");
+
+
+        // =====================================================
+        // RELACIÓN ABONADO -> AVERIA
+        // =====================================================
+
+        modelBuilder.Entity<Averia>()
+            .HasOne(a => a.Abonado)
+            .WithMany(a => a.Averias)
+            .HasForeignKey(a => a.IdAbonado)
+            .OnDelete(DeleteBehavior.Restrict);
+
+
+        // =====================================================
+        // RELACIÓN USUARIO -> AVERIA
+        // =====================================================
+
+        modelBuilder.Entity<Averia>()
+            .HasOne(a => a.UsuarioReporta)
             .WithMany()
-            .HasForeignKey(t => t.IdUsuario)
-            .OnDelete(DeleteBehavior.SetNull);
+            .HasForeignKey(a => a.IdUsuarioReporta)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        // ---------- Datos semilla ----------
-        modelBuilder.Entity<Rol>().HasData(
-            new Rol { IdRol = 1, NombreRol = "Administrador" },
-            new Rol { IdRol = 2, NombreRol = "Operativo" },
-            new Rol { IdRol = 3, NombreRol = "Abonado" }
-        );
 
-        modelBuilder.Entity<Usuario>().HasData(
-            new Usuario { IdUsuario = 1, Nombre = "P. Jiménez", Correo = "pjimenez@asadasjm.cr", ContrasenaHash = "temporal", IdRol = 1 },
-            new Usuario { IdUsuario = 2, Nombre = "C. Mora", Correo = "cmora@asadasjm.cr", ContrasenaHash = "temporal", IdRol = 2 }
-        );
+        // =====================================================
+        // RELACIONES DE TRAMITE
+        // =====================================================
 
-        modelBuilder.Entity<Abonado>().HasData(
-            new Abonado { IdAbonado = 1, Nombre = "María Vargas", Direccion = "Calle Los Robles", NumeroMedidor = "MED-0231" },
-            new Abonado { IdAbonado = 2, Nombre = "Juan Rojas", Direccion = "Barrio Central", NumeroMedidor = "MED-0198" },
-            new Abonado { IdAbonado = 3, Nombre = "Lucía Solano", Direccion = "Calle La Montaña", NumeroMedidor = "MED-0177", Activo = false }
-        );
+        modelBuilder.Entity<Tramite>()
+            .HasOne(t => t.Abonado)
+            .WithMany(a => a.Tramites)
+            .HasForeignKey(t => t.IdAbonado)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<Averia>().HasData(
-            new Averia { IdAveria = 1, IdAbonado = 1, Descripcion = "Fuga en tubería principal", Estado = "Pendiente" },
-            new Averia { IdAveria = 2, IdAbonado = 2, IdUsuario = 2, Descripcion = "Baja presión de agua", Estado = "En proceso" },
-            new Averia { IdAveria = 3, IdAbonado = 3, IdUsuario = 2, Descripcion = "Medidor dañado", Estado = "Resuelto" }
-        );
 
-        modelBuilder.Entity<Tramite>().HasData(
-            new Tramite { IdTramite = 1, IdAbonado = 1, TipoTramite = "Cambio de titular", Estado = "Pendiente" },
-            new Tramite { IdTramite = 2, IdAbonado = 2, TipoTramite = "Solicitud de conexión", Estado = "En revisión" },
-            new Tramite { IdTramite = 3, IdAbonado = 3, TipoTramite = "Reclamo de facturación", Estado = "Aprobado" }
-        );
+        // =====================================================
+        // RELACIÓN RECIBO -> ABONADO
+        // =====================================================
 
-        modelBuilder.Entity<Recibo>().HasData(
-            new Recibo { IdRecibo = 1, IdAbonado = 1, Monto = 6450 },
-            new Recibo { IdRecibo = 2, IdAbonado = 2, Monto = 5120 }
-        );
+        modelBuilder.Entity<Recibo>()
+            .HasOne(r => r.Abonado)
+            .WithMany(a => a.Recibos)
+            .HasForeignKey(r => r.IdAbonado)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

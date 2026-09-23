@@ -1,23 +1,111 @@
-@model List<Averia>
-@{ ViewData["Title"] = "Averías"; }
+@model List<AsadaSJM.Models.Averia>
+
+@{
+    ViewData["Title"] = "Averías";
+}
 
 <div class="panel">
-    <table class="table table-asada mb-0">
-        <thead><tr><th>Caso</th><th>Abonado</th><th>Descripción</th><th>Responsable</th><th>Estado</th></tr></thead>
-        <tbody>
-        @foreach (var a in Model)
-        {
-            <tr>
-                <td>#A-@a.IdAveria.ToString("000")</td>
-                <td>@a.Abonado?.Nombre</td>
-                <td>@a.Descripcion</td>
-                <td>@(a.Responsable?.Nombre ?? "Sin asignar")</td>
-                <td>
-                    @{ var css = a.Estado == "Pendiente" ? "pendiente" : a.Estado == "En proceso" ? "proceso" : "resuelto"; }
-                    <span class="estado @css">@a.Estado</span>
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <h4 class="mb-0">
+            Averías
+        </h4>
+
+        <a asp-action="Create" class="btn btn-agua">
+            <i class="bi bi-plus-lg"></i>
+            Registrar avería
+        </a>
+
+    </div>
+
+    <div class="table-responsive">
+
+        <table class="table table-asada mb-0">
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Abonado</th>
+                    <th>Usuario reporta</th>
+                    <th>Categoría</th>
+                    <th>Descripción</th>
+                    <th>Ubicación</th>
+                    <th>Prioridad</th>
+                    <th>Fecha reporte</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @foreach (var a in Model)
+                {
+                    <tr>
+
+                        <td>
+                            @a.IdAveria
+                        </td>
+
+                        <td>
+                            @(a.IdAbonado?.ToString() ?? "No registrado")
+                        </td>
+
+                        <td>
+                            @a.IdUsuarioReporta
+                        </td>
+
+                        <td>
+                            @a.IdCategoriaAveria
+                        </td>
+
+                        <td>
+                            @a.Descripcion
+                        </td>
+
+                        <td>
+                            @a.Ubicacion
+                        </td>
+
+                        <td>
+                            @a.Prioridad
+                        </td>
+
+                        <td>
+                            @a.FechaReporte.ToString("dd/MM/yyyy HH:mm")
+                        </td>
+
+                        <td>
+
+                            <a asp-action="Details"
+                               asp-route-id="@a.IdAveria"
+                               title="Ver detalles">
+                                <i class="bi bi-eye"></i>
+                            </a>
+
+                            <a asp-action="Edit"
+                               asp-route-id="@a.IdAveria"
+                               class="ms-2"
+                               title="Editar">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+
+                            <a asp-action="Delete"
+                               asp-route-id="@a.IdAveria"
+                               class="ms-2 text-danger"
+                               title="Eliminar">
+                                <i class="bi bi-trash"></i>
+                            </a>
+
+                        </td>
+
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
 </div>

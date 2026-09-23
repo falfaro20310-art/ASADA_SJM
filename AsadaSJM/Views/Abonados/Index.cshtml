@@ -1,27 +1,101 @@
-@model List<Abonado>
-@{ ViewData["Title"] = "Abonados"; }
+@model List<AsadaSJM.Models.Abonado>
+
+@{
+    ViewData["Title"] = "Abonados";
+}
 
 <div class="panel">
+
     <form method="get" class="d-flex justify-content-between mb-3">
-        <input type="text" name="buscar" class="form-control w-25" placeholder="Buscar abonado..." />
-        <a asp-action="Create" class="btn btn-agua"><i class="bi bi-plus-lg"></i> Registrar abonado</a>
+
+        <input type="text"
+               name="buscar"
+               class="form-control w-25"
+               placeholder="Buscar por NIS, paja, finca, plano o dirección..." />
+
+        <a asp-action="Create" class="btn btn-agua">
+            <i class="bi bi-plus-lg"></i>
+            Registrar abonado
+        </a>
+
     </form>
-    <table class="table table-asada mb-0">
-        <thead><tr><th>Nombre</th><th>N° medidor</th><th>Dirección</th><th>Estado</th><th></th></tr></thead>
-        <tbody>
-        @foreach (var a in Model)
-        {
-            <tr>
-                <td>@a.Nombre</td>
-                <td>@a.NumeroMedidor</td>
-                <td>@a.Direccion</td>
-                <td><span class="estado @(a.Activo ? "resuelto" : "pendiente")">@(a.Activo ? "Activo" : "Suspendido")</span></td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@a.IdAbonado" title="Editar"><i class="bi bi-pencil-square"></i></a>
-                    <a asp-action="Delete" asp-route-id="@a.IdAbonado" class="ms-2 text-danger" title="Desactivar"><i class="bi bi-trash"></i></a>
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
+
+    <div class="table-responsive">
+        <table class="table table-asada mb-0">
+
+            <thead>
+                <tr>
+                    <th>NIS</th>
+                    <th>N° Paja</th>
+                    <th>N° Finca</th>
+                    <th>N° Plano</th>
+                    <th>Dirección</th>
+                    <th>Usuario</th>
+                    <th>Tarifa</th>
+                    <th>Sector</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @foreach (var a in Model)
+                {
+                    <tr>
+
+                        <td>
+                            @a.NIS
+                        </td>
+
+                        <td>
+                            @a.NumeroPaja
+                        </td>
+
+                        <td>
+                            @(a.NumeroFinca ?? "No registrado")
+                        </td>
+
+                        <td>
+                            @(a.NumeroPlano ?? "No registrado")
+                        </td>
+
+                        <td>
+                            @a.Direccion
+                        </td>
+
+                        <td>
+                            @a.IdUsuario
+                        </td>
+
+                        <td>
+                            @a.IdTarifa
+                        </td>
+
+                        <td>
+                            @a.IdSector
+                        </td>
+
+                        <td>
+                            <a asp-action="Edit"
+                               asp-route-id="@a.IdAbonado"
+                               title="Editar">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+
+                            <a asp-action="Delete"
+                               asp-route-id="@a.IdAbonado"
+                               class="ms-2 text-danger"
+                               title="Eliminar">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+    </div>
+
 </div>

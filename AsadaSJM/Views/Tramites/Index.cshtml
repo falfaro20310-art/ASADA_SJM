@@ -9,7 +9,7 @@
         {
             <tr>
                 <td>#T-@t.IdTramite.ToString("000")</td>
-                <td>@t.Abonado?.Nombre</td>
+                    <td>@t.IdAbonado</td>
                 <td>@t.TipoTramite</td>
                 <td>
                     @{ var css = t.Estado == "Pendiente" ? "pendiente" : t.Estado is "En revisión" ? "proceso" : "resuelto"; }

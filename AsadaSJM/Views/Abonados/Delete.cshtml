@@ -1,11 +1,92 @@
-@model Abonado
-@{ ViewData["Title"] = "Desactivar abonado"; }
+@model AsadaSJM.Models.Abonado
 
-<div class="panel" style="max-width:520px;">
-    <p>¿Confirma que desea desactivar a <strong>@Model.Nombre</strong> (@Model.NumeroMedidor)?</p>
+@{
+    ViewData["Title"] = "Eliminar abonado";
+}
+
+<div class="panel" style="max-width:600px;">
+
+    <h4 class="mb-3">Eliminar abonado</h4>
+
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i>
+        ¿Está seguro de que desea eliminar este abonado?
+    </div>
+
+    <dl class="row">
+
+        <dt class="col-sm-4">
+            NIS
+        </dt>
+        <dd class="col-sm-8">
+            @Model.NIS
+        </dd>
+
+        <dt class="col-sm-4">
+            Número de paja
+        </dt>
+        <dd class="col-sm-8">
+            @Model.NumeroPaja
+        </dd>
+
+        <dt class="col-sm-4">
+            Número de finca
+        </dt>
+        <dd class="col-sm-8">
+            @(Model.NumeroFinca ?? "No registrado")
+        </dd>
+
+        <dt class="col-sm-4">
+            Número de plano
+        </dt>
+        <dd class="col-sm-8">
+            @(Model.NumeroPlano ?? "No registrado")
+        </dd>
+
+        <dt class="col-sm-4">
+            Dirección
+        </dt>
+        <dd class="col-sm-8">
+            @Model.Direccion
+        </dd>
+
+        <dt class="col-sm-4">
+            Usuario
+        </dt>
+        <dd class="col-sm-8">
+            @Model.IdUsuario
+        </dd>
+
+        <dt class="col-sm-4">
+            Tarifa
+        </dt>
+        <dd class="col-sm-8">
+            @Model.IdTarifa
+        </dd>
+
+        <dt class="col-sm-4">
+            Sector
+        </dt>
+        <dd class="col-sm-8">
+            @Model.IdSector
+        </dd>
+
+    </dl>
+
     <form asp-action="Delete" method="post">
+
         <input type="hidden" asp-for="IdAbonado" />
-        <button type="submit" class="btn btn-agua">Confirmar</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+
+        <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash"></i>
+            Eliminar
+        </button>
+
+        <a asp-action="Index"
+           class="btn btn-outline-secondary">
+            Cancelar
+        </a>
+
     </form>
+
 </div>

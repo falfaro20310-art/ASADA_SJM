@@ -7,14 +7,28 @@ namespace AsadaSJM.Controllers;
 public class HomeController : Controller
 {
     private readonly ApplicationDbContext _context;
-    public HomeController(ApplicationDbContext context) => _context = context;
+
+    public HomeController(ApplicationDbContext context)
+    {
+        _context = context;
+    }
 
     public async Task<IActionResult> Index()
     {
-        ViewBag.AbonadosActivos = await _context.Abonados.CountAsync(a => a.Activo);
-        ViewBag.AveriasProceso = await _context.Averias.CountAsync(a => a.Estado == "En proceso");
-        ViewBag.TramitesPendientes = await _context.Tramites.CountAsync(t => t.Estado == "Pendiente" || t.Estado == "En revisión");
+        // Cantidad de abonados registrados
+        ViewBag.AbonadosActivos =
+            await _context.Abonados.CountAsync();
 
+        // Cantidad de averías registradas
+        ViewBag.AveriasProceso =
+            await _context.Averias.CountAsync();
+
+        // Cantidad de trámites pendientes
+        ViewBag.TramitesPendientes =
+            await _context.Tramites.CountAsync(
+                t => t.Estado == "Pendiente");
+
+        // Últimas averías registradas
         var ultimasAverias = await _context.Averias
             .Include(a => a.Abonado)
             .OrderByDescending(a => a.FechaReporte)
@@ -24,5 +38,8 @@ public class HomeController : Controller
         return View(ultimasAverias);
     }
 
-    public IActionResult Error() => View();
+    public IActionResult Error()
+    {
+        return View();
+    }
 }
