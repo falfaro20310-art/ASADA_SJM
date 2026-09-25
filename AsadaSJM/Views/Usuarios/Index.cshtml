@@ -1,19 +1,112 @@
-@model List<Usuario>
-@{ ViewData["Title"] = "Usuarios y roles"; }
+@model List<AsadaSJM.Models.UsuarioListadoViewModel>
+
+@{
+    ViewData["Title"] = "Usuarios y roles";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+
+    <div>
+        <h4 class="mb-1">Gestión de usuarios</h4>
+
+        <p class="text-muted mb-0">
+            Consulte los usuarios registrados y administre los accesos al sistema.
+        </p>
+    </div>
+
+    <a asp-controller="Usuarios"
+       asp-action="RegistrarAdministrador"
+       class="btn btn-primary">
+
+        <i class="bi bi-person-plus-fill me-1"></i>
+        Registrar administrador
+
+    </a>
+
+</div>
+
+
+@if (TempData["RegistroAdminExitoso"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show"
+         role="alert">
+
+        <i class="bi bi-check-circle-fill me-2"></i>
+
+        @TempData["RegistroAdminExitoso"]
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+                aria-label="Cerrar">
+        </button>
+
+    </div>
+}
+
 
 <div class="panel">
+
     <table class="table table-asada mb-0">
-        <thead><tr><th>Usuario</th><th>Correo</th><th>Rol</th><th>Estado</th></tr></thead>
-        <tbody>
-        @foreach (var u in Model)
-        {
+
+        <thead>
             <tr>
-                <td>@u.Nombre</td>
-                <td>@u.Correo</td>
-                <td>@u.Rol?.NombreRol</td>
-                <td><span class="estado @(u.Activo ? "resuelto" : "pendiente")">@(u.Activo ? "Activo" : "Inactivo")</span></td>
+                <th>Usuario</th>
+                <th>Correo</th>
+                <th>Rol</th>
+                <th>Estado</th>
             </tr>
-        }
+        </thead>
+
+        <tbody>
+
+            @if (Model != null && Model.Any())
+            {
+                foreach (var usuario in Model)
+                {
+                    <tr>
+
+                        <td>
+                            @usuario.NombreCompleto
+                        </td>
+
+                        <td>
+                            @usuario.Correo
+                        </td>
+
+                        <td>
+                            @usuario.Rol
+                        </td>
+
+                        <td>
+
+                            <span class="estado @(usuario.Estado ? "resuelto" : "pendiente")">
+
+                                @(usuario.Estado ? "Activo" : "Inactivo")
+
+                            </span>
+
+                        </td>
+
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+
+                    <td colspan="4"
+                        class="text-center text-muted py-4">
+
+                        No hay usuarios registrados.
+
+                    </td>
+
+                </tr>
+            }
+
         </tbody>
+
     </table>
+
 </div>

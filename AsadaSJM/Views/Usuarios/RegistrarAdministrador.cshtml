@@ -1,0 +1,271 @@
+﻿@{
+    ViewData["Title"] = "Registrar administrador";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+        <h4 class="mb-1">
+            Registrar nuevo administrador
+        </h4>
+
+        <p class="text-muted mb-0">
+            Complete la información para crear una nueva cuenta
+            con permisos de administrador.
+        </p>
+    </div>
+
+    <a asp-controller="Usuarios"
+       asp-action="Index"
+       class="btn btn-outline-secondary">
+
+        <i class="bi bi-arrow-left me-1"></i>
+        Volver
+
+    </a>
+
+</div>
+
+
+<div class="panel">
+
+    <form asp-controller="Usuarios"
+          asp-action="RegistrarAdministrador"
+          method="post">
+
+        <div asp-validation-summary="All"
+             class="alert alert-danger"
+             role="alert">
+        </div>
+
+        <div class="row g-3">
+
+            <!-- ================================================= -->
+            <!-- NOMBRES                                           -->
+            <!-- ================================================= -->
+
+            <div class="col-md-6">
+
+                <label for="Nombres"
+                       class="form-label">
+
+                    Nombres
+
+                </label>
+
+                <input type="text"
+                       id="Nombres"
+                       name="Nombres"
+                       class="form-control"
+                       maxlength="100"
+                       required />
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- PRIMER APELLIDO                                   -->
+            <!-- ================================================= -->
+
+            <div class="col-md-6">
+
+                <label for="PrimerApellido"
+                       class="form-label">
+
+                    Primer apellido
+
+                </label>
+
+                <input type="text"
+                       id="PrimerApellido"
+                       name="PrimerApellido"
+                       class="form-control"
+                       maxlength="100"
+                       required />
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- SEGUNDO APELLIDO                                  -->
+            <!-- ================================================= -->
+
+            <div class="col-md-6">
+
+                <label for="SegundoApellido"
+                       class="form-label">
+
+                    Segundo apellido
+
+                </label>
+
+                <input type="text"
+                       id="SegundoApellido"
+                       name="SegundoApellido"
+                       class="form-control"
+                       maxlength="100"
+                       required />
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- IDENTIFICACIÓN                                    -->
+            <!-- ================================================= -->
+
+            <div class="col-md-6">
+
+                <label for="Identificacion"
+                       class="form-label">
+
+                    Identificación
+
+                </label>
+
+                <input type="text"
+                       id="Identificacion"
+                       name="Identificacion"
+                       class="form-control"
+                       maxlength="20"
+                       required />
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- TELÉFONO                                          -->
+            <!-- ================================================= -->
+
+            <div class="col-md-6">
+
+                <label for="Telefono"
+                       class="form-label">
+
+                    Teléfono
+
+                </label>
+
+                <input type="text"
+                       id="Telefono"
+                       name="Telefono"
+                       class="form-control"
+                       maxlength="20"
+                       required />
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- CORREO                                            -->
+            <!-- ================================================= -->
+
+            <div class="col-md-6">
+
+                <label for="Correo"
+                       class="form-label">
+
+                    Correo electrónico
+
+                </label>
+
+                <input type="email"
+                       id="Correo"
+                       name="Correo"
+                       class="form-control"
+                       maxlength="200"
+                       placeholder="usuario@asadasjm.cr"
+                       required />
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- CONTRASEÑA                                        -->
+            <!-- ================================================= -->
+
+            <div class="col-md-6">
+
+                <label for="Contrasena"
+                       class="form-label">
+
+                    Contraseña
+
+                </label>
+
+                <input type="password"
+                       id="Contrasena"
+                       name="Contrasena"
+                       class="form-control"
+                       minlength="8"
+                       autocomplete="new-password"
+                       required />
+
+                <div class="form-text">
+                    Debe contener al menos 8 caracteres.
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- CONFIRMAR CONTRASEÑA                              -->
+            <!-- ================================================= -->
+
+            <div class="col-md-6">
+
+                <label for="ConfirmarContrasena"
+                       class="form-label">
+
+                    Confirmar contraseña
+
+                </label>
+
+                <input type="password"
+                       id="ConfirmarContrasena"
+                       name="ConfirmarContrasena"
+                       class="form-control"
+                       minlength="8"
+                       autocomplete="new-password"
+                       required />
+
+            </div>
+
+        </div>
+
+
+        <hr class="my-4" />
+
+
+        <div class="alert alert-info">
+
+            <i class="bi bi-shield-lock-fill me-2"></i>
+
+            La cuenta creada tendrá automáticamente el rol
+            <strong>Administrador</strong>.
+
+        </div>
+
+
+        <div class="d-flex justify-content-end gap-2">
+
+            <a asp-controller="Usuarios"
+               asp-action="Index"
+               class="btn btn-outline-secondary">
+
+                Cancelar
+
+            </a>
+
+            <button type="submit"
+                    class="btn btn-primary">
+
+                <i class="bi bi-person-plus-fill me-1"></i>
+                Registrar administrador
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
