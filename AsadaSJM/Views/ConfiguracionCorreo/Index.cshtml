@@ -1,0 +1,48 @@
+﻿@model AsadaSJM.Models.ConfiguracionCorreoViewModel
+
+<h2>Configuración de correo de recuperación</h2>
+
+@if (TempData["ConfigGuardada"] != null)
+{
+    <div class="alert alert-success">@TempData["ConfigGuardada"]</div>
+}
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger" asp-validation-summary="All"></div>
+}
+
+<form asp-action="Index" method="post">
+    <div class="mb-3">
+        <label>Host SMTP</label>
+        <input asp-for="Host" class="form-control" placeholder="ej. smtp.gmail.com" />
+    </div>
+
+    <div class="mb-3">
+        <label>Puerto</label>
+        <input asp-for="Port" class="form-control" placeholder="ej. 587" />
+    </div>
+
+    <div class="mb-3">
+        <label>Correo (usuario SMTP)</label>
+        <input asp-for="Username" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label>Contraseña de aplicación</label>
+        <input asp-for="Password" type="password" class="form-control"
+               placeholder="Dejar en blanco para no cambiarla" />
+    </div>
+
+    <div class="mb-3">
+        <label>Correo remitente</label>
+        <input asp-for="FromEmail" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label>Nombre remitente</label>
+        <input asp-for="FromName" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar</button>
+</form>
