@@ -1,0 +1,224 @@
+﻿@{
+    ViewData["Title"] = "Importar abonados";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+        <h4 class="mb-1">
+            Importar abonados
+        </h4>
+
+        <p class="text-muted mb-0">
+            Cargue un archivo Excel o CSV para registrar abonados de forma masiva.
+        </p>
+    </div>
+
+    <a asp-controller="Abonados"
+       asp-action="Index"
+       class="btn btn-outline-secondary">
+
+        <i class="bi bi-arrow-left me-1"></i>
+        Volver
+
+    </a>
+
+</div>
+
+
+<div class="panel">
+
+    <form asp-controller="Abonados"
+          asp-action="Importar"
+          method="post"
+          enctype="multipart/form-data">
+
+        <div asp-validation-summary="All"
+             class="alert alert-danger"
+             role="alert">
+        </div>
+
+
+        <div class="mb-4">
+
+            <label for="archivo"
+                   class="form-label fw-semibold">
+
+                Archivo de abonados
+
+            </label>
+
+            <input type="file"
+                   id="archivo"
+                   name="archivo"
+                   class="form-control"
+                   accept=".xlsx,.csv"
+                   required />
+
+            <div class="form-text">
+                Formatos permitidos: Excel (.xlsx) y CSV (.csv).
+            </div>
+
+        </div>
+
+
+        <div class="alert alert-info">
+
+            <i class="bi bi-info-circle-fill me-2"></i>
+
+            Durante la etapa de pruebas, todos los abonados importados
+            serán creados con la contraseña inicial
+
+            <strong>123456</strong>
+
+            y con el rol
+
+            <strong>Abonado</strong>.
+
+        </div>
+
+
+        <hr class="my-4" />
+
+
+        <h5 class="mb-3">
+            Columnas requeridas
+        </h5>
+
+        <p class="text-muted">
+            La primera fila del archivo debe contener exactamente los siguientes encabezados:
+        </p>
+
+
+        <div class="table-responsive mb-4">
+
+            <table class="table table-bordered table-sm align-middle">
+
+                <thead>
+                    <tr>
+                        <th>Columna</th>
+                        <th>Obligatoria</th>
+                        <th>Ejemplo</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr>
+                        <td>Nombres</td>
+                        <td>Sí</td>
+                        <td>Ana María</td>
+                    </tr>
+
+                    <tr>
+                        <td>PrimerApellido</td>
+                        <td>Sí</td>
+                        <td>Jiménez</td>
+                    </tr>
+
+                    <tr>
+                        <td>SegundoApellido</td>
+                        <td>Sí</td>
+                        <td>Rojas</td>
+                    </tr>
+
+                    <tr>
+                        <td>Identificacion</td>
+                        <td>Sí</td>
+                        <td>112220333</td>
+                    </tr>
+
+                    <tr>
+                        <td>Telefono</td>
+                        <td>Sí</td>
+                        <td>88881111</td>
+                    </tr>
+
+                    <tr>
+                        <td>Correo</td>
+                        <td>Sí</td>
+                        <td>ana@correo.com</td>
+                    </tr>
+
+                    <tr>
+                        <td>NIS</td>
+                        <td>Sí</td>
+                        <td>NIS001</td>
+                    </tr>
+
+                    <tr>
+                        <td>NumeroPaja</td>
+                        <td>Sí</td>
+                        <td>PAJA001</td>
+                    </tr>
+
+                    <tr>
+                        <td>NumeroFinca</td>
+                        <td>No</td>
+                        <td>F001</td>
+                    </tr>
+
+                    <tr>
+                        <td>NumeroPlano</td>
+                        <td>No</td>
+                        <td>P001</td>
+                    </tr>
+
+                    <tr>
+                        <td>Direccion</td>
+                        <td>Sí</td>
+                        <td>San José de la Montaña</td>
+                    </tr>
+
+                    <tr>
+                        <td>Tarifa</td>
+                        <td>Sí</td>
+                        <td>Residencial</td>
+                    </tr>
+
+                    <tr>
+                        <td>Sector</td>
+                        <td>Sí</td>
+                        <td>San José de la Montaña</td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <div class="alert alert-warning">
+
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+            El sistema rechazará registros cuyo correo, identificación,
+            NIS o número de paja ya se encuentren registrados.
+
+        </div>
+
+
+        <div class="d-flex justify-content-end gap-2">
+
+            <a asp-controller="Abonados"
+               asp-action="Index"
+               class="btn btn-outline-secondary">
+
+                Cancelar
+
+            </a>
+
+            <button type="submit"
+                    class="btn btn-primary">
+
+                <i class="bi bi-file-earmark-arrow-up me-1"></i>
+                Importar abonados
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>

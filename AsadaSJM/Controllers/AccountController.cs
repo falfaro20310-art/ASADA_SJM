@@ -1,9 +1,6 @@
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using System.Data;
-<<<<<<< HEAD
 using MailKit.Net.Smtp;
 using MimeKit;
 using Microsoft.AspNetCore.WebUtilities;
@@ -11,9 +8,6 @@ using System.Security.Cryptography;
 using System.Text;
 using AsadaSJM.Models;
 using Microsoft.AspNetCore.DataProtection;
-=======
-using System.Security.Claims;
->>>>>>> 94675c0cca30eb75ee5ce5df7dfd9136fab6ee38
 
 namespace AsadaSJM.Controllers;
 
@@ -44,14 +38,9 @@ public class AccountController : Controller
 
 
     [HttpPost]
-    public async Task<IActionResult> Login(
-        string correo,
-        string contrasena)
+    public IActionResult Login(string correo, string contrasena)
     {
-        // -----------------------------------------------------
-        // 1. Validar campos obligatorios
-        // -----------------------------------------------------
-
+        // Validar que se hayan ingresado los datos
         if (string.IsNullOrWhiteSpace(correo) ||
             string.IsNullOrWhiteSpace(contrasena))
         {
@@ -61,10 +50,6 @@ public class AccountController : Controller
 
             return View();
         }
-
-        // -----------------------------------------------------
-        // 2. Obtener cadena de conexión
-        // -----------------------------------------------------
 
         string? connectionString =
             _configuration.GetConnectionString("DefaultConnection");
@@ -77,10 +62,6 @@ public class AccountController : Controller
 
             return View();
         }
-
-        // -----------------------------------------------------
-        // 3. Ejecutar SP_LoginUsuario
-        // -----------------------------------------------------
 
         using SqlConnection connection =
             new SqlConnection(connectionString);
@@ -101,13 +82,6 @@ public class AccountController : Controller
 
         using SqlDataReader reader =
             command.ExecuteReader();
-<<<<<<< HEAD
-=======
-
-        // -----------------------------------------------------
-        // 4. Verificar usuario y contraseña
-        // -----------------------------------------------------
->>>>>>> 94675c0cca30eb75ee5ce5df7dfd9136fab6ee38
 
         if (reader.Read())
         {
@@ -121,74 +95,9 @@ public class AccountController : Controller
 
             if (passwordCorrecta)
             {
-<<<<<<< HEAD
                 return RedirectToAction(
                     "Index",
                     "Home");
-=======
-                string nombre =
-                    reader["Nombres"]?.ToString()
-                    ?? correo;
-
-                string rol =
-                    reader["RoleName"]?.ToString()
-                    ?? "";
-
-                // ---------------------------------------------
-                // 5. Crear Claims
-                // ---------------------------------------------
-
-                var claims = new List<Claim>
-                {
-                    new Claim(
-                        ClaimTypes.Name,
-                        nombre),
-
-                    new Claim(
-                        ClaimTypes.Email,
-                        correo),
-
-                    new Claim(
-                        ClaimTypes.Role,
-                        rol)
-                };
-
-                var claimsIdentity =
-                    new ClaimsIdentity(
-                        claims,
-                        CookieAuthenticationDefaults.AuthenticationScheme);
-
-                var authProperties =
-                    new AuthenticationProperties
-                    {
-                        IsPersistent = false
-                    };
-
-                // ---------------------------------------------
-                // 6. Crear sesión
-                // ---------------------------------------------
-
-                await HttpContext.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    new ClaimsPrincipal(claimsIdentity),
-                    authProperties);
-
-                // ---------------------------------------------
-                // 7. Redirigir según rol
-                // ---------------------------------------------
-
-                if (rol == "Administrador")
-                {
-                    return RedirectToAction(
-                        "Index",
-                        "Home");
-                }
-
-                // Abonado y Operativo van por ahora al Portal
-                return RedirectToAction(
-                    "Index",
-                    "Portal");
->>>>>>> 94675c0cca30eb75ee5ce5df7dfd9136fab6ee38
             }
         }
 
@@ -199,46 +108,20 @@ public class AccountController : Controller
         return View();
     }
 
-    // =========================================================
-    // LOGOUT
-    // =========================================================
-
-    [HttpGet]
-    public async Task<IActionResult> Logout()
-    {
-        await HttpContext.SignOutAsync(
-            CookieAuthenticationDefaults.AuthenticationScheme);
-
-        return RedirectToAction(
-            "Login",
-            "Account");
-    }
-
-    // =========================================================
-    // ACCESO DENEGADO
-    // =========================================================
-
-    [HttpGet]
-    public IActionResult AccessDenied()
-    {
-        TempData["AccesoDenegado"] =
-            "No tiene permisos para acceder a esa sección.";
-
-        return RedirectToAction(
-            "Index",
-            "Portal");
-    }
 
     // =========================================================
     // REGISTRO
     // =========================================================
 
+    // GET: Account/Registro
     [HttpGet]
     public IActionResult Registro()
     {
         return View();
     }
 
+
+    // POST: Account/Registro
     [HttpPost]
     public IActionResult Registro(
         string Nombres,
@@ -272,8 +155,9 @@ public class AccountController : Controller
             return View();
         }
 
+
         // -----------------------------------------------------
-        // 2. Verificar contraseñas
+        // 2. Verificar que las contraseñas coincidan
         // -----------------------------------------------------
 
         if (Contrasena != ConfirmarContrasena)
@@ -284,6 +168,7 @@ public class AccountController : Controller
 
             return View();
         }
+
 
         // -----------------------------------------------------
         // 3. Obtener conexión
@@ -302,11 +187,17 @@ public class AccountController : Controller
             return View();
         }
 
+
+        // -----------------------------------------------------
+        // 4. Conectar a SQL Server
+        // -----------------------------------------------------
+
         using SqlConnection connection =
             new SqlConnection(connectionString);
 
+
         // -----------------------------------------------------
-        // 4. Verificar correo existente
+        // 5. Verificar si el correo ya existe
         // -----------------------------------------------------
 
         string consultaCorreo = @"
@@ -339,8 +230,9 @@ public class AccountController : Controller
             }
         }
 
+
         // -----------------------------------------------------
-        // 5. Verificar identificación existente
+        // 6. Verificar si la identificación ya existe
         // -----------------------------------------------------
 
         string consultaIdentificacion = @"
@@ -371,22 +263,18 @@ public class AccountController : Controller
             }
         }
 
+
         // -----------------------------------------------------
-        // 6. Generar hash BCrypt
+        // 7. Generar hash de la contraseña
         // -----------------------------------------------------
 
         string passwordHash =
             BCrypt.Net.BCrypt.HashPassword(
                 Contrasena);
 
-<<<<<<< HEAD
 
         // -----------------------------------------------------
         // 8. Ejecutar SP_RegistrarUsuario
-=======
-        // -----------------------------------------------------
-        // 7. Registrar usuario
->>>>>>> 94675c0cca30eb75ee5ce5df7dfd9136fab6ee38
         // -----------------------------------------------------
 
         using SqlCommand command =
@@ -429,7 +317,6 @@ public class AccountController : Controller
             "@Telefono",
             Telefono);
 
-<<<<<<< HEAD
 
         // -----------------------------------------------------
         // 9. Ejecutar registro
@@ -440,12 +327,6 @@ public class AccountController : Controller
 
         // -----------------------------------------------------
         // 10. Mostrar mensaje de éxito
-=======
-        command.ExecuteNonQuery();
-
-        // -----------------------------------------------------
-        // 8. Registro exitoso
->>>>>>> 94675c0cca30eb75ee5ce5df7dfd9136fab6ee38
         // -----------------------------------------------------
 
         TempData["RegistroExitoso"] =
@@ -453,7 +334,6 @@ public class AccountController : Controller
 
         return RedirectToAction("Login");
     }
-<<<<<<< HEAD
 
 
     // =========================================================
@@ -1064,6 +944,4 @@ public class AccountController : Controller
         return RedirectToAction(
             "Login");
     }
-=======
->>>>>>> 94675c0cca30eb75ee5ce5df7dfd9136fab6ee38
 }
