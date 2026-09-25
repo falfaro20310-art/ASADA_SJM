@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using System.Data;
-<<<<<<< HEAD
 using MailKit.Net.Smtp;
 using MimeKit;
 using Microsoft.AspNetCore.WebUtilities;
@@ -11,9 +10,7 @@ using System.Security.Cryptography;
 using System.Text;
 using AsadaSJM.Models;
 using Microsoft.AspNetCore.DataProtection;
-=======
 using System.Security.Claims;
->>>>>>> 94675c0cca30eb75ee5ce5df7dfd9136fab6ee38
 
 namespace AsadaSJM.Controllers;
 
@@ -27,6 +24,7 @@ public class AccountController : Controller
         IDataProtectionProvider dataProtectionProvider)
     {
         _configuration = configuration;
+
         _protector = dataProtectionProvider.CreateProtector(
             "AsadaSJM.ConfiguracionCorreo.Password");
     }
@@ -49,7 +47,7 @@ public class AccountController : Controller
         string contrasena)
     {
         // -----------------------------------------------------
-        // 1. Validar campos obligatorios
+        // 1. Validar campos
         // -----------------------------------------------------
 
         if (string.IsNullOrWhiteSpace(correo) ||
@@ -62,12 +60,14 @@ public class AccountController : Controller
             return View();
         }
 
+
         // -----------------------------------------------------
-        // 2. Obtener cadena de conexión
+        // 2. Obtener conexión
         // -----------------------------------------------------
 
         string? connectionString =
-            _configuration.GetConnectionString("DefaultConnection");
+            _configuration.GetConnectionString(
+                "DefaultConnection");
 
         if (string.IsNullOrEmpty(connectionString))
         {
@@ -77,6 +77,7 @@ public class AccountController : Controller
 
             return View();
         }
+
 
         // -----------------------------------------------------
         // 3. Ejecutar SP_LoginUsuario
@@ -97,45 +98,76 @@ public class AccountController : Controller
             "@Correo",
             correo);
 
-        connection.Open();
+        await connection.OpenAsync();
 
         using SqlDataReader reader =
-            command.ExecuteReader();
-<<<<<<< HEAD
-=======
+            await command.ExecuteReaderAsync();
+
 
         // -----------------------------------------------------
-        // 4. Verificar usuario y contraseña
+        // 4. Verificar usuario
         // -----------------------------------------------------
->>>>>>> 94675c0cca30eb75ee5ce5df7dfd9136fab6ee38
 
-        if (reader.Read())
+        if (await reader.ReadAsync())
         {
             string passwordHash =
                 reader["PasswordHash"]?.ToString() ?? "";
 
-            bool passwordCorrecta =
-                BCrypt.Net.BCrypt.Verify(
-                    contrasena,
-                    passwordHash);
+            // -------------------------------------------------
+            // Verificar contraseña
+            // -------------------------------------------------
+
+            bool passwordCorrecta;
+
+            try
+            {
+                passwordCorrecta =
+                    BCrypt.Net.BCrypt.Verify(
+                        contrasena,
+                        passwordHash);
+            }
+            catch
+            {
+                passwordCorrecta = false;
+            }
+
 
             if (passwordCorrecta)
             {
-<<<<<<< HEAD
-                return RedirectToAction(
-                    "Index",
-                    "Home");
-=======
+                // ---------------------------------------------
+                // 5. Obtener nombre
+                // ---------------------------------------------
+
                 string nombre =
                     reader["Nombres"]?.ToString()
                     ?? correo;
 
-                string rol =
-                    reader["RoleName"]?.ToString()
-                    ?? "";
 
                 // ---------------------------------------------
-                // 5. Crear Claims
+                // 6. Obtener rol
+                // ---------------------------------------------
+
+                string rol =
+                    reader["RoleName"]?.ToString()
+                    ?? "Abonado";
+
+                rol = rol.Trim();
+
+
+                // ---------------------------------------------
+                // Normalizar nombres de roles
+                // ---------------------------------------------
+
+                if (rol.Equals(
+                    "Admin",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    rol = "Administrador";
+                }
+
+
+                // ---------------------------------------------
+                // 7. Crear Claims
                 // ---------------------------------------------
 
                 var claims = new List<Claim>
@@ -153,10 +185,17 @@ public class AccountController : Controller
                         rol)
                 };
 
+
                 var claimsIdentity =
                     new ClaimsIdentity(
                         claims,
                         CookieAuthenticationDefaults.AuthenticationScheme);
+
+
+                var principal =
+                    new ClaimsPrincipal(
+                        claimsIdentity);
+
 
                 var authProperties =
                     new AuthenticationProperties
@@ -164,33 +203,42 @@ public class AccountController : Controller
                         IsPersistent = false
                     };
 
+
                 // ---------------------------------------------
-                // 6. Crear sesión
+                // 8. Crear sesión
                 // ---------------------------------------------
 
                 await HttpContext.SignInAsync(
                     CookieAuthenticationDefaults.AuthenticationScheme,
-                    new ClaimsPrincipal(claimsIdentity),
+                    principal,
                     authProperties);
 
+
                 // ---------------------------------------------
-                // 7. Redirigir según rol
+                // 9. Redireccionar según rol
                 // ---------------------------------------------
 
-                if (rol == "Administrador")
+                if (rol.Equals(
+                    "Administrador",
+                    StringComparison.OrdinalIgnoreCase))
                 {
                     return RedirectToAction(
                         "Index",
                         "Home");
                 }
 
-                // Abonado y Operativo van por ahora al Portal
+
+                // Abonado y Operativo
                 return RedirectToAction(
                     "Index",
                     "Portal");
->>>>>>> 94675c0cca30eb75ee5ce5df7dfd9136fab6ee38
             }
         }
+
+
+        // -----------------------------------------------------
+        // 10. Login incorrecto
+        // -----------------------------------------------------
 
         ModelState.AddModelError(
             string.Empty,
@@ -198,6 +246,7 @@ public class AccountController : Controller
 
         return View();
     }
+
 
     // =========================================================
     // LOGOUT
@@ -214,6 +263,7 @@ public class AccountController : Controller
             "Account");
     }
 
+
     // =========================================================
     // ACCESO DENEGADO
     // =========================================================
@@ -229,6 +279,7 @@ public class AccountController : Controller
             "Portal");
     }
 
+
     // =========================================================
     // REGISTRO
     // =========================================================
@@ -238,6 +289,7 @@ public class AccountController : Controller
     {
         return View();
     }
+
 
     [HttpPost]
     public IActionResult Registro(
@@ -252,7 +304,7 @@ public class AccountController : Controller
         string RolId)
     {
         // -----------------------------------------------------
-        // 1. Validar campos obligatorios
+        // 1. Validar campos
         // -----------------------------------------------------
 
         if (string.IsNullOrWhiteSpace(Nombres) ||
@@ -272,6 +324,7 @@ public class AccountController : Controller
             return View();
         }
 
+
         // -----------------------------------------------------
         // 2. Verificar contraseñas
         // -----------------------------------------------------
@@ -284,6 +337,7 @@ public class AccountController : Controller
 
             return View();
         }
+
 
         // -----------------------------------------------------
         // 3. Obtener conexión
@@ -302,17 +356,20 @@ public class AccountController : Controller
             return View();
         }
 
+
         using SqlConnection connection =
             new SqlConnection(connectionString);
 
+
         // -----------------------------------------------------
-        // 4. Verificar correo existente
+        // 4. Verificar correo
         // -----------------------------------------------------
 
         string consultaCorreo = @"
             SELECT COUNT(*)
             FROM AspNetUsers
             WHERE Email = @Correo";
+
 
         using (SqlCommand verificarCorreo =
             new SqlCommand(
@@ -339,14 +396,16 @@ public class AccountController : Controller
             }
         }
 
+
         // -----------------------------------------------------
-        // 5. Verificar identificación existente
+        // 5. Verificar identificación
         // -----------------------------------------------------
 
         string consultaIdentificacion = @"
             SELECT COUNT(*)
             FROM USUARIO
             WHERE Identificacion = @Identificacion";
+
 
         using (SqlCommand verificarIdentificacion =
             new SqlCommand(
@@ -371,6 +430,7 @@ public class AccountController : Controller
             }
         }
 
+
         // -----------------------------------------------------
         // 6. Generar hash BCrypt
         // -----------------------------------------------------
@@ -379,14 +439,9 @@ public class AccountController : Controller
             BCrypt.Net.BCrypt.HashPassword(
                 Contrasena);
 
-<<<<<<< HEAD
 
         // -----------------------------------------------------
-        // 8. Ejecutar SP_RegistrarUsuario
-=======
-        // -----------------------------------------------------
         // 7. Registrar usuario
->>>>>>> 94675c0cca30eb75ee5ce5df7dfd9136fab6ee38
         // -----------------------------------------------------
 
         using SqlCommand command =
@@ -394,12 +449,12 @@ public class AccountController : Controller
                 "SP_RegistrarUsuario",
                 connection);
 
+        command.CommandType =
+            CommandType.StoredProcedure;
+
         command.Parameters.AddWithValue(
             "@RolId",
             RolId);
-
-        command.CommandType =
-            CommandType.StoredProcedure;
 
         command.Parameters.AddWithValue(
             "@Correo",
@@ -429,38 +484,30 @@ public class AccountController : Controller
             "@Telefono",
             Telefono);
 
-<<<<<<< HEAD
 
         // -----------------------------------------------------
-        // 9. Ejecutar registro
+        // 8. Ejecutar registro UNA SOLA VEZ
         // -----------------------------------------------------
 
         command.ExecuteNonQuery();
 
 
         // -----------------------------------------------------
-        // 10. Mostrar mensaje de éxito
-=======
-        command.ExecuteNonQuery();
-
-        // -----------------------------------------------------
-        // 8. Registro exitoso
->>>>>>> 94675c0cca30eb75ee5ce5df7dfd9136fab6ee38
+        // 9. Registro exitoso
         // -----------------------------------------------------
 
         TempData["RegistroExitoso"] =
             "La cuenta fue creada correctamente. Ya puede iniciar sesión.";
 
-        return RedirectToAction("Login");
+        return RedirectToAction(
+            "Login");
     }
-<<<<<<< HEAD
 
 
     // =========================================================
     // RECUPERACIÓN DE CONTRASEÑA
     // =========================================================
 
-    // GET: Account/RecuperarContrasena
     [HttpGet]
     public IActionResult RecuperarContrasena()
     {
@@ -468,9 +515,9 @@ public class AccountController : Controller
     }
 
 
-    // POST: Account/RecuperarContrasena
     [HttpPost]
-    public IActionResult RecuperarContrasena(string correo)
+    public IActionResult RecuperarContrasena(
+        string correo)
     {
         // -----------------------------------------------------
         // 1. Validar correo
@@ -517,7 +564,7 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 4. Generar hash del token
+        // 4. Generar hash
         // -----------------------------------------------------
 
         string tokenHash =
@@ -525,7 +572,7 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 5. Definir expiración
+        // 5. Expiración
         // -----------------------------------------------------
 
         DateTime fechaExpiracion =
@@ -533,7 +580,7 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 6. Ejecutar SP_CrearRecuperacionContrasena
+        // 6. Ejecutar procedimiento
         // -----------------------------------------------------
 
         using SqlConnection connection =
@@ -568,7 +615,7 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 7. Si existe el usuario, enviar correo
+        // 7. Enviar correo
         // -----------------------------------------------------
 
         if (resultado == 1)
@@ -580,7 +627,7 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 8. Mostrar mensaje
+        // 8. Mensaje
         // -----------------------------------------------------
 
         TempData["MensajeRecuperacion"] =
@@ -595,7 +642,8 @@ public class AccountController : Controller
     // GENERAR HASH DEL TOKEN
     // =========================================================
 
-    private string GenerarHashToken(string token)
+    private string GenerarHashToken(
+        string token)
     {
         byte[] bytes =
             Encoding.UTF8.GetBytes(token);
@@ -608,51 +656,95 @@ public class AccountController : Controller
 
 
     // =========================================================
-    // ENVIAR CORREO DE RECUPERACIÓN
+    // ENVIAR CORREO
     // =========================================================
 
     private void EnviarCorreoRecuperacion(
         string correo,
         string token)
     {
-        // -----------------------------------------------------
-        // 1. Obtener configuración del correo (desde la BD)
-        // -----------------------------------------------------
-
         string connectionStringCorreo =
-            _configuration.GetConnectionString("DefaultConnection")!;
+            _configuration.GetConnectionString(
+                "DefaultConnection")!;
 
-        string host = "", username = "", fromEmail = "", fromName = "";
+        string host = "";
+        string username = "";
+        string fromEmail = "";
+        string fromName = "";
+
         int port = 587;
+
         string passwordEncriptado = "";
 
-        using (var connCorreo = new SqlConnection(connectionStringCorreo))
-        using (var cmdCorreo = new SqlCommand(
-            "SELECT Host, Port, Username, PasswordEncriptado, FromEmail, FromName FROM ConfiguracionCorreo WHERE Id = 1",
-            connCorreo))
+
+        // -----------------------------------------------------
+        // 1. Obtener configuración
+        // -----------------------------------------------------
+
+        using (var connCorreo =
+            new SqlConnection(
+                connectionStringCorreo))
+
+        using (var cmdCorreo =
+            new SqlCommand(
+                @"SELECT Host,
+                         Port,
+                         Username,
+                         PasswordEncriptado,
+                         FromEmail,
+                         FromName
+                  FROM ConfiguracionCorreo
+                  WHERE Id = 1",
+                connCorreo))
         {
             connCorreo.Open();
-            using var readerCorreo = cmdCorreo.ExecuteReader();
+
+            using var readerCorreo =
+                cmdCorreo.ExecuteReader();
 
             if (!readerCorreo.Read())
             {
                 throw new InvalidOperationException(
-                    "No hay configuración de correo definida. Configúrela en /ConfiguracionCorreo.");
+                    "No hay configuración de correo definida.");
             }
 
-            host = readerCorreo["Host"].ToString() ?? "";
-            port = Convert.ToInt32(readerCorreo["Port"]);
-            username = readerCorreo["Username"].ToString() ?? "";
-            passwordEncriptado = readerCorreo["PasswordEncriptado"].ToString() ?? "";
-            fromEmail = readerCorreo["FromEmail"].ToString() ?? "";
-            fromName = readerCorreo["FromName"].ToString() ?? "";
-        }
+            host =
+                readerCorreo["Host"]?.ToString()
+                ?? "";
 
-        string password = _protector.Unprotect(passwordEncriptado);
+            port =
+                Convert.ToInt32(
+                    readerCorreo["Port"]);
+
+            username =
+                readerCorreo["Username"]?.ToString()
+                ?? "";
+
+            passwordEncriptado =
+                readerCorreo["PasswordEncriptado"]?.ToString()
+                ?? "";
+
+            fromEmail =
+                readerCorreo["FromEmail"]?.ToString()
+                ?? "";
+
+            fromName =
+                readerCorreo["FromName"]?.ToString()
+                ?? "";
+        }
 
 
         // -----------------------------------------------------
-        // 2. Crear URL de recuperación
+        // 2. Desencriptar contraseña
+        // -----------------------------------------------------
+
+        string password =
+            _protector.Unprotect(
+                passwordEncriptado);
+
+
+        // -----------------------------------------------------
+        // 3. Crear enlace
         // -----------------------------------------------------
 
         string esquema =
@@ -666,7 +758,7 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 3. Crear mensaje
+        // 4. Crear mensaje
         // -----------------------------------------------------
 
         var mensaje =
@@ -685,16 +777,11 @@ public class AccountController : Controller
             "Recuperación de contraseña - ASADA SJM";
 
 
-        // -----------------------------------------------------
-        // 4. Contenido del correo
-        // -----------------------------------------------------
-
         mensaje.Body =
             new TextPart("html")
             {
                 Text = $@"
                     <html>
-
                     <body style='font-family: Arial, sans-serif;'>
 
                         <h2>
@@ -728,13 +815,12 @@ public class AccountController : Controller
                         </p>
 
                     </body>
-
                     </html>"
             };
 
 
         // -----------------------------------------------------
-        // 5. Conectar con SMTP
+        // 5. SMTP
         // -----------------------------------------------------
 
         using var smtp =
@@ -747,7 +833,7 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 6. Autenticarse
+        // 6. Autenticación
         // -----------------------------------------------------
 
         smtp.Authenticate(
@@ -756,7 +842,7 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 7. Enviar correo
+        // 7. Enviar
         // -----------------------------------------------------
 
         smtp.Send(
@@ -773,16 +859,15 @@ public class AccountController : Controller
 
 
     // =========================================================
-    // RESTABLECER CONTRASEÑA
+    // RESTABLECER CONTRASEÑA - GET
     // =========================================================
 
-    // GET: Account/RestablecerContrasena
     [HttpGet]
     public IActionResult RestablecerContrasena(
         string token)
     {
         // -----------------------------------------------------
-        // 1. Verificar token recibido
+        // 1. Validar token
         // -----------------------------------------------------
 
         if (string.IsNullOrWhiteSpace(token))
@@ -793,7 +878,7 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 2. Generar hash
+        // 2. Hash
         // -----------------------------------------------------
 
         string tokenHash =
@@ -801,7 +886,7 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 3. Obtener conexión
+        // 3. Conexión
         // -----------------------------------------------------
 
         string? connectionString =
@@ -816,7 +901,7 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 4. Validar token mediante SP
+        // 4. Validar token
         // -----------------------------------------------------
 
         using SqlConnection connection =
@@ -842,7 +927,7 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 5. Si el token no es válido
+        // 5. Token inválido
         // -----------------------------------------------------
 
         if (!reader.Read())
@@ -853,7 +938,7 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 6. Mostrar formulario de nueva contraseña
+        // 6. Mostrar formulario
         // -----------------------------------------------------
 
         var modelo =
@@ -868,7 +953,7 @@ public class AccountController : Controller
 
 
     // =========================================================
-    // POST RESTABLECER CONTRASEÑA
+    // RESTABLECER CONTRASEÑA - POST
     // =========================================================
 
     [HttpPost]
@@ -876,10 +961,11 @@ public class AccountController : Controller
         RestablecerContrasenaViewModel model)
     {
         // -----------------------------------------------------
-        // 1. Validar token
+        // 1. Validar modelo
         // -----------------------------------------------------
 
-        if (string.IsNullOrWhiteSpace(model.Token))
+        if (model == null ||
+            string.IsNullOrWhiteSpace(model.Token))
         {
             ModelState.AddModelError(
                 string.Empty,
@@ -890,7 +976,7 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 2. Validar nueva contraseña
+        // 2. Validar contraseña
         // -----------------------------------------------------
 
         if (string.IsNullOrWhiteSpace(
@@ -907,7 +993,7 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 3. Verificar que coincidan
+        // 3. Verificar coincidencia
         // -----------------------------------------------------
 
         if (model.NuevaContrasena !=
@@ -922,7 +1008,7 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 4. Generar hash del token
+        // 4. Hash token
         // -----------------------------------------------------
 
         string tokenHash =
@@ -931,7 +1017,7 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 5. Obtener conexión
+        // 5. Conexión
         // -----------------------------------------------------
 
         string? connectionString =
@@ -955,6 +1041,7 @@ public class AccountController : Controller
         int idRecuperacion;
         string idNetUser;
 
+
         using (SqlConnection connection =
             new SqlConnection(
                 connectionString))
@@ -976,6 +1063,7 @@ public class AccountController : Controller
             using SqlDataReader reader =
                 command.ExecuteReader();
 
+
             if (!reader.Read())
             {
                 ModelState.AddModelError(
@@ -984,6 +1072,7 @@ public class AccountController : Controller
 
                 return View(model);
             }
+
 
             idRecuperacion =
                 Convert.ToInt32(
@@ -996,7 +1085,7 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 7. Generar nuevo hash de contraseña
+        // 7. Hash nueva contraseña
         // -----------------------------------------------------
 
         string passwordHash =
@@ -1005,7 +1094,7 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 8. Cambiar contraseña mediante SP
+        // 8. Cambiar contraseña
         // -----------------------------------------------------
 
         using (SqlConnection connection =
@@ -1055,7 +1144,7 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 10. Mostrar mensaje de éxito
+        // 10. Éxito
         // -----------------------------------------------------
 
         TempData["RegistroExitoso"] =
@@ -1064,6 +1153,4 @@ public class AccountController : Controller
         return RedirectToAction(
             "Login");
     }
-=======
->>>>>>> 94675c0cca30eb75ee5ce5df7dfd9136fab6ee38
 }
