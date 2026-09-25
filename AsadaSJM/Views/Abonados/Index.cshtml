@@ -6,21 +6,61 @@
 
 <div class="panel">
 
-    <form method="get" class="d-flex justify-content-between mb-3">
+    <form method="get" class="d-flex justify-content-between align-items-center mb-3">
 
         <input type="text"
                name="buscar"
                class="form-control w-25"
                placeholder="Buscar por NIS, paja, finca, plano o dirección..." />
 
-        <a asp-action="Create" class="btn btn-agua">
-            <i class="bi bi-plus-lg"></i>
-            Registrar abonado
-        </a>
+        <div class="d-flex gap-2">
+
+            @if (User.IsInRole("Administrador"))
+            {
+                <a asp-controller="Abonados"
+                   asp-action="Importar"
+                   class="btn btn-outline-primary">
+
+                    <i class="bi bi-file-earmark-arrow-up"></i>
+                    Importar Excel/CSV
+
+                </a>
+            }
+
+            <a asp-action="Create"
+               class="btn btn-agua">
+
+                <i class="bi bi-plus-lg"></i>
+                Registrar abonado
+
+            </a>
+
+        </div>
 
     </form>
 
+
+    @if (TempData["ImportacionExitosa"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show"
+             role="alert">
+
+            <i class="bi bi-check-circle-fill me-2"></i>
+
+            @TempData["ImportacionExitosa"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Cerrar">
+            </button>
+
+        </div>
+    }
+
+
     <div class="table-responsive">
+
         <table class="table table-asada mb-0">
 
             <thead>
@@ -76,18 +116,24 @@
                         </td>
 
                         <td>
+
                             <a asp-action="Edit"
                                asp-route-id="@a.IdAbonado"
                                title="Editar">
+
                                 <i class="bi bi-pencil-square"></i>
+
                             </a>
 
                             <a asp-action="Delete"
                                asp-route-id="@a.IdAbonado"
                                class="ms-2 text-danger"
                                title="Eliminar">
+
                                 <i class="bi bi-trash"></i>
+
                             </a>
+
                         </td>
 
                     </tr>
@@ -96,6 +142,7 @@
             </tbody>
 
         </table>
+
     </div>
 
 </div>
