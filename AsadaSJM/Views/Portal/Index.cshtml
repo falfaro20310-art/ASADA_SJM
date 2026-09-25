@@ -6,6 +6,22 @@
         ViewBag.InformacionContacto as AsadaSJM.Models.InformacionInstitucional;
 }
 
+@functions {
+    string Resumen(string? texto, int longitud = 160)
+    {
+        if (string.IsNullOrWhiteSpace(texto))
+        {
+            return "Aún no se ha registrado esta información.";
+        }
+
+        texto = texto.Trim();
+
+        return texto.Length <= longitud
+            ? texto
+            : texto.Substring(0, longitud).TrimEnd() + "…";
+    }
+}
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -155,10 +171,11 @@
                         <h3>Historia</h3>
 
                         <p>
-                            La ASADA San José de la Montaña fue fundada en 1992 por el esfuerzo de vecinos comprometidos con el bien común y el acceso al agua potable.
+                            @Resumen(informacionContacto?.Historia)
                         </p>
 
-                        <a href="#">
+                        <a asp-controller="Institucional"
+                           asp-action="Historia">
                             Leer más →
                         </a>
 
@@ -176,10 +193,11 @@
                         <h3>Misión</h3>
 
                         <p>
-                            Somos una organización comunitaria que administra el servicio de agua potable con eficiencia, responsabilidad y transparencia.
+                            @Resumen(informacionContacto?.Mision)
                         </p>
 
-                        <a href="#">
+                        <a asp-controller="Institucional"
+                           asp-action="Mision">
                             Leer más →
                         </a>
 
@@ -197,10 +215,11 @@
                         <h3>Visión</h3>
 
                         <p>
-                            Ser una ASADA modelo en gestión comunitaria del agua, reconocida por la calidad del servicio y el compromiso ambiental.
+                            @Resumen(informacionContacto?.Vision)
                         </p>
 
-                        <a href="#">
+                        <a asp-controller="Institucional"
+                           asp-action="Vision">
                             Leer más →
                         </a>
 

@@ -1,0 +1,91 @@
+﻿@model AsadaSJM.Models.InformacionInstitucional
+
+@{
+    ViewData["Title"] = "Información institucional";
+}
+
+<div class="panel">
+
+    @if (TempData["GuardadoExitoso"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["GuardadoExitoso"]
+        </div>
+    }
+
+    <form asp-action="Editar" method="post">
+
+        <input type="hidden" asp-for="IdInformacion" />
+
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="mb-3">
+            <label class="form-label" asp-for="Historia">Historia</label>
+            <textarea asp-for="Historia" class="form-control" rows="5"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" asp-for="Mision">Misión</label>
+            <textarea asp-for="Mision" class="form-control" rows="4"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" asp-for="Vision">Visión</label>
+            <textarea asp-for="Vision" class="form-control" rows="4"></textarea>
+        </div>
+
+        <hr class="my-4" />
+        <h2 style="font-size:16px;">Datos de contacto</h2>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label" asp-for="Correo">Correo</label>
+                <input asp-for="Correo" class="form-control" />
+                <span asp-validation-for="Correo" class="text-danger"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label" asp-for="Telefono">Teléfono</label>
+                <input asp-for="Telefono" class="form-control" />
+                <span asp-validation-for="Telefono" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" asp-for="Direccion">Dirección</label>
+            <input asp-for="Direccion" class="form-control" />
+            <span asp-validation-for="Direccion" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" asp-for="Horario">Horario de atención</label>
+            <input asp-for="Horario" class="form-control" />
+            <span asp-validation-for="Horario" class="text-danger"></span>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label" asp-for="Facebook">Facebook</label>
+                <input asp-for="Facebook" class="form-control" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label" asp-for="Instagram">Instagram</label>
+                <input asp-for="Instagram" class="form-control" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label" asp-for="WhatsApp">WhatsApp</label>
+                <input asp-for="WhatsApp" class="form-control" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label" asp-for="TikTok">TikTok</label>
+                <input asp-for="TikTok" class="form-control" />
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-agua">Guardar cambios</button>
+
+    </form>
+
+</div>
