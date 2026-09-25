@@ -1,10 +1,12 @@
 ﻿using AsadaSJM.Data;
 using AsadaSJM.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace AsadaSJM.Controllers;
 
+[Authorize(Roles = "Administrador")]
 public class ExpresidentesController : Controller
 {
     private readonly ApplicationDbContext _context;

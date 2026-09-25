@@ -1,4 +1,5 @@
 using AsadaSJM.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,6 +14,12 @@ public class HomeController : Controller
         _context = context;
     }
 
+    // =========================================================
+    // PANEL ADMINISTRATIVO
+    // Solo puede ingresar un usuario con rol Administrador
+    // =========================================================
+
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> Index()
     {
         // Cantidad de abonados registrados
@@ -38,6 +45,11 @@ public class HomeController : Controller
         return View(ultimasAverias);
     }
 
+    // =========================================================
+    // ERROR
+    // =========================================================
+
+    [AllowAnonymous]
     public IActionResult Error()
     {
         return View();
