@@ -8,6 +8,9 @@ using System.Security.Cryptography;
 using System.Text;
 using AsadaSJM.Models;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Security.Claims;
 
 namespace AsadaSJM.Controllers;
 
@@ -21,6 +24,7 @@ public class AccountController : Controller
         IDataProtectionProvider dataProtectionProvider)
     {
         _configuration = configuration;
+
         _protector = dataProtectionProvider.CreateProtector(
             "AsadaSJM.ConfiguracionCorreo.Password");
     }
@@ -38,9 +42,14 @@ public class AccountController : Controller
 
 
     [HttpPost]
-    public IActionResult Login(string correo, string contrasena)
+    public async Task<IActionResult> Login(
+        string correo,
+        string contrasena)
     {
-        // Validar que se hayan ingresado los datos
+        // -----------------------------------------------------
+        // 1. Validar que se hayan ingresado los datos
+        // -----------------------------------------------------
+
         if (string.IsNullOrWhiteSpace(correo) ||
             string.IsNullOrWhiteSpace(contrasena))
         {
@@ -51,8 +60,14 @@ public class AccountController : Controller
             return View();
         }
 
+
+        // -----------------------------------------------------
+        // 2. Obtener conexión
+        // -----------------------------------------------------
+
         string? connectionString =
-            _configuration.GetConnectionString("DefaultConnection");
+            _configuration.GetConnectionString(
+                "DefaultConnection");
 
         if (string.IsNullOrEmpty(connectionString))
         {
@@ -63,8 +78,18 @@ public class AccountController : Controller
             return View();
         }
 
+
+        // -----------------------------------------------------
+        // 3. Conectar a SQL Server
+        // -----------------------------------------------------
+
         using SqlConnection connection =
             new SqlConnection(connectionString);
+
+
+        // -----------------------------------------------------
+        // 4. Ejecutar procedimiento de login
+        // -----------------------------------------------------
 
         using SqlCommand command =
             new SqlCommand(
@@ -80,32 +105,158 @@ public class AccountController : Controller
 
         connection.Open();
 
+
+        // -----------------------------------------------------
+        // 5. Leer usuario
+        // -----------------------------------------------------
+
         using SqlDataReader reader =
             command.ExecuteReader();
 
-        if (reader.Read())
-        {
-            string passwordHash =
-                reader["PasswordHash"]?.ToString() ?? "";
 
-            bool passwordCorrecta =
+        if (!reader.Read())
+        {
+            ModelState.AddModelError(
+                string.Empty,
+                "Correo o contraseña incorrectos.");
+
+            return View();
+        }
+
+
+        // -----------------------------------------------------
+        // 6. Obtener hash de contraseña
+        // -----------------------------------------------------
+
+        string passwordHash =
+            reader["PasswordHash"]?.ToString() ?? "";
+
+
+        // -----------------------------------------------------
+        // 7. Verificar contraseña
+        // -----------------------------------------------------
+
+        bool passwordCorrecta;
+
+        try
+        {
+            passwordCorrecta =
                 BCrypt.Net.BCrypt.Verify(
                     contrasena,
                     passwordHash);
-
-            if (passwordCorrecta)
-            {
-                return RedirectToAction(
-                    "Index",
-                    "Home");
-            }
+        }
+        catch
+        {
+            passwordCorrecta = false;
         }
 
-        ModelState.AddModelError(
-            string.Empty,
-            "Correo o contraseña incorrectos.");
 
-        return View();
+        if (!passwordCorrecta)
+        {
+            ModelState.AddModelError(
+                string.Empty,
+                "Correo o contraseña incorrectos.");
+
+            return View();
+        }
+
+
+        // =====================================================
+        // LOGIN CORRECTO
+        // =====================================================
+
+
+        // -----------------------------------------------------
+        // 8. Crear Claims
+        // -----------------------------------------------------
+
+        var claims = new List<Claim>
+        {
+            new Claim(
+                ClaimTypes.NameIdentifier,
+                reader["Id"]?.ToString() ?? ""),
+
+            new Claim(
+                ClaimTypes.Name,
+                $"{reader["Nombres"]} {reader["PrimerApellido"]}"),
+
+            new Claim(
+                ClaimTypes.Email,
+                reader["Email"]?.ToString() ?? correo),
+
+            new Claim(
+                "IdUsuario",
+                reader["IdUsuario"]?.ToString() ?? "")
+        };
+
+
+        // -----------------------------------------------------
+        // 9. Obtener rol
+        // -----------------------------------------------------
+
+        string rol =
+            reader["RoleName"]?.ToString() ?? "";
+
+
+        if (!string.IsNullOrWhiteSpace(rol))
+        {
+            claims.Add(
+                new Claim(
+                    ClaimTypes.Role,
+                    rol));
+        }
+
+
+        // -----------------------------------------------------
+        // 10. Crear identidad
+        // -----------------------------------------------------
+
+        var identity =
+            new ClaimsIdentity(
+                claims,
+                CookieAuthenticationDefaults.AuthenticationScheme);
+
+
+        // -----------------------------------------------------
+        // 11. Crear principal
+        // -----------------------------------------------------
+
+        var principal =
+            new ClaimsPrincipal(identity);
+
+
+        // -----------------------------------------------------
+        // 12. Crear cookie de autenticación
+        // -----------------------------------------------------
+
+        await HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            principal);
+
+
+        // -----------------------------------------------------
+        // 13. Redireccionar al Home
+        // -----------------------------------------------------
+
+        return RedirectToAction(
+            "Index",
+            "Home");
+    }
+
+
+    // =========================================================
+    // LOGOUT
+    // =========================================================
+
+    [HttpPost]
+    public async Task<IActionResult> Logout()
+    {
+        await HttpContext.SignOutAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme);
+
+        return RedirectToAction(
+            "Login",
+            "Account");
     }
 
 
@@ -496,23 +647,45 @@ public class AccountController : Controller
         string token)
     {
         // -----------------------------------------------------
-        // 1. Obtener configuración del correo (desde la BD)
+        // 1. Obtener configuración del correo desde BD
         // -----------------------------------------------------
 
         string connectionStringCorreo =
-            _configuration.GetConnectionString("DefaultConnection")!;
+            _configuration.GetConnectionString(
+                "DefaultConnection")!;
 
-        string host = "", username = "", fromEmail = "", fromName = "";
+        string host = "";
+        string username = "";
+        string fromEmail = "";
+        string fromName = "";
+
         int port = 587;
+
         string passwordEncriptado = "";
 
-        using (var connCorreo = new SqlConnection(connectionStringCorreo))
-        using (var cmdCorreo = new SqlCommand(
-            "SELECT Host, Port, Username, PasswordEncriptado, FromEmail, FromName FROM ConfiguracionCorreo WHERE Id = 1",
-            connCorreo))
+
+        using (var connCorreo =
+            new SqlConnection(
+                connectionStringCorreo))
+
+        using (var cmdCorreo =
+            new SqlCommand(
+                @"SELECT
+                      Host,
+                      Port,
+                      Username,
+                      PasswordEncriptado,
+                      FromEmail,
+                      FromName
+                  FROM ConfiguracionCorreo
+                  WHERE Id = 1",
+                connCorreo))
         {
             connCorreo.Open();
-            using var readerCorreo = cmdCorreo.ExecuteReader();
+
+            using var readerCorreo =
+                cmdCorreo.ExecuteReader();
+
 
             if (!readerCorreo.Read())
             {
@@ -520,19 +693,44 @@ public class AccountController : Controller
                     "No hay configuración de correo definida. Configúrela en /ConfiguracionCorreo.");
             }
 
-            host = readerCorreo["Host"].ToString() ?? "";
-            port = Convert.ToInt32(readerCorreo["Port"]);
-            username = readerCorreo["Username"].ToString() ?? "";
-            passwordEncriptado = readerCorreo["PasswordEncriptado"].ToString() ?? "";
-            fromEmail = readerCorreo["FromEmail"].ToString() ?? "";
-            fromName = readerCorreo["FromName"].ToString() ?? "";
-        }
 
-        string password = _protector.Unprotect(passwordEncriptado);
+            host =
+                readerCorreo["Host"].ToString()
+                ?? "";
+
+            port =
+                Convert.ToInt32(
+                    readerCorreo["Port"]);
+
+            username =
+                readerCorreo["Username"].ToString()
+                ?? "";
+
+            passwordEncriptado =
+                readerCorreo["PasswordEncriptado"].ToString()
+                ?? "";
+
+            fromEmail =
+                readerCorreo["FromEmail"].ToString()
+                ?? "";
+
+            fromName =
+                readerCorreo["FromName"].ToString()
+                ?? "";
+        }
 
 
         // -----------------------------------------------------
-        // 2. Crear URL de recuperación
+        // 2. Desencriptar contraseña
+        // -----------------------------------------------------
+
+        string password =
+            _protector.Unprotect(
+                passwordEncriptado);
+
+
+        // -----------------------------------------------------
+        // 3. Crear URL de recuperación
         // -----------------------------------------------------
 
         string esquema =
@@ -546,27 +744,30 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 3. Crear mensaje
+        // 4. Crear mensaje
         // -----------------------------------------------------
 
         var mensaje =
             new MimeMessage();
+
 
         mensaje.From.Add(
             new MailboxAddress(
                 fromName,
                 fromEmail));
 
+
         mensaje.To.Add(
             MailboxAddress.Parse(
                 correo));
+
 
         mensaje.Subject =
             "Recuperación de contraseña - ASADA SJM";
 
 
         // -----------------------------------------------------
-        // 4. Contenido del correo
+        // 5. Contenido del correo
         // -----------------------------------------------------
 
         mensaje.Body =
@@ -614,11 +815,12 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 5. Conectar con SMTP
+        // 6. Conectar con SMTP
         // -----------------------------------------------------
 
         using var smtp =
             new SmtpClient();
+
 
         smtp.Connect(
             host,
@@ -627,7 +829,7 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 6. Autenticarse
+        // 7. Autenticarse
         // -----------------------------------------------------
 
         smtp.Authenticate(
@@ -636,7 +838,7 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 7. Enviar correo
+        // 8. Enviar correo
         // -----------------------------------------------------
 
         smtp.Send(
@@ -644,7 +846,7 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 8. Desconectar
+        // 9. Desconectar
         // -----------------------------------------------------
 
         smtp.Disconnect(
@@ -742,6 +944,7 @@ public class AccountController : Controller
                 Token = token
             };
 
+
         return View(
             modelo);
     }
@@ -759,7 +962,8 @@ public class AccountController : Controller
         // 1. Validar token
         // -----------------------------------------------------
 
-        if (string.IsNullOrWhiteSpace(model.Token))
+        if (string.IsNullOrWhiteSpace(
+                model.Token))
         {
             ModelState.AddModelError(
                 string.Empty,
@@ -835,6 +1039,7 @@ public class AccountController : Controller
         int idRecuperacion;
         string idNetUser;
 
+
         using (SqlConnection connection =
             new SqlConnection(
                 connectionString))
@@ -853,8 +1058,10 @@ public class AccountController : Controller
 
             connection.Open();
 
+
             using SqlDataReader reader =
                 command.ExecuteReader();
+
 
             if (!reader.Read())
             {
@@ -865,9 +1072,11 @@ public class AccountController : Controller
                 return View(model);
             }
 
+
             idRecuperacion =
                 Convert.ToInt32(
                     reader["IdRecuperacion"]);
+
 
             idNetUser =
                 reader["IdNetUser"]?.ToString()
@@ -900,19 +1109,24 @@ public class AccountController : Controller
             command.CommandType =
                 CommandType.StoredProcedure;
 
+
             command.Parameters.AddWithValue(
                 "@IdRecuperacion",
                 idRecuperacion);
+
 
             command.Parameters.AddWithValue(
                 "@IdNetUser",
                 idNetUser);
 
+
             command.Parameters.AddWithValue(
                 "@PasswordHash",
                 passwordHash);
 
+
             connection.Open();
+
 
             int resultado =
                 Convert.ToInt32(
@@ -940,6 +1154,7 @@ public class AccountController : Controller
 
         TempData["RegistroExitoso"] =
             "La contraseña fue cambiada correctamente. Ya puede iniciar sesión.";
+
 
         return RedirectToAction(
             "Login");

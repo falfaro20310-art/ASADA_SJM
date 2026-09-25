@@ -110,6 +110,14 @@
                     Presidentes
                 </a>
 
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Institucional" ? "active" : "")"
+                   asp-controller="Institucional"
+                   asp-action="Editar">
+
+                    <i class="bi bi-info-circle-fill"></i>
+                    Información institucional
+                </a>
+
                 <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Usuarios" ? "active" : "")"
                    asp-controller="Usuarios"
                    asp-action="Index">

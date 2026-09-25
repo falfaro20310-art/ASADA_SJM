@@ -4,29 +4,55 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Capa de acceso a datos: Entity Framework Core + SQL Server
+// =========================================================
+// BASE DE DATOS
+// =========================================================
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")));
+        builder.Configuration.GetConnectionString(
+            "DefaultConnection")));
 
 // =========================================================
 // AUTENTICACIÓN POR COOKIES
 // =========================================================
 
 builder.Services
-    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddAuthentication(
+        CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
         options.LoginPath = "/Account/Login";
+
+        options.AccessDeniedPath = "/Account/AccesoDenegado";
+
         options.Cookie.Name = "AsadaSJM.Auth";
-        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+
+        options.Cookie.HttpOnly = true;
+
+        options.ExpireTimeSpan =
+            TimeSpan.FromHours(8);
+
         options.SlidingExpiration = true;
     });
 
-// Capa de aplicación: MVC
+// =========================================================
+// AUTORIZACIÓN
+// =========================================================
+
+builder.Services.AddAuthorization();
+
+// =========================================================
+// MVC
+// =========================================================
+
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
+
+// =========================================================
+// CONFIGURACIÓN
+// =========================================================
 
 if (!app.Environment.IsDevelopment())
 {
@@ -35,14 +61,19 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
 app.UseStaticFiles();
 
 app.UseRouting();
 
-// IMPORTANTE:
-// Authentication debe ir antes de Authorization.
+// IMPORTANTE: primero Authentication
 app.UseAuthentication();
+
 app.UseAuthorization();
+
+// =========================================================
+// RUTA PRINCIPAL
+// =========================================================
 
 app.MapControllerRoute(
     name: "default",
