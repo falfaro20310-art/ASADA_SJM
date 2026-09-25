@@ -1,0 +1,109 @@
+﻿@model AsadaSJM.Models.RestablecerContrasenaViewModel
+
+@{
+    Layout = null;
+    ViewData["Title"] = "Nueva contraseña";
+}
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <title>
+        Nueva contraseña - ASADA SJM
+    </title>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"
+          rel="stylesheet" />
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css"
+          rel="stylesheet" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Roboto:wght@400;500&display=swap"
+          rel="stylesheet" />
+
+    <link rel="stylesheet"
+          href="~/css/site.css" />
+
+</head>
+
+<body>
+
+    <div class="login-wrapper">
+
+        <div class="login-card">
+
+            <div class="icon-drop">
+                <i class="bi bi-shield-lock-fill"></i>
+            </div>
+
+            <h1 class="text-center mb-1"
+                style="font-size:22px;">
+
+                ASADA San José de la Montaña
+
+            </h1>
+
+            <p class="text-center text-muted mb-4"
+               style="font-size:14px;">
+
+                Crear nueva contraseña
+
+            </p>
+
+            <div asp-validation-summary="All"
+                 class="text-danger"
+                 style="font-size:13px;">
+            </div>
+
+            <form asp-action="RestablecerContrasena"
+                  method="post">
+
+                <input type="hidden"
+                       asp-for="Token" />
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Nueva contraseña
+                    </label>
+
+                    <input asp-for="NuevaContrasena"
+                           type="password"
+                           class="form-control"
+                           required />
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Confirmar contraseña
+                    </label>
+
+                    <input asp-for="ConfirmarContrasena"
+                           type="password"
+                           class="form-control"
+                           required />
+
+                </div>
+
+                <button type="submit"
+                        class="btn btn-agua w-100 py-2">
+
+                    Cambiar contraseña
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

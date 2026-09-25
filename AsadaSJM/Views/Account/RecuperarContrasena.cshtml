@@ -1,6 +1,6 @@
-@{
+﻿@{
     Layout = null;
-    ViewData["Title"] = "Iniciar sesión";
+    ViewData["Title"] = "Recuperar contraseña";
 }
 
 <!DOCTYPE html>
@@ -11,7 +11,7 @@
     <meta charset="utf-8" />
 
     <title>
-        Iniciar sesión - ASADA SJM
+        Recuperar contraseña - ASADA SJM
     </title>
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"
@@ -35,7 +35,7 @@
         <div class="login-card">
 
             <div class="icon-drop">
-                <i class="bi bi-droplet-fill"></i>
+                <i class="bi bi-key-fill"></i>
             </div>
 
             <h1 class="text-center mb-1"
@@ -48,46 +48,35 @@
             <p class="text-center text-muted mb-4"
                style="font-size:14px;">
 
-                Sistema Web ASADA SJM
+                Recuperar contraseña
 
             </p>
 
-
-            <!-- Mensaje de éxito -->
-            @if (TempData["RegistroExitoso"] != null)
+            @if (TempData["MensajeRecuperacion"] != null)
             {
                 <div class="alert alert-success"
                      style="font-size:13px;">
 
-                    @TempData["RegistroExitoso"]
+                    @TempData["MensajeRecuperacion"]
 
                 </div>
             }
-
-
-            <!-- Mensajes de validación -->
 
             <div asp-validation-summary="All"
                  class="text-danger"
                  style="font-size:13px;">
             </div>
 
-
-            <!-- FORMULARIO DE LOGIN -->
-
-            <form asp-action="Login"
-                  method="post"
-                  autocomplete="off">
-
-                <!-- Correo -->
+            <form asp-action="RecuperarContrasena"
+                  method="post">
 
                 <div class="mb-3">
 
                     <label class="form-label">
-                        Usuario
+                        Correo electrónico
                     </label>
 
-                    <input type="email"
+                    <input type="email" 
                            autocomplete="off"
                            name="correo"
                            class="form-control"
@@ -96,73 +85,22 @@
 
                 </div>
 
-
-                <!-- Contraseña -->
-
-                <div class="mb-2">
-
-                    <label class="form-label">
-                        Contraseña
-                    </label>
-
-                    <input type="password"
-                           autocomplete="off"
-                           name="contrasena"
-                           class="form-control"
-                           placeholder="••••••••"
-                           required />
-
-                </div>
-
-
-                <!-- Recuperación de contraseña -->
-
-                <div class="text-end mb-3">
-
-                    <a asp-controller="Account"
-                       asp-action="RecuperarContrasena"
-                       style="font-size:13px;">
-
-                        ¿Olvidaste tu contraseña?
-
-                    </a>
-
-                </div>
-
-
-                <!-- Botón iniciar sesión -->
-
                 <button type="submit"
-                        class="btn btn-agua w-100 py-2 mt-2">
+                        class="btn btn-agua w-100 py-2">
 
-                    Iniciar sesión
+                    Enviar enlace de recuperación
 
                 </button>
 
             </form>
 
-
-            <!-- Seguridad -->
-
-            <p class="text-center text-muted mt-3 mb-0"
-               style="font-size:12px;">
-
-                Conexión segura HTTPS
-
-            </p>
-
-
-            <!-- Registro -->
-
             <p class="text-center mt-3 mb-0"
                style="font-size:13px;">
 
-                ¿No tienes una cuenta?
-
                 <a asp-controller="Account"
-                   asp-action="Registro">
+                   asp-action="Login">
 
-                    Crear cuenta
+                    Volver a iniciar sesión
 
                 </a>
 
