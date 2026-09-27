@@ -197,6 +197,7 @@ public class AccountController : Controller
         string rol =
             reader["RoleName"]?.ToString() ?? "";
 
+        rol = rol.Trim();
 
         if (!string.IsNullOrWhiteSpace(rol))
         {
@@ -235,12 +236,22 @@ public class AccountController : Controller
 
 
         // -----------------------------------------------------
-        // 13. Redireccionar al Home
+        // 13. Redireccionar según rol
         // -----------------------------------------------------
 
+        if (rol.Equals(
+            "Administrador",
+            StringComparison.OrdinalIgnoreCase))
+        {
+            return RedirectToAction(
+                "Index",
+                "Home");
+        }
+
+        // Abonado y Operativo
         return RedirectToAction(
             "Index",
-            "Home");
+            "Portal");
     }
 
 
@@ -248,7 +259,7 @@ public class AccountController : Controller
     // LOGOUT
     // =========================================================
 
-    [HttpPost]
+    [HttpGet]
     public async Task<IActionResult> Logout()
     {
         await HttpContext.SignOutAsync(
@@ -257,6 +268,22 @@ public class AccountController : Controller
         return RedirectToAction(
             "Login",
             "Account");
+    }
+
+
+    // =========================================================
+    // ACCESO DENEGADO
+    // =========================================================
+
+    [HttpGet]
+    public IActionResult AccesoDenegado()
+    {
+        TempData["AccesoDenegado"] =
+            "No tiene permisos para acceder a esa sección.";
+
+        return RedirectToAction(
+            "Index",
+            "Portal");
     }
 
 
