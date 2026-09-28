@@ -1,0 +1,586 @@
+﻿@model AsadaSJM.Models.OficinaVirtualViewModel
+
+@{
+    Layout = null;
+
+    ViewData["Title"] =
+        "Oficina Virtual";
+}
+
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1" />
+
+    <title>
+        Oficina Virtual - ASADA SJM
+    </title>
+
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"
+          rel="stylesheet" />
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css"
+          rel="stylesheet" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Roboto:wght@400;500&display=swap"
+          rel="stylesheet" />
+
+    <link rel="stylesheet"
+          href="~/css/site.css" />
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+         BARRA SUPERIOR
+         ===================================================== -->
+
+    <nav class="navbar navbar-expand-lg bg-white border-bottom">
+
+        <div class="container">
+
+            <a class="navbar-brand fw-bold"
+               asp-controller="OficinaVirtual"
+               asp-action="Index">
+
+                <i class="bi bi-droplet-fill"></i>
+
+                ASADA SJM
+
+            </a>
+
+
+            <div class="d-flex align-items-center gap-3">
+
+                <span class="text-muted">
+
+                    @Model.NombreCompleto
+
+                </span>
+
+
+                <form asp-controller="Account"
+                      asp-action="Logout"
+                      method="post">
+
+                    <button type="submit"
+                            class="btn btn-outline-danger btn-sm">
+
+                        <i class="bi bi-box-arrow-right"></i>
+
+                        Cerrar sesión
+
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </nav>
+
+
+    <!-- =====================================================
+         CONTENIDO
+         ===================================================== -->
+
+    <main class="container py-4">
+
+
+        <!-- =================================================
+             BIENVENIDA
+             ================================================= -->
+
+        <div class="mb-4">
+
+            <h1 class="fw-bold">
+
+                Bienvenido(a),
+                @Model.NombreCompleto
+
+            </h1>
+
+            <p class="text-muted">
+
+                Oficina Virtual del Abonado
+
+            </p>
+
+        </div>
+
+
+        <!-- =================================================
+             INFORMACIÓN DEL SERVICIO
+             ================================================= -->
+
+        <div class="card shadow-sm border-0 mb-4">
+
+            <div class="card-body">
+
+                <h5 class="fw-bold mb-4">
+
+                    <i class="bi bi-person-vcard"></i>
+
+                    Información de mi servicio
+
+                </h5>
+
+
+                <div class="row g-4">
+
+                    <div class="col-md-3">
+
+                        <small class="text-muted">
+                            NIS
+                        </small>
+
+                        <div class="fw-semibold">
+                            @Model.NIS
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-3">
+
+                        <small class="text-muted">
+                            Número de paja
+                        </small>
+
+                        <div class="fw-semibold">
+                            @Model.NumeroPaja
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-3">
+
+                        <small class="text-muted">
+                            Tarifa
+                        </small>
+
+                        <div class="fw-semibold">
+                            @Model.Tarifa
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-3">
+
+                        <small class="text-muted">
+                            Sector
+                        </small>
+
+                        <div class="fw-semibold">
+                            @Model.Sector
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <small class="text-muted">
+                            Número de finca
+                        </small>
+
+                        <div class="fw-semibold">
+                            @Model.NumeroFinca
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <small class="text-muted">
+                            Número de plano
+                        </small>
+
+                        <div class="fw-semibold">
+                            @Model.NumeroPlano
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <small class="text-muted">
+                            Teléfono
+                        </small>
+
+                        <div class="fw-semibold">
+                            @Model.Telefono
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-8">
+
+                        <small class="text-muted">
+                            Dirección
+                        </small>
+
+                        <div class="fw-semibold">
+                            @Model.Direccion
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <small class="text-muted">
+                            Correo electrónico
+                        </small>
+
+                        <div class="fw-semibold">
+                            @Model.Correo
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             OPCIONES
+             ================================================= -->
+
+        <div class="row g-4">
+
+
+            <!-- =============================================
+                 RECIBOS
+                 ============================================= -->
+
+            <div class="col-md-6 col-lg-4">
+
+                <div class="card h-100 shadow-sm border-0">
+
+                    <div class="card-body">
+
+                        <i class="bi bi-receipt fs-1"></i>
+
+                        <h5 class="fw-bold mt-3">
+                            Mis recibos
+                        </h5>
+
+                        <p class="text-muted">
+
+                            Consulte sus recibos asociados
+                            a su NIS.
+
+                        </p>
+
+                        <a asp-controller="OficinaVirtual"
+                           asp-action="MisRecibos"
+                           class="btn btn-agua">
+
+                            Consultar recibos
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =============================================
+                 CONSUMO
+                 ============================================= -->
+
+            <div class="col-md-6 col-lg-4">
+
+                <div class="card h-100 shadow-sm border-0">
+
+                    <div class="card-body">
+
+                        <i class="bi bi-bar-chart-fill fs-1"></i>
+
+                        <h5 class="fw-bold mt-3">
+                            Mi consumo
+                        </h5>
+
+                        <p class="text-muted">
+
+                            Consulte su historial
+                            de consumo.
+
+                        </p>
+
+                        <a asp-controller="OficinaVirtual"
+                           asp-action="MiConsumo"
+                           class="btn btn-agua">
+
+                            Ver consumo
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =============================================
+                 PAGOS
+                 ============================================= -->
+
+            <div class="col-md-6 col-lg-4">
+
+                <div class="card h-100 shadow-sm border-0">
+
+                    <div class="card-body">
+
+                        <i class="bi bi-credit-card-fill fs-1"></i>
+
+                        <h5 class="fw-bold mt-3">
+                            Mis pagos
+                        </h5>
+
+                        <p class="text-muted">
+
+                            Consulte su historial
+                            de pagos.
+
+                        </p>
+
+                        <a asp-controller="OficinaVirtual"
+                           asp-action="MisPagos"
+                           class="btn btn-agua">
+
+                            Ver pagos
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =============================================
+                 RECIBOS PENDIENTES
+                 ============================================= -->
+
+            <div class="col-md-6 col-lg-4">
+
+                <div class="card h-100 shadow-sm border-0">
+
+                    <div class="card-body">
+
+                        <i class="bi bi-exclamation-circle-fill fs-1"></i>
+
+                        <h5 class="fw-bold mt-3">
+                            Recibos pendientes
+                        </h5>
+
+                        <p class="text-muted">
+
+                            Consulte las obligaciones
+                            pendientes.
+
+                        </p>
+
+                        <a asp-controller="OficinaVirtual"
+                           asp-action="RecibosPendientes"
+                           class="btn btn-agua">
+
+                            Ver pendientes
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =============================================
+                 TRÁMITES
+                 ============================================= -->
+
+            <div class="col-md-6 col-lg-4">
+
+                <div class="card h-100 shadow-sm border-0">
+
+                    <div class="card-body">
+
+                        <i class="bi bi-file-earmark-text-fill fs-1"></i>
+
+                        <h5 class="fw-bold mt-3">
+                            Mis trámites
+                        </h5>
+
+                        <p class="text-muted">
+
+                            Consulte y dé seguimiento
+                            a sus trámites.
+
+                        </p>
+
+                        <a asp-controller="OficinaVirtual"
+                           asp-action="MisTramites"
+                           class="btn btn-agua">
+
+                            Ver trámites
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =============================================
+                 AVERÍAS
+                 ============================================= -->
+
+            <div class="col-md-6 col-lg-4">
+
+                <div class="card h-100 shadow-sm border-0">
+
+                    <div class="card-body">
+
+                        <i class="bi bi-tools fs-1"></i>
+
+                        <h5 class="fw-bold mt-3">
+                            Mis averías
+                        </h5>
+
+                        <p class="text-muted">
+
+                            Consulte y dé seguimiento
+                            a sus reportes.
+
+                        </p>
+
+                        <a asp-controller="OficinaVirtual"
+                           asp-action="MisAverias"
+                           class="btn btn-agua">
+
+                            Ver averías
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =============================================
+                 CANALES DE PAGO
+                 ============================================= -->
+
+            <div class="col-md-6 col-lg-4">
+
+                <div class="card h-100 shadow-sm border-0">
+
+                    <div class="card-body">
+
+                        <i class="bi bi-phone-fill fs-1"></i>
+
+                        <h5 class="fw-bold mt-3">
+                            Canales de pago
+                        </h5>
+
+                        <p class="text-muted">
+
+                            Acceda a los canales de pago
+                            disponibles.
+
+                        </p>
+
+                        <a asp-controller="OficinaVirtual"
+                           asp-action="CanalesPago"
+                           class="btn btn-agua">
+
+                            Ver canales
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =============================================
+                 PORTAL INSTITUCIONAL
+                 ============================================= -->
+
+            <div class="col-md-6 col-lg-4">
+
+                <div class="card h-100 shadow-sm border-0">
+
+                    <div class="card-body">
+
+                        <i class="bi bi-globe2 fs-1"></i>
+
+                        <h5 class="fw-bold mt-3">
+                            Portal institucional
+                        </h5>
+
+                        <p class="text-muted">
+
+                            Consulte información
+                            institucional.
+
+                        </p>
+
+                        <a asp-controller="Portal"
+                           asp-action="Index"
+                           class="btn btn-outline-secondary">
+
+                            Ir al portal
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </main>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js">
+    </script>
+
+</body>
+
+</html>

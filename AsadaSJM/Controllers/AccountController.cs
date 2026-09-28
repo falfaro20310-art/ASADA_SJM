@@ -248,7 +248,26 @@ public class AccountController : Controller
                 "Home");
         }
 
-        // Abonado y Operativo
+        if (rol.Equals(
+     "Abonado",
+     StringComparison.OrdinalIgnoreCase))
+        {
+            return RedirectToAction(
+                "Index",
+                "OficinaVirtual");
+        }
+
+
+        if (rol.Equals(
+            "Operativo",
+            StringComparison.OrdinalIgnoreCase))
+        {
+            return RedirectToAction(
+                "Index",
+                "Home");
+        }
+
+
         return RedirectToAction(
             "Index",
             "Portal");
