@@ -118,6 +118,14 @@
                     Información institucional
                 </a>
 
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Bitacora" ? "active" : "")"
+                   asp-controller="Bitacora"
+                   asp-action="Index">
+
+                    <i class="bi bi-clock-history"></i>
+                    Bitácora
+                </a>
+
                 <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Usuarios" ? "active" : "")"
                    asp-controller="Usuarios"
                    asp-action="Index">

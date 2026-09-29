@@ -1,0 +1,34 @@
+﻿@model List<AsadaSJM.Models.BitacoraItemViewModel>
+
+@{
+    ViewData["Title"] = "Bitácora";
+}
+
+<div class="panel">
+
+    <table class="table table-asada">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Usuario</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var registro in Model)
+            {
+                <tr>
+                    <td>@registro.FechaHora.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@(registro.Usuario?.Nombre ?? "—")</td>
+                    <td>@registro.Accion</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (!Model.Any())
+    {
+        <p class="text-muted">Aún no hay registros en la bitácora.</p>
+    }
+
+</div>

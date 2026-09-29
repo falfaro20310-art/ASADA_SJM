@@ -7,6 +7,8 @@ public class Expresidente
     [Key]
     public int IdExpresidente { get; set; }
 
+    public int IdUsuario { get; set; }
+
     [Required]
     [StringLength(200)]
     public string Nombre { get; set; } = string.Empty;

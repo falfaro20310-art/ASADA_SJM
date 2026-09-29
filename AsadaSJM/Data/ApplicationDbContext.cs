@@ -17,7 +17,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Tramite> Tramites => Set<Tramite>();
     public DbSet<Documento> Documentos => Set<Documento>();
     public DbSet<Recibo> Recibos => Set<Recibo>();
-    public DbSet<Bitacora> Bitacoras => Set<Bitacora>();
+    public DbSet<BitacoraItemViewModel> Bitacoras => Set<BitacoraItemViewModel>();
     public DbSet<Expresidente> Expresidentes => Set<Expresidente>();
     public DbSet<InformacionInstitucional> InformacionInstitucional => Set<InformacionInstitucional>();
 
@@ -50,7 +50,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Recibo>()
             .ToTable("RECIBO");
 
-        modelBuilder.Entity<Bitacora>()
+        modelBuilder.Entity<BitacoraItemViewModel>()
             .ToTable("BITACORA");
 
         modelBuilder.Entity<Expresidente>()

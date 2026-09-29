@@ -285,8 +285,8 @@ public class AccountController : Controller
             CookieAuthenticationDefaults.AuthenticationScheme);
 
         return RedirectToAction(
-            "Login",
-            "Account");
+            "Index",
+            "Portal");
     }
 
 

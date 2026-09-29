@@ -4,16 +4,19 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using Microsoft.Extensions.Configuration;
 
 namespace AsadaSJM.Controllers;
 
 public class InstitucionalController : Controller
 {
     private readonly ApplicationDbContext _context;
+    private readonly IConfiguration _configuration;
 
-    public InstitucionalController(ApplicationDbContext context)
+    public InstitucionalController(ApplicationDbContext context, IConfiguration configuration)
     {
         _context = context;
+        _configuration = configuration;
     }
 
     private Task<InformacionInstitucional?> ObtenerInformacionAsync()
@@ -81,15 +84,31 @@ public class InstitucionalController : Controller
             ? await _context.InformacionInstitucional.FindAsync(modelo.IdInformacion)
             : null;
 
-        // -----------------------------------------------------
-        // Identificar al administrador que hace el cambio
-        // -----------------------------------------------------
+        // Identifica al usurio en rol administrador que está realizando la actualización de la información institucional
 
         string? correoAdmin = User.FindFirstValue(ClaimTypes.Email);
 
-        var usuarioAdmin = await _context.Usuarios
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Correo == correoAdmin);
+        int? idUsuarioAdmin = null;
+
+        using (var connection = new Microsoft.Data.SqlClient.SqlConnection(
+            _configuration.GetConnectionString("DefaultConnection")))
+        {
+            using var command = new Microsoft.Data.SqlClient.SqlCommand(@"
+                SELECT US.IdUsuario
+                FROM USUARIO US
+                INNER JOIN AspNetUsers AU ON AU.Id = US.IdNetUser
+                WHERE AU.Email = @Correo", connection);
+
+            command.Parameters.AddWithValue("@Correo", correoAdmin ?? (object)DBNull.Value);
+
+            await connection.OpenAsync();
+            var resultado = await command.ExecuteScalarAsync();
+
+            if (resultado != null && resultado != DBNull.Value)
+            {
+                idUsuarioAdmin = Convert.ToInt32(resultado);
+            }
+        }
 
         if (entidad is null)
         {
@@ -105,7 +124,7 @@ public class InstitucionalController : Controller
             entidad.FechaModificacion = DateTime.Now;
         }
 
-        entidad.IdUsuarioModificacion = usuarioAdmin?.IdUsuario;
+        entidad.IdUsuarioModificacion = idUsuarioAdmin;
 
         entidad.Historia = modelo.Historia;
         entidad.Mision = modelo.Mision;
@@ -119,15 +138,13 @@ public class InstitucionalController : Controller
         entidad.WhatsApp = modelo.WhatsApp;
         entidad.TikTok = modelo.TikTok;
 
-        // -----------------------------------------------------
-        // Registrar en bitácora
-        // -----------------------------------------------------
+        // Se registra en la bitácora la acción de actualización de la información institucional
 
-        if (usuarioAdmin != null)
+        if (idUsuarioAdmin != null)
         {
-            _context.Bitacoras.Add(new Bitacora
+            _context.Bitacoras.Add(new BitacoraItemViewModel
             {
-                IdUsuario = usuarioAdmin.IdUsuario,
+                IdUsuario = idUsuarioAdmin.Value,
                 Accion = "Actualizó la información institucional",
                 FechaHora = DateTime.Now
             });

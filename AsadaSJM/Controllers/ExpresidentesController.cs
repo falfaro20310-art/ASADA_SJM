@@ -3,6 +3,7 @@ using AsadaSJM.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace AsadaSJM.Controllers;
 
@@ -11,9 +12,14 @@ public class ExpresidentesController : Controller
 {
     private readonly ApplicationDbContext _context;
 
-    public ExpresidentesController(ApplicationDbContext context)
+    private readonly IConfiguration _configuration;
+
+    public ExpresidentesController(
+        ApplicationDbContext context,
+        IConfiguration configuration)
     {
         _context = context;
+        _configuration = configuration;
     }
 
     // GET: Expresidentes
@@ -39,11 +45,35 @@ public class ExpresidentesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(
         [Bind("Nombre,Trayectoria,Proyectos,Imagen,Estado")]
-        Expresidente expresidente)
+    Expresidente expresidente)
     {
         if (!ModelState.IsValid)
         {
             return View(expresidente);
+        }
+
+        // Indentifica al administrador que registra presidentes o expresidentes
+
+        string? correoAdmin = User.FindFirstValue(System.Security.Claims.ClaimTypes.Email);
+
+        using (var connection = new Microsoft.Data.SqlClient.SqlConnection(
+            _configuration.GetConnectionString("DefaultConnection")))
+        {
+            using var command = new Microsoft.Data.SqlClient.SqlCommand(@"
+            SELECT US.IdUsuario
+            FROM USUARIO US
+            INNER JOIN AspNetUsers AU ON AU.Id = US.IdNetUser
+            WHERE AU.Email = @Correo", connection);
+
+            command.Parameters.AddWithValue("@Correo", correoAdmin ?? (object)DBNull.Value);
+
+            await connection.OpenAsync();
+            var resultado = await command.ExecuteScalarAsync();
+
+            if (resultado != null && resultado != DBNull.Value)
+            {
+                expresidente.IdUsuario = Convert.ToInt32(resultado);
+            }
         }
 
         if (expresidente.Estado)
