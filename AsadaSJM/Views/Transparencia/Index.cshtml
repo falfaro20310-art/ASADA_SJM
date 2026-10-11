@@ -113,6 +113,53 @@ else
                     }
 
 
+                    <hr class="my-3" />
+
+
+                    <div style="font-size:14px;">
+
+                        <div class="mb-2">
+
+                            <i class="bi bi-calendar3 me-2"></i>
+
+                            <strong>Fecha de publicación:</strong>
+
+                            @if (documento.FechaPublicacion != default)
+                            {
+                                @documento.FechaPublicacion.ToString("dd/MM/yyyy")
+                            }
+                            else
+                            {
+                                <span class="text-muted">
+                                    No disponible
+                                </span>
+                            }
+
+                        </div>
+
+
+                        <div>
+
+                            <i class="bi bi-clock-history me-2"></i>
+
+                            <strong>Período:</strong>
+
+                            @if (!string.IsNullOrWhiteSpace(documento.Periodo))
+                            {
+                                @documento.Periodo
+                            }
+                            else
+                            {
+                                <span class="text-muted">
+                                    No disponible
+                                </span>
+                            }
+
+                        </div>
+
+                    </div>
+
+
                     <div class="mt-auto pt-3">
 
                         <a href="@documento.RutaArchivo"
