@@ -1,4 +1,5 @@
-﻿@model AsadaSJM.Models.OficinaVirtualViewModel
+﻿
+@model AsadaSJM.Models.OficinaVirtualViewModel
 
 @{
     Layout = null;
@@ -564,6 +565,40 @@
 
                             Ir al portal
 
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =============================================
+                 MGA-01: GESTIÓN AMBIENTAL
+                 ============================================= -->
+
+            <div class="col-md-6 col-lg-4">
+
+                <div class="card h-100 shadow-sm border-0">
+
+                    <div class="card-body">
+
+                        <i class="bi bi-tree-fill fs-1"></i>
+
+                        <h5 class="fw-bold mt-3">
+                            Gestión Ambiental
+                        </h5>
+
+                        <p class="text-muted">
+                            Consulte las nacientes protegidas y los
+                            tanques administrados por la ASADA.
+                        </p>
+
+                        <a asp-controller="GestionAmbiental"
+                           asp-action="Index"
+                           class="btn btn-agua">
+                            Consultar recursos
                         </a>
 
                     </div>

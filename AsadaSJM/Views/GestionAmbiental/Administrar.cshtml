@@ -1,0 +1,401 @@
+﻿
+@using AsadaSJM.Models
+
+@{
+    ViewData["Title"] = "Administrar Gestión Ambiental";
+
+    var nacientes = ViewBag.Nacientes as List<Naciente>
+        ?? new List<Naciente>();
+
+    var tanques = ViewBag.Tanques as List<Tanque>
+        ?? new List<Tanque>();
+}
+
+<style>
+    .gam-page {
+        color: #244a3d;
+    }
+
+    .gam-hero {
+        background: linear-gradient(115deg,#124d3b,#208264);
+        border-radius: 22px;
+        padding: 36px;
+        color: white;
+        margin-bottom: 25px;
+    }
+
+    .gam-hero h2 {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .gam-hero p {
+        color: #ddf2e7;
+        margin-bottom: 0;
+    }
+
+    .gam-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 22px;
+    }
+
+    .gam-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        border-radius: 10px;
+        padding: 11px 15px;
+        text-decoration: none;
+        color: #166247;
+        font-weight: 700;
+        font-size: 13px;
+    }
+
+    .gam-btn:hover {
+        background: #e2f6eb;
+        color: #124e3c;
+    }
+
+    .gam-title {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 22px;
+        font-weight: 700;
+        margin: 30px 0 18px;
+    }
+
+    .gam-grid {
+        display: grid;
+        grid-template-columns: repeat(2,minmax(0,1fr));
+        gap: 17px;
+    }
+
+    .gam-card {
+        background: white;
+        border: 1px solid #e1eae4;
+        border-radius: 17px;
+        padding: 24px;
+        box-shadow: 0 5px 18px rgba(20,70,50,.04);
+    }
+
+    .gam-card-head {
+        display: flex;
+        gap: 13px;
+        align-items: center;
+        margin-bottom: 18px;
+    }
+
+    .gam-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e2f5eb;
+        font-size: 22px;
+        color: #197657;
+        flex-shrink: 0;
+    }
+
+    .gam-icon.tanque {
+        background: #e4f1f8;
+        color: #247c9f;
+    }
+
+    .gam-card h4 {
+        font-size: 19px;
+        font-weight: 700;
+        margin: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .gam-card p {
+        line-height: 1.7;
+        color: #63786e;
+        font-size: 14px;
+        white-space: pre-line;
+        overflow-wrap: anywhere;
+    }
+
+    .gam-location {
+        font-size: 13px;
+        color: #44816a;
+        margin-bottom: 12px;
+    }
+
+    .gam-status {
+        display: inline-block;
+        padding: 6px 11px;
+        border-radius: 30px;
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 16px;
+    }
+
+    .gam-status.activo {
+        background: #e4f5ec;
+        color: #218054;
+    }
+
+    .gam-status.inactivo {
+        background: #f0f1f2;
+        color: #727c80;
+    }
+
+    .gam-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid #edf1ed;
+    }
+
+    .gam-edit,
+    .gam-delete {
+        padding: 9px 15px;
+        border-radius: 9px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+    }
+
+    .gam-edit {
+        background: #e5f1eb;
+        color: #16714e;
+        border: 1px solid #d4e8db;
+    }
+
+    .gam-delete {
+        color: #ad4848;
+        background: #fff1f1;
+        border: 1px solid #f0d9d9;
+    }
+
+    .gam-empty {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 45px;
+        color: #799087;
+        border: 1px dashed #c7dbcf;
+        background: #f7faf8;
+        border-radius: 16px;
+    }
+
+    @@media(max-width:768px) {
+        .gam-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .gam-hero {
+            padding: 26px;
+        }
+    }
+</style>
+
+<div class="gam-page">
+
+    <section class="gam-hero">
+
+        <h2>
+            <i class="bi bi-droplet-half"></i>
+            Centro de Gestión Ambiental
+        </h2>
+
+        <p>
+            Administra las nacientes protegidas y los
+            tanques de la ASADA desde un solo lugar.
+        </p>
+
+        <div class="gam-toolbar">
+
+            <a asp-action="CrearNaciente"
+               class="gam-btn">
+                <i class="bi bi-plus-circle"></i>
+                Nueva naciente
+            </a>
+
+            <a asp-action="CrearTanque"
+               class="gam-btn">
+                <i class="bi bi-plus-circle"></i>
+                Nuevo tanque
+            </a>
+
+            <a asp-action="Index"
+               class="gam-btn">
+                <i class="bi bi-eye"></i>
+                Vista pública
+            </a>
+
+        </div>
+
+    </section>
+
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-success">
+            <i class="bi bi-check-circle-fill"></i>
+            @TempData["Mensaje"]
+        </div>
+    }
+
+    <h3 class="gam-title">
+        <i class="bi bi-droplet-fill"></i>
+        Nacientes (@nacientes.Count)
+    </h3>
+
+    <div class="gam-grid">
+
+        @if (nacientes.Any())
+        {
+            @foreach (var naciente in nacientes)
+            {
+                <article class="gam-card">
+
+                    <div class="gam-card-head">
+
+                        <div class="gam-icon">
+                            <i class="bi bi-droplet-fill"></i>
+                        </div>
+
+                        <h4>@naciente.Nombre</h4>
+
+                    </div>
+
+                    <div class="gam-location">
+                        <i class="bi bi-geo-alt-fill"></i>
+                        @naciente.Ubicacion
+                    </div>
+
+                    <span class="gam-status @(naciente.Estado ? "activo" : "inactivo")">
+                        @(naciente.Estado ? "Activo" : "Inactivo")
+                    </span>
+
+                    <p>@naciente.Descripcion</p>
+
+                    <div class="gam-actions">
+
+                        <a asp-action="EditarNaciente"
+                           asp-route-id="@naciente.IdNaciente"
+                           class="gam-edit">
+
+                            <i class="bi bi-pencil-square"></i>
+                            Editar
+
+                        </a>
+
+                        <form asp-action="EliminarNaciente"
+                              asp-route-id="@naciente.IdNaciente"
+                              method="post"
+                              onsubmit="return confirm('¿Eliminar esta naciente definitivamente?');">
+
+                            @Html.AntiForgeryToken()
+
+                            <button type="submit"
+                                    class="gam-delete">
+
+                                <i class="bi bi-trash"></i>
+                                Eliminar
+
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </article>
+            }
+        }
+        else
+        {
+            <div class="gam-empty">
+                <i class="bi bi-droplet"></i>
+                Todavía no hay nacientes registradas.
+            </div>
+        }
+
+    </div>
+
+    <h3 class="gam-title">
+        <i class="bi bi-water"></i>
+        Tanques (@tanques.Count)
+    </h3>
+
+    <div class="gam-grid">
+
+        @if (tanques.Any())
+        {
+            @foreach (var tanque in tanques)
+            {
+                <article class="gam-card">
+
+                    <div class="gam-card-head">
+
+                        <div class="gam-icon tanque">
+                            <i class="bi bi-water"></i>
+                        </div>
+
+                        <h4>@tanque.Nombre</h4>
+
+                    </div>
+
+                    <div class="gam-location">
+                        <i class="bi bi-geo-alt-fill"></i>
+                        @tanque.Ubicacion
+                    </div>
+
+                    <span class="gam-status @(tanque.Estado ? "activo" : "inactivo")">
+                        @(tanque.Estado ? "Activo" : "Inactivo")
+                    </span>
+
+                    <p>@tanque.Descripcion</p>
+
+                    <div class="gam-actions">
+
+                        <a asp-action="EditarTanque"
+                           asp-route-id="@tanque.IdTanque"
+                           class="gam-edit">
+
+                            <i class="bi bi-pencil-square"></i>
+                            Editar
+
+                        </a>
+
+                        <form asp-action="EliminarTanque"
+                              asp-route-id="@tanque.IdTanque"
+                              method="post"
+                              onsubmit="return confirm('¿Eliminar este tanque definitivamente?');">
+
+                            @Html.AntiForgeryToken()
+
+                            <button type="submit"
+                                    class="gam-delete">
+
+                                <i class="bi bi-trash"></i>
+                                Eliminar
+
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </article>
+            }
+        }
+        else
+        {
+            <div class="gam-empty">
+                <i class="bi bi-water"></i>
+                Todavía no hay tanques registrados.
+            </div>
+        }
+
+    </div>
+
+</div>

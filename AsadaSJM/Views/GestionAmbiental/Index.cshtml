@@ -1,0 +1,551 @@
+﻿
+@using AsadaSJM.Models
+
+@{
+    ViewData["Title"] = "Gestión Ambiental";
+
+    var nacientes = ViewBag.Nacientes as List<Naciente>
+        ?? new List<Naciente>();
+
+    var tanques = ViewBag.Tanques as List<Tanque>
+        ?? new List<Tanque>();
+
+    var total = nacientes.Count + tanques.Count;
+}
+
+<style>
+    .ga-page {
+        font-family: 'Roboto', sans-serif;
+        color: #193b35;
+    }
+
+    .ga-hero {
+        position: relative;
+        overflow: hidden;
+        border-radius: 24px;
+        padding: 55px 45px;
+        background:
+            radial-gradient(circle at 90% 15%,
+                rgba(132, 220, 189, .30),
+                transparent 38%),
+            linear-gradient(125deg, #103e36, #19785f);
+        color: white;
+        margin-bottom: 28px;
+    }
+
+    .ga-hero::after {
+        content: "◉";
+        position: absolute;
+        right: 35px;
+        bottom: -110px;
+        font-size: 300px;
+        opacity: .07;
+        pointer-events: none;
+    }
+
+    .ga-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 15px;
+        border-radius: 30px;
+        background: rgba(255,255,255,.13);
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    .ga-hero h2 {
+        font-family: 'Montserrat', sans-serif;
+        font-size: clamp(26px, 4vw, 42px);
+        font-weight: 700;
+        line-height: 1.2;
+        max-width: 680px;
+    }
+
+    .ga-hero p {
+        max-width: 610px;
+        color: #e0f3ea;
+        line-height: 1.8;
+        margin-top: 16px;
+    }
+
+    .ga-manage {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        background: white;
+        color: #14644d;
+        border-radius: 12px;
+        padding: 12px 20px;
+        font-weight: 700;
+        text-decoration: none;
+        margin-top: 15px;
+    }
+
+    .ga-manage:hover {
+        background: #e5f7ed;
+        color: #104c3b;
+    }
+
+    .ga-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-bottom: 35px;
+    }
+
+    .ga-stat {
+        background: white;
+        border: 1px solid #e4eee8;
+        border-radius: 16px;
+        padding: 22px;
+    }
+
+    .ga-stat i {
+        color: #27866a;
+        font-size: 24px;
+    }
+
+    .ga-stat strong {
+        display: block;
+        margin-top: 10px;
+        font-size: 27px;
+        font-weight: 700;
+    }
+
+    .ga-stat span {
+        font-size: 13px;
+        color: #688078;
+    }
+
+    .ga-intro {
+        margin: 32px 0 20px;
+    }
+
+    .ga-intro h3 {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        font-size: 24px;
+    }
+
+    .ga-intro p {
+        color: #687c75;
+    }
+
+    .ga-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 25px;
+    }
+
+    .ga-tab {
+        background: white;
+        border: 1px solid #dbe8e1;
+        color: #386b58;
+        border-radius: 30px;
+        padding: 10px 20px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: .2s;
+    }
+
+    .ga-tab:hover,
+    .ga-tab.active {
+        background: #176b52;
+        color: white;
+        border-color: #176b52;
+    }
+
+    .ga-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 22px;
+    }
+
+    .ga-card {
+        background: white;
+        border: 1px solid #e5eee8;
+        border-radius: 19px;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(17,73,52,.04);
+        transition: transform .2s, box-shadow .2s;
+    }
+
+    .ga-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 28px rgba(17,73,52,.12);
+    }
+
+    .ga-card-top {
+        height: 100px;
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .ga-naciente {
+        background: linear-gradient(115deg,#d9f4e7,#a9d9c4);
+    }
+
+    .ga-tanque {
+        background: linear-gradient(115deg,#dceff8,#a5cfdf);
+    }
+
+    .ga-card-icon {
+        width: 58px;
+        height: 58px;
+        border-radius: 16px;
+        background: rgba(255,255,255,.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 27px;
+        color: #175c54;
+    }
+
+    .ga-type {
+        background: rgba(255,255,255,.85);
+        padding: 7px 12px;
+        border-radius: 30px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .ga-card-body {
+        padding: 24px;
+    }
+
+    .ga-card-body h4 {
+        font-size: 21px;
+        font-weight: 700;
+        margin-bottom: 14px;
+    }
+
+    .ga-location {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #457b69;
+        font-size: 14px;
+        margin-bottom: 15px;
+    }
+
+    .ga-description {
+        color: #5c706a;
+        font-size: 14px;
+        line-height: 1.8;
+        white-space: pre-line;
+        overflow-wrap: anywhere;
+    }
+
+    .ga-card-footer {
+        border-top: 1px solid #edf2ef;
+        padding-top: 16px;
+        margin-top: 20px;
+        color: #258164;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .ga-empty {
+        grid-column: 1 / -1;
+        background: #f5faf7;
+        border: 1px dashed #bad8c9;
+        text-align: center;
+        padding: 60px 20px;
+        border-radius: 20px;
+    }
+
+    .ga-empty i {
+        font-size: 38px;
+        color: #72a991;
+    }
+
+    .ga-empty h4 {
+        margin-top: 16px;
+        font-weight: 700;
+    }
+
+    .ga-empty p {
+        color: #6a8479;
+    }
+
+    .ga-note {
+        text-align: center;
+        background: #eef8f2;
+        border-radius: 16px;
+        padding: 24px;
+        margin-top: 40px;
+        color: #316e58;
+    }
+
+    @@media(max-width: 768px) {
+        .ga-hero {
+            padding: 35px 25px;
+        }
+
+        .ga-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .ga-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="ga-page">
+
+    <section class="ga-hero">
+
+        <div class="ga-eyebrow">
+            <i class="bi bi-droplet-fill"></i>
+            ASADA San José de la Montaña
+        </div>
+
+        <h2>
+            Protegemos el agua
+            que nos da vida.
+        </h2>
+
+        <p>
+            Descubre las nacientes protegidas y los tanques
+            administrados por nuestra ASADA. Cada recurso
+            representa nuestro compromiso con la comunidad
+            y la conservación del agua.
+        </p>
+
+        @if (User.IsInRole("Administrador"))
+        {
+            <a asp-controller="GestionAmbiental"
+               asp-action="Administrar"
+               class="ga-manage">
+
+                <i class="bi bi-gear-fill"></i>
+                Administrar recursos
+
+            </a>
+        }
+
+    </section>
+
+    <section class="ga-stats">
+
+        <div class="ga-stat">
+            <i class="bi bi-droplet-fill"></i>
+            <strong>@nacientes.Count</strong>
+            <span>Nacientes protegidas</span>
+        </div>
+
+        <div class="ga-stat">
+            <i class="bi bi-water"></i>
+            <strong>@tanques.Count</strong>
+            <span>Tanques administrados</span>
+        </div>
+
+        <div class="ga-stat">
+            <i class="bi bi-shield-check"></i>
+            <strong>@total</strong>
+            <span>Recursos registrados activos</span>
+        </div>
+
+    </section>
+
+    <section>
+
+        <div class="ga-intro">
+
+            <h3>Explora nuestros recursos</h3>
+
+            <p>
+                Conoce su ubicación e importancia
+                dentro de nuestra comunidad.
+            </p>
+
+        </div>
+
+        <div class="ga-tabs">
+
+            <button type="button"
+                    class="ga-tab active"
+                    data-filter="todos">
+                Todos (@total)
+            </button>
+
+            <button type="button"
+                    class="ga-tab"
+                    data-filter="naciente">
+                <i class="bi bi-droplet"></i>
+                Nacientes (@nacientes.Count)
+            </button>
+
+            <button type="button"
+                    class="ga-tab"
+                    data-filter="tanque">
+                <i class="bi bi-water"></i>
+                Tanques (@tanques.Count)
+            </button>
+
+        </div>
+
+        <div class="ga-grid" id="gaGrid">
+
+            @foreach (var naciente in nacientes)
+            {
+                <article class="ga-card"
+                         data-tipo="naciente">
+
+                    <div class="ga-card-top ga-naciente">
+
+                        <div class="ga-card-icon">
+                            <i class="bi bi-droplet-fill"></i>
+                        </div>
+
+                        <span class="ga-type">
+                            Naciente protegida
+                        </span>
+
+                    </div>
+
+                    <div class="ga-card-body">
+
+                        <h4>@naciente.Nombre</h4>
+
+                        <div class="ga-location">
+                            <i class="bi bi-geo-alt-fill"></i>
+                            @naciente.Ubicacion
+                        </div>
+
+                        <div class="ga-description">
+                            @naciente.Descripcion
+                        </div>
+
+                        <div class="ga-card-footer">
+                            <i class="bi bi-check-circle-fill"></i>
+                            Recurso activo
+                        </div>
+
+                    </div>
+
+                </article>
+            }
+
+            @foreach (var tanque in tanques)
+            {
+                <article class="ga-card"
+                         data-tipo="tanque">
+
+                    <div class="ga-card-top ga-tanque">
+
+                        <div class="ga-card-icon">
+                            <i class="bi bi-water"></i>
+                        </div>
+
+                        <span class="ga-type">
+                            Tanque administrado
+                        </span>
+
+                    </div>
+
+                    <div class="ga-card-body">
+
+                        <h4>@tanque.Nombre</h4>
+
+                        <div class="ga-location">
+                            <i class="bi bi-geo-alt-fill"></i>
+                            @tanque.Ubicacion
+                        </div>
+
+                        <div class="ga-description">
+                            @tanque.Descripcion
+                        </div>
+
+                        <div class="ga-card-footer">
+                            <i class="bi bi-check-circle-fill"></i>
+                            Recurso activo
+                        </div>
+
+                    </div>
+
+                </article>
+            }
+
+            <div class="ga-empty"
+                 id="gaEmpty"
+                 style="display:none">
+
+                <i class="bi bi-droplet-half"></i>
+
+                <h4>No hay recursos disponibles</h4>
+
+                <p>
+                    Todavía no se han registrado
+                    recursos en esta categoría.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="ga-note">
+
+        <i class="bi bi-heart-fill"></i>
+
+        <strong>
+            Cuidar el agua es cuidar nuestro futuro.
+        </strong>
+
+        <div class="mt-2">
+            ASADA San José de la Montaña
+        </div>
+
+    </section>
+
+</div>
+
+<script>
+    (function () {
+        const botones = document.querySelectorAll(".ga-tab");
+        const tarjetas = document.querySelectorAll(".ga-card");
+        const vacio = document.getElementById("gaEmpty");
+
+        function filtrar(tipo) {
+            let visibles = 0;
+
+            tarjetas.forEach(function (tarjeta) {
+                const mostrar =
+                    tipo === "todos" ||
+                    tarjeta.dataset.tipo === tipo;
+
+                tarjeta.style.display = mostrar ? "" : "none";
+
+                if (mostrar) {
+                    visibles++;
+                }
+            });
+
+            vacio.style.display =
+                visibles === 0 ? "block" : "none";
+
+            botones.forEach(function (boton) {
+                boton.classList.toggle(
+                    "active",
+                    boton.dataset.filter === tipo
+                );
+            });
+        }
+
+        botones.forEach(function (boton) {
+            boton.addEventListener("click", function () {
+                filtrar(boton.dataset.filter);
+            });
+        });
+
+        filtrar("todos");
+    })();
+</script>
