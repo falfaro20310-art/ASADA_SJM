@@ -1,132 +1,525 @@
-﻿@model List<AsadaSJM.Models.Expresidente>
+﻿
+@model List<AsadaSJM.Models.Expresidente>
 
 @{
     ViewData["Title"] = "Presidentes";
+
+    var presidenteActual = Model
+        .FirstOrDefault(p => p.Estado);
+
+    var anteriores = Model
+        .Where(p => !p.Estado)
+        .ToList();
 }
 
-<div class="panel">
+<style>
+    .pr-page {
+        color: #24354b;
+        font-family: 'Roboto', sans-serif;
+    }
 
-    <div class="d-flex justify-content-end mb-3">
+    .pr-hero {
+        background:
+            radial-gradient(circle at 92% 10%,
+                rgba(235,199,122,.28),
+                transparent 40%),
+            linear-gradient(120deg,#112943,#274f6b);
+        padding: 48px;
+        border-radius: 24px;
+        color: white;
+        margin-bottom: 30px;
+    }
+
+    .pr-tagline {
+        color: #ead0a2;
+        letter-spacing: 2px;
+        font-size: 12px;
+        text-transform: uppercase;
+        font-weight: 700;
+    }
+
+    .pr-hero h2 {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        margin-top: 13px;
+        font-size: clamp(26px, 4vw, 40px);
+    }
+
+    .pr-hero p {
+        color: #d6e1ec;
+        max-width: 650px;
+        margin-top: 16px;
+        line-height: 1.8;
+    }
+
+    .pr-add {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        background: #e6c78e;
+        border-radius: 11px;
+        padding: 12px 20px;
+        text-decoration: none;
+        color: #23354a;
+        font-weight: 700;
+        margin-top: 13px;
+    }
+
+    .pr-add:hover {
+        background: #f4dab0;
+        color: #192a3e;
+    }
+
+    .pr-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 30px 0 18px;
+        gap: 12px;
+    }
+
+    .pr-heading h3 {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        font-size: 23px;
+        margin: 0;
+    }
+
+    .pr-heading span {
+        color: #82909a;
+        font-size: 13px;
+    }
+
+    .pr-featured {
+        display: grid;
+        grid-template-columns: 280px minmax(0, 1fr);
+        background: white;
+        border: 1px solid #e4e8eb;
+        border-radius: 22px;
+        overflow: hidden;
+        box-shadow: 0 8px 30px rgba(20,40,65,.05);
+    }
+
+    .pr-featured-photo {
+        min-height: 340px;
+        background: linear-gradient(140deg,#c9dbe2,#e5edf2);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+    }
+
+    .pr-photo {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .pr-photo-fallback {
+        font-size: 90px;
+        color: #6f8d9d;
+    }
+
+    .pr-featured-info {
+        padding: 35px;
+        min-width: 0;
+    }
+
+    .pr-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        border-radius: 30px;
+        padding: 7px 13px;
+        background: #e4f4eb;
+        color: #17764b;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .pr-featured-info h3 {
+        margin-top: 18px;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 29px;
+        font-weight: 700;
+    }
+
+    .pr-field {
+        margin-top: 23px;
+    }
+
+    .pr-field strong {
+        display: block;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #55728a;
+        margin-bottom: 8px;
+    }
+
+    .pr-field p {
+        color: #596c7c;
+        line-height: 1.75;
+        white-space: pre-line;
+        overflow-wrap: anywhere;
+        margin: 0;
+    }
+
+    .pr-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 20px;
+    }
+
+    .pr-card {
+        background: white;
+        border: 1px solid #e5e9ee;
+        border-radius: 19px;
+        overflow: hidden;
+        transition: transform .2s, box-shadow .2s;
+    }
+
+    .pr-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 28px rgba(20,40,65,.10);
+    }
+
+    .pr-card-photo {
+        height: 215px;
+        background: linear-gradient(145deg,#dce6ee,#bfcfdc);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .pr-card-photo i {
+        font-size: 75px;
+        color: #698496;
+    }
+
+    .pr-card-body {
+        padding: 23px;
+    }
+
+    .pr-card-body h4 {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 18px;
+        font-weight: 700;
+        margin: 13px 0;
+    }
+
+    .pr-old-status {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        color: #5a7286;
+        background: #edf2f6;
+        border-radius: 20px;
+        padding: 6px 12px;
+    }
+
+    .pr-summary {
+        font-size: 13px;
+        line-height: 1.65;
+        color: #667789;
+        overflow-wrap: anywhere;
+        white-space: pre-line;
+        max-height: 110px;
+        overflow-y: auto;
+    }
+
+    .pr-actions {
+        display: flex;
+        gap: 9px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+    }
+
+    .pr-edit,
+    .pr-delete {
+        border-radius: 9px;
+        padding: 8px 13px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .pr-edit {
+        background: #eaf0f8;
+        color: #245c92;
+        border: 1px solid #dce7f5;
+    }
+
+    .pr-delete {
+        background: #fff0ef;
+        color: #b64242;
+        border: 1px solid #f5d8d8;
+        cursor: pointer;
+    }
+
+    .pr-empty {
+        border: 1px dashed #ccd6df;
+        border-radius: 20px;
+        background: white;
+        text-align: center;
+        padding: 65px 20px;
+        color: #7d8d9b;
+    }
+
+    .pr-empty i {
+        display: block;
+        font-size: 45px;
+        margin-bottom: 14px;
+    }
+
+    @@media (max-width: 1000px) {
+        .pr-grid {
+            grid-template-columns: repeat(2, minmax(0,1fr));
+        }
+    }
+
+    @@media (max-width: 720px) {
+        .pr-hero {
+            padding: 32px 24px;
+        }
+
+        .pr-featured {
+            grid-template-columns: 1fr;
+        }
+
+        .pr-featured-photo {
+            height: 260px;
+        }
+
+        .pr-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="pr-page">
+
+    <section class="pr-hero">
+
+        <div class="pr-tagline">
+            <i class="bi bi-stars"></i>
+            Nuestra historia
+        </div>
+
+        <h2>
+            Personas que dejan huella.
+        </h2>
+
+        <p>
+            Conoce a quienes han liderado nuestra ASADA,
+            contribuyendo al crecimiento de la comunidad,
+            al fortalecimiento de los servicios y a la
+            protección de nuestros recursos.
+        </p>
 
         <a asp-action="Create"
-           class="btn btn-agua">
+           class="pr-add">
 
             <i class="bi bi-plus-lg"></i>
             Registrar presidente
 
         </a>
 
+    </section>
+
+    <div class="pr-heading">
+        <h3>Liderazgo actual</h3>
+        <span>Presidencia de la ASADA</span>
     </div>
 
-    <div class="table-responsive">
+    @if (presidenteActual != null)
+    {
+        <article class="pr-featured">
 
-        <table class="table table-asada mb-0">
+            <div class="pr-featured-photo">
 
-            <thead>
-
-                <tr>
-                    <th>Nombre</th>
-                    <th>Trayectoria</th>
-                    <th>Proyectos</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-
-            </thead>
-
-            <tbody>
-
-                @if (Model.Count > 0)
+                @if (!string.IsNullOrWhiteSpace(presidenteActual.Imagen))
                 {
-                    @foreach (var presidente in Model)
-                    {
-                        <tr>
+                    <img src="@presidenteActual.Imagen"
+                         alt="Fotografía de @presidenteActual.Nombre"
+                         class="pr-photo"
+                         loading="lazy"
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='block';" />
 
-                            <td>
-                                @presidente.Nombre
-                            </td>
-
-                            <td>
-                                @(string.IsNullOrWhiteSpace(presidente.Trayectoria)
-                                    ? "No registrado"
-                                    : presidente.Trayectoria)
-                            </td>
-
-                            <td>
-                                @(string.IsNullOrWhiteSpace(presidente.Proyectos)
-                                    ? "No registrado"
-                                    : presidente.Proyectos)
-                            </td>
-
-                            <td>
-
-                                @if (presidente.Estado)
-                                {
-                                    <span>
-                                        Presidente actual
-                                    </span>
-                                }
-                                else
-                                {
-                                    <span>
-                                        Expresidente
-                                    </span>
-                                }
-
-                            </td>
-
-                            <td>
-
-                                <div class="d-flex gap-2">
-
-                                    <a asp-action="Edit"
-                                       asp-route-id="@presidente.IdExpresidente"
-                                       title="Editar">
-
-                                        <i class="bi bi-pencil-square"></i>
-
-                                    </a>
-
-                                    <form asp-action="Delete"
-                                          asp-route-id="@presidente.IdExpresidente"
-                                          method="post"
-                                          onsubmit="return confirm('¿Está seguro de que desea eliminar este presidente?');">
-
-                                        <button type="submit"
-                                                class="btn btn-link p-0 border-0"
-                                                title="Eliminar">
-
-                                            <i class="bi bi-trash"></i>
-
-                                        </button>
-
-                                    </form>
-
-                                </div>
-
-                            </td>
-
-                        </tr>
-                    }
+                    <i class="bi bi-person-circle pr-photo-fallback"
+                       style="display:none"></i>
                 }
                 else
                 {
-                    <tr>
-
-                        <td colspan="5"
-                            class="text-center">
-
-                            No existen presidentes registrados.
-
-                        </td>
-
-                    </tr>
+                    <i class="bi bi-person-circle pr-photo-fallback"></i>
                 }
 
-            </tbody>
+            </div>
 
-        </table>
+            <div class="pr-featured-info">
 
+                <span class="pr-status">
+                    <i class="bi bi-check-circle-fill"></i>
+                    Presidente actual
+                </span>
+
+                <h3>@presidenteActual.Nombre</h3>
+
+                <div class="pr-field">
+                    <strong>Trayectoria</strong>
+                    <p>
+                        @(string.IsNullOrWhiteSpace(presidenteActual.Trayectoria)
+                            ? "No se ha registrado información."
+                            : presidenteActual.Trayectoria)
+                    </p>
+                </div>
+
+                <div class="pr-field">
+                    <strong>Proyectos destacados</strong>
+                    <p>
+                        @(string.IsNullOrWhiteSpace(presidenteActual.Proyectos)
+                            ? "No se han registrado proyectos."
+                            : presidenteActual.Proyectos)
+                    </p>
+                </div>
+
+                <div class="pr-actions">
+
+                    <a asp-action="Edit"
+                       asp-route-id="@presidenteActual.IdExpresidente"
+                       class="pr-edit">
+                        <i class="bi bi-pencil-square"></i>
+                        Editar
+                    </a>
+
+                    <form asp-action="Delete"
+                          asp-route-id="@presidenteActual.IdExpresidente"
+                          method="post"
+                          onsubmit="return confirm('¿Eliminar este registro?');">
+
+                        @Html.AntiForgeryToken()
+
+                        <button type="submit"
+                                class="pr-delete">
+                            <i class="bi bi-trash"></i>
+                            Eliminar
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </article>
+    }
+    else
+    {
+        <div class="pr-empty">
+            <i class="bi bi-person-badge"></i>
+            No hay un presidente actual registrado.
+        </div>
+    }
+
+    <div class="pr-heading">
+        <h3>Quienes nos han liderado</h3>
+        <span>@anteriores.Count registros</span>
     </div>
+
+    @if (anteriores.Any())
+    {
+        <div class="pr-grid">
+
+            @foreach (var presidente in anteriores)
+            {
+                <article class="pr-card">
+
+                    <div class="pr-card-photo">
+
+                        @if (!string.IsNullOrWhiteSpace(presidente.Imagen))
+                        {
+                            <img src="@presidente.Imagen"
+                                 alt="Fotografía de @presidente.Nombre"
+                                 class="pr-photo"
+                                 loading="lazy"
+                                 onerror="this.style.display='none';this.nextElementSibling.style.display='block';" />
+
+                            <i class="bi bi-person-circle"
+                               style="display:none"></i>
+                        }
+                        else
+                        {
+                            <i class="bi bi-person-circle"></i>
+                        }
+
+                    </div>
+
+                    <div class="pr-card-body">
+
+                        <span class="pr-old-status">
+                            Expresidente
+                        </span>
+
+                        <h4>@presidente.Nombre</h4>
+
+                        <div class="pr-field">
+                            <strong>Trayectoria</strong>
+                            <div class="pr-summary">
+                                @(string.IsNullOrWhiteSpace(presidente.Trayectoria)
+                                    ? "Sin trayectoria registrada."
+                                    : presidente.Trayectoria)
+                            </div>
+                        </div>
+
+                        <div class="pr-field">
+                            <strong>Proyectos</strong>
+                            <div class="pr-summary">
+                                @(string.IsNullOrWhiteSpace(presidente.Proyectos)
+                                    ? "Sin proyectos registrados."
+                                    : presidente.Proyectos)
+                            </div>
+                        </div>
+
+                        <div class="pr-actions">
+
+                            <a asp-action="Edit"
+                               asp-route-id="@presidente.IdExpresidente"
+                               class="pr-edit">
+                                <i class="bi bi-pencil-square"></i>
+                                Editar
+                            </a>
+
+                            <form asp-action="Delete"
+                                  asp-route-id="@presidente.IdExpresidente"
+                                  method="post"
+                                  onsubmit="return confirm('¿Eliminar este presidente?');">
+
+                                @Html.AntiForgeryToken()
+
+                                <button type="submit"
+                                        class="pr-delete">
+                                    <i class="bi bi-trash"></i>
+                                    Eliminar
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </article>
+            }
+
+        </div>
+    }
+    else
+    {
+        <div class="pr-empty">
+            <i class="bi bi-journal-bookmark"></i>
+            Todavía no hay expresidentes registrados.
+        </div>
+    }
 
 </div>
