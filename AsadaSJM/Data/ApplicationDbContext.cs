@@ -1,3 +1,4 @@
+using AsadaSJM.Data.Entidades;
 
 using AsadaSJM.Models;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<BitacoraItemViewModel> Bitacoras => Set<BitacoraItemViewModel>();
     public DbSet<Expresidente> Expresidentes => Set<Expresidente>();
     public DbSet<InformacionInstitucional> InformacionInstitucional => Set<InformacionInstitucional>();
+    public DbSet<GaleriaEntidad> Galerias => Set<GaleriaEntidad>();
+    public DbSet<FotoGaleriaEntidad> FotosGaleria => Set<FotoGaleriaEntidad>();
 
     // =====================================================
     // MGA-01: GESTIÓN AMBIENTAL
@@ -67,6 +70,11 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<InformacionInstitucional>()
             .ToTable("INFORMACION_INSTITUCIONAL");
 
+        modelBuilder.Entity<GaleriaEntidad>()
+            .ToTable("GALERIA");
+
+        modelBuilder.Entity<FotoGaleriaEntidad>()
+            .ToTable("FOTO_GALERIA");
         // =====================================================
         // MGA-01: TABLA NACIENTE
         // =====================================================
@@ -168,5 +176,23 @@ public class ApplicationDbContext : DbContext
             .WithMany(a => a.Recibos)
             .HasForeignKey(r => r.IdAbonado)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // =====================================================
+        // RELACIÓN USUARIO -> GALERIA
+        // =====================================================
+        modelBuilder.Entity<GaleriaEntidad>()
+            .HasOne(g => g.Usuario)
+            .WithMany()
+            .HasForeignKey(g => g.IdUsuario)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // =====================================================
+        // RELACIÓN GALERIA -> FOTO_GALERIA
+        // =====================================================
+        modelBuilder.Entity<FotoGaleriaEntidad>()
+            .HasOne(f => f.Galeria)
+            .WithMany(g => g.Fotos)
+            .HasForeignKey(f => f.IdGaleria)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

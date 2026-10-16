@@ -51,3 +51,70 @@ footer h3{ font-size:15px; color:#fff; }
 footer a{ color:#dce8f5; text-decoration:none; }
 footer a:hover{ color:#fff; }
 .footer-bottom{ background:var(--verde-bosque); color:#e9f0e6; font-size:12.5px; padding:.6rem 0; }
+
+/*Galeria*/
+.mqs-09, .mqs-09 *, .mqs-09 *::before, .mqs-09 *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+.mqs-09 {
+    --gap: 18px;
+    position: relative;
+    font-family: 'Segoe UI',system-ui,sans-serif;
+    overflow: hidden;
+    min-height: 62vh;
+    display: grid;
+    margin-top: 2rem;
+}
+
+.mqs-09__wall {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--gap);
+}
+
+.mqs-09__viewport {
+    display: flex;
+    gap: var(--gap);
+    overflow: hidden;
+}
+
+.mqs-09__group {
+    flex: none;
+    display: flex;
+    gap: var(--gap);
+    animation: mqs-09-scroll var(--speed) linear infinite;
+    will-change: transform;
+}
+
+.mqs-09__group--rev {
+    animation-direction: reverse;
+}
+
+@keyframes mqs-09-scroll {
+    to {
+        transform: translateX(calc(-100% - var(--gap)));
+    }
+}
+
+.mqs-09__tile {
+    flex: none;
+    aspect-ratio: 3/2;
+    border-radius: 14px;
+    background: var(--g);
+    opacity: .8;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mqs-09__group {
+        animation: none;
+    }
+}
+
+body.body_gallery {
+    background: var(--gris-claro);
+}

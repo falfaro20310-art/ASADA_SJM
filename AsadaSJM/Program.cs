@@ -1,4 +1,6 @@
 using AsadaSJM.Data;
+using AsadaSJM.Services.FotoGaleria;
+using AsadaSJM.Services.Galeria;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
@@ -47,6 +49,9 @@ builder.Services.AddAuthorization();
 // =========================================================
 
 builder.Services.AddControllersWithViews();
+// Services
+builder.Services.AddScoped<IGaleriaService, GaleriaService>();
+builder.Services.AddScoped<IFotoGaleriaService, FotoGaleriaService>();
 
 var app = builder.Build();
 
