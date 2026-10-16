@@ -1,5 +1,5 @@
 @{
-    Layout = null;
+    Layout = "_LayoutNoAuth";
     ViewData["Title"] = "ASADA San José de la Montaña";
 
     var informacionContacto =
@@ -34,83 +34,6 @@
     <link rel="stylesheet" href="~/css/portal.css">
 </head>
 <body>
-
-    <!-- HEADER -->
-    <nav class="navbar navbar-expand-lg navbar-asada">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="#">
-                <i class="bi bi-droplet-fill" style="font-size:26px;color:var(--azul-agua);"></i>
-                <span class="brand">ASADA<small>San José de la Montaña</small></span>
-            </a>
-
-            <button class="navbar-toggler"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#navMenu">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse justify-content-end"
-                 id="navMenu">
-
-                <ul class="navbar-nav gap-lg-3">
-
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#">
-                            Inicio
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="#institucional">
-                            Nuestra ASADA
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            Transparencia
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            Servicios
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            Ambiente y Comunidad
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            Galería
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="#contacto">
-                            Contacto
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a asp-controller="Account"
-                           asp-action="Login"
-                           class="nav-link">
-                            Ingresar
-                        </a>
-                    </li>
-
-                </ul>
-
-            </div>
-        </div>
-    </nav>
-
 
     <!-- HERO -->
     <header class="hero">
@@ -253,9 +176,7 @@
 
                     </div>
                 </div>
-
             </div>
-
         </div>
     </section>
 
@@ -281,11 +202,8 @@
 
 
             <div class="row g-3">
-
                 <div class="col-md-4">
-
                     <div class="news-card bg-white">
-
                         <div style="height:130px;background:linear-gradient(135deg,#7a9c7a,#3f6b8f);">
                         </div>
 
@@ -309,16 +227,11 @@
                             </a>
 
                         </div>
-
                     </div>
-
                 </div>
 
-
                 <div class="col-md-4">
-
                     <div class="news-card bg-white">
-
                         <div style="height:130px;background:linear-gradient(135deg,#3f6b8f,#004A99);">
                         </div>
 
@@ -342,16 +255,11 @@
                             </a>
 
                         </div>
-
                     </div>
-
                 </div>
 
-
                 <div class="col-md-4">
-
                     <div class="news-card bg-white">
-
                         <div style="height:130px;background:linear-gradient(135deg,#2D5A27,#5a8c52);">
                         </div>
 
@@ -375,155 +283,64 @@
                             </a>
 
                         </div>
-
                     </div>
-
                 </div>
-
             </div>
-
         </div>
     </section>
 
-
-    <!-- FOOTER -->
-    <footer id="contacto">
-
-        <div class="container">
-
-            <div class="row g-4">
-
-
-                <div class="col-md-3">
-
-                    <div class="d-flex align-items-center gap-2 mb-2">
-
-                        <i class="bi bi-droplet-fill"
-                           style="font-size:22px;"></i>
-
-                        <strong>
-                            ASADA<br>
-                            <small style="font-weight:400;">
-                                San José de la Montaña
-                            </small>
-                        </strong>
-
-                    </div>
-
-                    <p style="font-size:13px;">
-                        Transparencia, servicio y compromiso con el agua.
-                    </p>
-
-                </div>
-
-
-                <!-- CONTACTO -->
-                <div class="col-md-3">
-
-                    <h3>Contacto</h3>
-
-                    @if (informacionContacto != null)
-                    {
-                        @if (!string.IsNullOrWhiteSpace(informacionContacto.Telefono))
-                        {
-                            <p class="mb-1">
-                                <i class="bi bi-telephone-fill me-1"></i>
-                                @informacionContacto.Telefono
-                            </p>
-                        }
-
-                        @if (!string.IsNullOrWhiteSpace(informacionContacto.Correo))
-                        {
-                            <p class="mb-1">
-                                <i class="bi bi-envelope-fill me-1"></i>
-                                @informacionContacto.Correo
-                            </p>
-                        }
-
-                        @if (!string.IsNullOrWhiteSpace(informacionContacto.Direccion))
-                        {
-                            <p class="mb-0">
-                                <i class="bi bi-geo-alt-fill me-1"></i>
-                                @informacionContacto.Direccion
-                            </p>
-                        }
-                    }
-                    else
-                    {
-                        <p class="mb-0">
-                            Información de contacto no disponible.
-                        </p>
-                    }
-
-                </div>
-
-
-                <!-- HORARIO -->
-                <div class="col-md-3">
-
-                    <h3>Horario de atención</h3>
-
-                    @if (informacionContacto != null &&
-                         !string.IsNullOrWhiteSpace(informacionContacto.Horario))
-                    {
-                        <p class="mb-0">
-                            @informacionContacto.Horario
-                        </p>
-                    }
-                    else
-                    {
-                        <p class="mb-0">
-                            Horario no disponible.
-                        </p>
-                    }
-
-                </div>
-
-
-                <div class="col-md-3">
-
-                    <h3>Enlaces rápidos</h3>
-
-                    <p class="mb-1">
-
-                        <a asp-controller="Recibos"
-                           asp-action="Index">
-                            Consultar recibos
-                        </a>
-
-                    </p>
-
-                    <p class="mb-1">
-
-                        <a asp-controller="Averias"
-                           asp-action="Index">
-                            Reportar avería
-                        </a>
-
-                    </p>
-
-                    <p class="mb-0">
-
-                        <a href="#">
-                            Reglamentos y tarifas
-                        </a>
-
-                    </p>
-
-                </div>
-
-
+    <!-- GALERIA -->
+    <section class="section">
+        <div class="container mt-1">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="section-title">Galería Fotográfica</h2>
+                <!-- Ir a la galería -->
+                <a asp-controller="Galeria" asp-action="Index" style="font-size:13.5px;color:var(--azul-agua);text-decoration:none;">
+                    Ver la galería →
+                </a>
             </div>
-
+            <div class="mqs-09" aria-label="Image brand wall marquee demo">
+                <div class="mqs-09__wall" aria-hidden="true">
+                    <div class="mqs-09__viewport">
+                        <div class="mqs-09__group" style="--speed:48s">
+                            <span class="mqs-09__tile" style="min-height: 30vh;--g:linear-gradient(135deg,#7a9c7a,#3f6b8f)"></span>
+                            <span class="mqs-09__tile" style="min-height: 30vh;--g:linear-gradient(135deg,#3f6b8f,#004A99)"></span>
+                            <span class="mqs-09__tile" style="min-height: 30vh;--g:linear-gradient(135deg,#2D5A27,#5a8c52)"></span>
+                            <span class="mqs-09__tile" style="min-height: 30vh;--g:linear-gradient(135deg,#7a9c7a,#3f6b8f)"></span>
+                            <span class="mqs-09__tile" style="min-height: 30vh;--g:linear-gradient(135deg,#3f6b8f,#004A99)"></span>
+                            <span class="mqs-09__tile" style="min-height: 30vh;--g:linear-gradient(135deg,#2D5A27,#5a8c52)"></span>
+                        </div>
+                        <div class="mqs-09__group" style="--speed:48s">
+                            <span class="mqs-09__tile" style="min-height: 30vh;--g:linear-gradient(135deg,#7a9c7a,#3f6b8f)"></span>
+                            <span class="mqs-09__tile" style="min-height: 30vh;--g:linear-gradient(135deg,#3f6b8f,#004A99)"></span>
+                            <span class="mqs-09__tile" style="min-height: 30vh;--g:linear-gradient(135deg,#2D5A27,#5a8c52)"></span>
+                            <span class="mqs-09__tile" style="min-height: 30vh;--g:linear-gradient(135deg,#7a9c7a,#3f6b8f)"></span>
+                            <span class="mqs-09__tile" style="min-height: 30vh;--g:linear-gradient(135deg,#3f6b8f,#004A99)"></span>
+                            <span class="mqs-09__tile" style="min-height: 30vh;--g:linear-gradient(135deg,#2D5A27,#5a8c52)"></span>
+                        </div>
+                    </div>
+                    <div class="mqs-09__viewport">
+                        <div class="mqs-09__group mqs-09__group--rev" style="--speed:62s">
+                            <span class="mqs-09__tile" style="min-height: 30vh;--g:linear-gradient(135deg,#7a9c7a,#3f6b8f)"></span>
+                            <span class="mqs-09__tile" style="min-height: 30vh;--g:linear-gradient(135deg,#3f6b8f,#004A99)"></span>
+                            <span class="mqs-09__tile" style="min-height: 30vh;--g:linear-gradient(135deg,#2D5A27,#5a8c52)"></span>
+                            <span class="mqs-09__tile" style="min-height: 30vh;--g:linear-gradient(135deg,#7a9c7a,#3f6b8f)"></span>
+                            <span class="mqs-09__tile" style="min-height: 30vh;--g:linear-gradient(135deg,#3f6b8f,#004A99)"></span>
+                            <span class="mqs-09__tile" style="min-height: 30vh;--g:linear-gradient(135deg,#2D5A27,#5a8c52)"></span>
+                        </div>
+                        <div class="mqs-09__group mqs-09__group--rev" style="--speed:62s">
+                            <span class="mqs-09__tile" style="min-height: 30vh;--g:linear-gradient(135deg,#7a9c7a,#3f6b8f)"></span>
+                            <span class="mqs-09__tile" style="min-height: 30vh;--g:linear-gradient(135deg,#3f6b8f,#004A99)"></span>
+                            <span class="mqs-09__tile" style="min-height: 30vh;--g:linear-gradient(135deg,#2D5A27,#5a8c52)"></span>
+                            <span class="mqs-09__tile" style="min-height: 30vh;--g:linear-gradient(135deg,#7a9c7a,#3f6b8f)"></span>
+                            <span class="mqs-09__tile" style="min-height: 30vh;--g:linear-gradient(135deg,#3f6b8f,#004A99)"></span>
+                            <span class="mqs-09__tile" style="min-height: 30vh;--g:linear-gradient(135deg,#2D5A27,#5a8c52)"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-
-    </footer>
-
-
-    <div class="footer-bottom text-center">
-        © 2026 ASADA San José de la Montaña. Todos los derechos reservados.
-    </div>
-
+    </section>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js">
     </script>

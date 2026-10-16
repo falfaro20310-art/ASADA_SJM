@@ -13,8 +13,6 @@ namespace AsadaSJM.Data.Entidades
         [ForeignKey(nameof(IdGaleria))]
         public GaleriaEntidad? Galeria { get; set; }
         public string RutaImagen { get; set; } = string.Empty;
-        public string Descripcion { get; set; } = string.Empty;
         public DateTime? Fecha { get; set; }
-        public bool Estado { get; set; }
     }
 }

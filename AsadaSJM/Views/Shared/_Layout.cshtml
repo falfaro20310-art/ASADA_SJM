@@ -110,6 +110,14 @@
                     Presidentes
                 </a>
 
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Galerias" ? "active" : "")"
+                   asp-controller="Galeria"
+                   asp-action="Index">
+
+                    <i class="bi bi-images"></i>
+                    Galería Fotográfica
+                </a>
+
                 <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Institucional" ? "active" : "")"
                    asp-controller="Institucional"
                    asp-action="Editar">
