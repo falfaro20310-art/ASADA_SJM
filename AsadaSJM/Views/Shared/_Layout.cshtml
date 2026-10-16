@@ -1,8 +1,13 @@
+
 @{
     bool autenticado = User.Identity?.IsAuthenticated ?? false;
     bool esAdministrador = User.IsInRole("Administrador");
     bool esAbonado = User.IsInRole("Abonado");
     bool esOperativo = User.IsInRole("Operativo");
+
+    bool esGestionAmbiental =
+        ViewContext.RouteData.Values["controller"]?.ToString()
+        == "GestionAmbiental";
 
     string nombreUsuario = User.Identity?.Name ?? "";
 
@@ -17,6 +22,7 @@
 <html lang="es">
 <head>
     <meta charset="utf-8" />
+
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0" />
 
@@ -48,11 +54,49 @@
 
         <div class="nav flex-column">
 
-            @* =====================================================
-               USUARIO ADMINISTRADOR
-               ===================================================== *@
+            @* =========================================
+               MGA-01: NAVEGACIÓN SIMPLIFICADA
+               ========================================= *@
 
-            @if (esAdministrador)
+            @if (esGestionAmbiental)
+            {
+                @if (esAdministrador)
+                {
+                    <a class="nav-link"
+                       asp-controller="Home"
+                       asp-action="Index">
+
+                        <i class="bi bi-arrow-left"></i>
+                        Volver
+                    </a>
+                }
+                else if (esAbonado)
+                {
+                    <a class="nav-link"
+                       asp-controller="OficinaVirtual"
+                       asp-action="Index">
+
+                        <i class="bi bi-arrow-left"></i>
+                        Volver
+                    </a>
+                }
+                else
+                {
+                    <a class="nav-link"
+                       asp-controller="Portal"
+                       asp-action="Index">
+
+                        <i class="bi bi-arrow-left"></i>
+                        Volver
+                    </a>
+                }
+            }
+
+            @* =========================================
+               MENÚ NORMAL DEL ADMINISTRADOR
+               ========================================= *@
+
+            else if (esAdministrador)
             {
                 <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")"
                    asp-controller="Home"
@@ -126,6 +170,14 @@
                     Información institucional
                 </a>
 
+                <a class="nav-link"
+                   asp-controller="GestionAmbiental"
+                   asp-action="Index">
+
+                    <i class="bi bi-leaf-fill"></i>
+                    Gestión Ambiental
+                </a>
+
                 <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Bitacora" ? "active" : "")"
                    asp-controller="Bitacora"
                    asp-action="Index">
@@ -143,13 +195,21 @@
                 </a>
 
                 <hr class="mx-3" />
+
+                <a class="nav-link"
+                   asp-controller="Account"
+                   asp-action="Logout">
+
+                    <i class="bi bi-box-arrow-right"></i>
+                    Cerrar sesión
+                </a>
             }
 
-            @* =====================================================
-               USUARIO NO ADMINISTRADOR
-               ===================================================== *@
+            @* =========================================
+               MENÚ DE ABONADOS Y OPERATIVOS
+               ========================================= *@
 
-            @if (autenticado && !esAdministrador)
+            else if (autenticado)
             {
                 <a class="nav-link"
                    asp-controller="Portal"
@@ -159,15 +219,16 @@
                     Portal
                 </a>
 
+                <a class="nav-link"
+                   asp-controller="GestionAmbiental"
+                   asp-action="Index">
+
+                    <i class="bi bi-leaf-fill"></i>
+                    Gestión Ambiental
+                </a>
+
                 <hr class="mx-3" />
-            }
 
-            @* =====================================================
-               SESIÓN
-               ===================================================== *@
-
-            @if (autenticado)
-            {
                 <a class="nav-link"
                    asp-controller="Account"
                    asp-action="Logout">
@@ -176,21 +237,33 @@
                     Cerrar sesión
                 </a>
             }
+
+            @* =========================================
+               MENÚ PÚBLICO
+               ========================================= *@
+
             else
             {
                 <a class="nav-link"
-                   asp-controller="Account"
-                   asp-action="Login">
+                   asp-controller="Portal"
+                   asp-action="Index">
 
-                    <i class="bi bi-box-arrow-in-right"></i>
-                    Ingresar
+                    <i class="bi bi-house-fill"></i>
+                    Inicio
+                </a>
+
+                <a class="nav-link"
+                   asp-controller="GestionAmbiental"
+                   asp-action="Index">
+
+                    <i class="bi bi-leaf-fill"></i>
+                    Gestión Ambiental
                 </a>
             }
 
         </div>
 
     </nav>
-
 
     <main class="main-content">
 
@@ -223,7 +296,6 @@
 
             </div>
 
-
             @if (autenticado)
             {
                 <div class="text-end">
@@ -244,7 +316,6 @@
         @RenderBody()
 
     </main>
-
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js">
     </script>

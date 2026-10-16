@@ -1,4 +1,5 @@
 using AsadaSJM.Data.Entidades;
+
 using AsadaSJM.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,6 +24,13 @@ public class ApplicationDbContext : DbContext
     public DbSet<InformacionInstitucional> InformacionInstitucional => Set<InformacionInstitucional>();
     public DbSet<GaleriaEntidad> Galerias => Set<GaleriaEntidad>();
     public DbSet<FotoGaleriaEntidad> FotosGaleria => Set<FotoGaleriaEntidad>();
+
+    // =====================================================
+    // MGA-01: GESTIÓN AMBIENTAL
+    // =====================================================
+
+    public DbSet<Naciente> Nacientes => Set<Naciente>();
+    public DbSet<Tanque> Tanques => Set<Tanque>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -67,6 +75,67 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<FotoGaleriaEntidad>()
             .ToTable("FOTO_GALERIA");
+        // =====================================================
+        // MGA-01: TABLA NACIENTE
+        // =====================================================
+
+        modelBuilder.Entity<Naciente>(entity =>
+        {
+            entity.ToTable("NACIENTE");
+
+            entity.HasKey(n => n.IdNaciente);
+
+            entity.Property(n => n.IdNaciente)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(n => n.Nombre)
+                .HasMaxLength(150)
+                .IsRequired();
+
+            entity.Property(n => n.Ubicacion)
+                .HasMaxLength(250)
+                .IsRequired();
+
+            entity.Property(n => n.Descripcion)
+                .IsRequired();
+
+            entity.Property(n => n.Estado)
+                .HasDefaultValue(true);
+
+            entity.Property(n => n.FechaRegistro)
+                .HasDefaultValueSql("GETDATE()");
+        });
+
+        // =====================================================
+        // MGA-01: TABLA TANQUE
+        // =====================================================
+
+        modelBuilder.Entity<Tanque>(entity =>
+        {
+            entity.ToTable("TANQUE");
+
+            entity.HasKey(t => t.IdTanque);
+
+            entity.Property(t => t.IdTanque)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(t => t.Nombre)
+                .HasMaxLength(150)
+                .IsRequired();
+
+            entity.Property(t => t.Ubicacion)
+                .HasMaxLength(250)
+                .IsRequired();
+
+            entity.Property(t => t.Descripcion)
+                .IsRequired();
+
+            entity.Property(t => t.Estado)
+                .HasDefaultValue(true);
+
+            entity.Property(t => t.FechaRegistro)
+                .HasDefaultValueSql("GETDATE()");
+        });
 
         // =====================================================
         // RELACIÓN ABONADO -> AVERIA
@@ -78,7 +147,6 @@ public class ApplicationDbContext : DbContext
             .HasForeignKey(a => a.IdAbonado)
             .OnDelete(DeleteBehavior.Restrict);
 
-
         // =====================================================
         // RELACIÓN USUARIO -> AVERIA
         // =====================================================
@@ -89,7 +157,6 @@ public class ApplicationDbContext : DbContext
             .HasForeignKey(a => a.IdUsuarioReporta)
             .OnDelete(DeleteBehavior.Restrict);
 
-
         // =====================================================
         // RELACIONES DE TRAMITE
         // =====================================================
@@ -99,7 +166,6 @@ public class ApplicationDbContext : DbContext
             .WithMany(a => a.Tramites)
             .HasForeignKey(t => t.IdAbonado)
             .OnDelete(DeleteBehavior.Restrict);
-
 
         // =====================================================
         // RELACIÓN RECIBO -> ABONADO

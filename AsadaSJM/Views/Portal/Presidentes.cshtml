@@ -1,46 +1,712 @@
-﻿@model IEnumerable<AsadaSJM.Models.Expresidente>
+﻿
+@model IEnumerable<AsadaSJM.Models.Expresidente>
 
 @{
     Layout = null;
-    ViewData["Title"] = "Presidentes - ASADA San José de la Montaña";
+    ViewData["Title"] = "Nuestra Historia - ASADA San José de la Montaña";
 
     var presidenteActual = ViewBag.PresidenteActual as AsadaSJM.Models.Expresidente;
     var expresidentes = Model?.ToList() ?? new List<AsadaSJM.Models.Expresidente>();
+    int numero = 0;
 }
 
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Presidentes - ASADA San José de la Montaña</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nuestra Historia - ASADA San José de la Montaña</title>
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"
-          rel="stylesheet">
-
+          rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css"
-          rel="stylesheet">
+          rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap"
+          rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/portal.css" asp-append-version="true" />
 
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Roboto:wght@400;500&display=swap"
-          rel="stylesheet">
+    <style>
+        /* ==========================================
+           IDENTIDAD VISUAL DEL MÓDULO
+           ========================================== */
 
-    <link rel="stylesheet" href="~/css/portal.css">
+        .presidentes-page {
+            --deep: #102e32;
+            --forest: #174e49;
+            --teal: #4da99c;
+            --gold: #c4a571;
+            --cream: #f6f4ef;
+            --ink: #253b3d;
+            --muted: #748584;
+
+            font-family: 'DM Sans', sans-serif;
+            background: var(--cream);
+            color: var(--ink);
+            overflow: hidden;
+        }
+
+        .presidentes-page * {
+            box-sizing: border-box;
+        }
+
+        .editorial-title {
+            font-family: 'Playfair Display', serif;
+            font-weight: 500;
+            letter-spacing: -1px;
+        }
+
+        .section-kicker {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        /* ==========================================
+           PORTADA
+           ========================================== */
+
+        .history-cover {
+            position: relative;
+            min-height: 610px;
+            display: flex;
+            align-items: center;
+            background: var(--deep);
+            color: white;
+            overflow: hidden;
+        }
+
+        .history-cover::before {
+            content: "";
+            position: absolute;
+            width: 720px;
+            height: 720px;
+            border: 1px solid rgba(255,255,255,.10);
+            border-radius: 50%;
+            right: -190px;
+            top: -220px;
+            box-shadow:
+                0 0 0 90px rgba(255,255,255,.025),
+                0 0 0 180px rgba(255,255,255,.018),
+                0 0 0 270px rgba(255,255,255,.012);
+            pointer-events: none;
+        }
+
+        .history-cover::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(
+                circle at 75% 55%,
+                rgba(77,169,156,.15),
+                transparent 42%
+            );
+            pointer-events: none;
+        }
+
+        .cover-content {
+            position: relative;
+            z-index: 2;
+            padding-top: 80px;
+            padding-bottom: 95px;
+        }
+
+        .cover-number {
+            position: absolute;
+            right: 0;
+            top: 10px;
+            font-size: clamp(100px, 22vw, 310px);
+            font-weight: 700;
+            color: rgba(255,255,255,.035);
+            line-height: 1;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .cover-eyebrow {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            color: var(--gold);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 32px;
+        }
+
+        .cover-eyebrow::before {
+            content: "";
+            display: block;
+            width: 38px;
+            height: 1px;
+            background: var(--gold);
+        }
+
+        .cover-title {
+            font-size: clamp(50px, 7.5vw, 110px);
+            line-height: 1.04;
+            max-width: 950px;
+            margin: 0 0 35px;
+        }
+
+        .cover-title em {
+            font-weight: 400;
+            color: #a8d7c9;
+        }
+
+        .cover-description {
+            max-width: 530px;
+            color: #bdd1cc;
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .cover-actions {
+            display: flex;
+            gap: 22px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 36px;
+        }
+
+        .cover-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            color: #173d39;
+            background: #d6bc88;
+            border-radius: 3px;
+            padding: 15px 22px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: .25s;
+        }
+
+        .cover-button:hover {
+            background: white;
+            color: var(--deep);
+            transform: translateY(-2px);
+        }
+
+        .cover-scroll {
+            font-size: 12px;
+            color: #b4ccc4;
+            letter-spacing: 1px;
+        }
+
+        /* ==========================================
+           FRANJA INSTITUCIONAL
+           ========================================== */
+
+        .heritage-strip {
+            background: #e5e9df;
+            border-bottom: 1px solid #d6ddd4;
+        }
+
+        .heritage-inner {
+            min-height: 104px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .heritage-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .heritage-item i {
+            font-size: 28px;
+            color: var(--forest);
+        }
+
+        .heritage-item strong {
+            display: block;
+            color: var(--deep);
+            font-size: 14px;
+        }
+
+        .heritage-item span {
+            color: #6e8278;
+            font-size: 12px;
+        }
+
+        /* ==========================================
+           PRESENTACIÓN PRESIDENTE ACTUAL
+           ========================================== */
+
+        .current-section {
+            padding: 110px 0 115px;
+        }
+
+        .section-heading {
+            margin-bottom: 55px;
+        }
+
+        .section-heading h2 {
+            font-size: clamp(39px, 5vw, 65px);
+            line-height: 1.14;
+            margin-top: 14px;
+        }
+
+        .section-heading p {
+            max-width: 550px;
+            font-size: 15px;
+            line-height: 1.9;
+            color: var(--muted);
+        }
+
+        .current-feature {
+            display: grid;
+            grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+            align-items: center;
+            gap: clamp(30px, 6vw, 100px);
+        }
+
+        .current-portrait-wrapper {
+            position: relative;
+            padding: 0 35px 38px 0;
+        }
+
+        .current-portrait-wrapper::after {
+            content: "";
+            position: absolute;
+            top: 35px;
+            left: 35px;
+            right: 0;
+            bottom: 0;
+            border: 2px solid var(--gold);
+            z-index: 0;
+        }
+
+        .current-portrait {
+            position: relative;
+            z-index: 1;
+            height: 490px;
+            background: linear-gradient(145deg,#aac8c0,#436e68);
+            overflow: hidden;
+        }
+
+        .current-portrait img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center 30%;
+            display: block;
+            filter: saturate(.85);
+        }
+
+        .current-portrait-placeholder {
+            height: 100%;
+            display: grid;
+            place-items: center;
+            color: rgba(255,255,255,.8);
+            font-size: 110px;
+        }
+
+        .portrait-corner {
+            position: absolute;
+            bottom: 64px;
+            right: 5px;
+            z-index: 3;
+            background: var(--deep);
+            color: white;
+            padding: 16px 22px;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .current-copy {
+            min-width: 0;
+        }
+
+        .current-copy h3 {
+            font-size: clamp(39px, 5vw, 68px);
+            margin: 17px 0 22px;
+            line-height: 1.1;
+            overflow-wrap: anywhere;
+        }
+
+        .current-role {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #347d6c;
+            background: #e0ece6;
+            padding: 9px 15px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .gold-line {
+            width: 65px;
+            height: 2px;
+            background: var(--gold);
+            margin: 35px 0;
+        }
+
+        .story-block {
+            margin-bottom: 28px;
+        }
+
+        .story-block h4 {
+            font-weight: 700;
+            color: var(--forest);
+            font-size: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .story-block p {
+            line-height: 1.9;
+            font-size: 15px;
+            color: #667d79;
+            white-space: pre-line;
+            overflow-wrap: anywhere;
+        }
+
+        /* ==========================================
+           DIVISOR
+           ========================================== */
+
+        .history-quote {
+            background: #dce9e3;
+            padding: 65px 20px;
+            text-align: center;
+        }
+
+        .history-quote i {
+            display: block;
+            font-size: 33px;
+            color: var(--forest);
+            margin-bottom: 15px;
+        }
+
+        .history-quote p {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(24px, 3.5vw, 39px);
+            line-height: 1.45;
+            max-width: 850px;
+            margin: auto;
+            color: var(--deep);
+        }
+
+        /* ==========================================
+           GALERÍA DE EXPRESIDENTES
+           ========================================== */
+
+        .legacy-section {
+            padding: 110px 0 130px;
+        }
+
+        .legacy-intro {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 25px;
+            margin-bottom: 55px;
+        }
+
+        .legacy-intro h2 {
+            font-size: clamp(40px, 5vw, 67px);
+            margin: 15px 0 0;
+        }
+
+        .legacy-count {
+            color: var(--muted);
+            font-size: 13px;
+            letter-spacing: 1px;
+        }
+
+        .legacy-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 30px;
+            align-items: start;
+        }
+
+        .legacy-card {
+            min-width: 0;
+            background: white;
+            border: 1px solid #e5eae6;
+            transition: transform .3s, box-shadow .3s;
+        }
+
+        .legacy-card:nth-child(3n + 2) {
+            margin-top: 55px;
+        }
+
+        .legacy-card:hover {
+            transform: translateY(-7px);
+            box-shadow: 0 24px 50px rgba(16,46,50,.13);
+        }
+
+        .legacy-photo {
+            height: 320px;
+            position: relative;
+            background: #bdd0c9;
+            overflow: hidden;
+        }
+
+        .legacy-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform .55s;
+        }
+
+        .legacy-card:hover .legacy-photo img {
+            transform: scale(1.06);
+        }
+
+        .legacy-placeholder {
+            height: 100%;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(140deg,#bfd3ce,#4e7972);
+            color: white;
+            font-size: 75px;
+        }
+
+        .legacy-number {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            padding: 8px 12px;
+            color: white;
+            background: rgba(16,46,50,.80);
+            backdrop-filter: blur(8px);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .legacy-content {
+            padding: 27px;
+        }
+
+        .legacy-category {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #608d80;
+            font-weight: 700;
+        }
+
+        .legacy-content h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            margin: 10px 0 20px;
+            color: var(--deep);
+            overflow-wrap: anywhere;
+        }
+
+        /* DETALLES INTERACTIVOS */
+
+        .legacy-details {
+            border-top: 1px solid #e3e9e5;
+            padding-top: 15px;
+        }
+
+        .legacy-details summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            list-style: none;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--forest);
+            user-select: none;
+        }
+
+        .legacy-details summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .legacy-details summary i {
+            font-size: 17px;
+            transition: transform .2s;
+        }
+
+        .legacy-details[open] summary i {
+            transform: rotate(45deg);
+        }
+
+        .legacy-details-body {
+            padding-top: 23px;
+            animation: legacyReveal .25s ease;
+        }
+
+        .legacy-details-body h4 {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #4b8475;
+            margin: 0 0 8px;
+        }
+
+        .legacy-details-body p {
+            font-size: 13px;
+            line-height: 1.8;
+            color: #657772;
+            white-space: pre-line;
+            overflow-wrap: anywhere;
+            margin-bottom: 20px;
+        }
+
+        @@keyframes legacyReveal {
+            from {
+                opacity: 0;
+                transform: translateY(-7px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .history-empty {
+            padding: 65px 25px;
+            text-align: center;
+            background: white;
+            border: 1px dashed #b9cec5;
+            color: var(--muted);
+        }
+
+        .history-empty i {
+            display: block;
+            font-size: 44px;
+            margin-bottom: 16px;
+            color: #6aa18e;
+        }
+
+        /* ==========================================
+           CIERRE
+           ========================================== */
+
+        .history-end {
+            background: var(--deep);
+            padding: 80px 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .history-end .editorial-title {
+            font-size: clamp(30px,4vw,50px);
+            max-width: 750px;
+            margin: 20px auto;
+        }
+
+        .history-end p {
+            color: #b6cec5;
+            margin-bottom: 0;
+        }
+
+        /* ==========================================
+           RESPONSIVE
+           ========================================== */
+
+        @@media(max-width: 991px) {
+            .legacy-grid {
+                grid-template-columns: repeat(2,minmax(0,1fr));
+            }
+
+            .legacy-card:nth-child(3n + 2) {
+                margin-top: 0;
+            }
+
+            .legacy-card:nth-child(even) {
+                margin-top: 35px;
+            }
+
+            .current-feature {
+                gap: 35px;
+            }
+
+            .current-portrait {
+                height: 400px;
+            }
+        }
+
+        @@media(max-width: 767px) {
+            .history-cover {
+                min-height: 550px;
+            }
+
+            .cover-content {
+                padding-top: 65px;
+                padding-bottom: 65px;
+            }
+
+            .heritage-inner {
+                flex-wrap: wrap;
+                padding: 25px 0;
+            }
+
+            .heritage-item {
+                width: 100%;
+            }
+
+            .current-section,
+            .legacy-section {
+                padding: 70px 0;
+            }
+
+            .current-feature {
+                grid-template-columns: 1fr;
+            }
+
+            .current-portrait {
+                height: 430px;
+            }
+
+            .legacy-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .legacy-card:nth-child(even) {
+                margin-top: 0;
+            }
+
+            .legacy-intro {
+                flex-direction: column;
+                align-items: start;
+            }
+        }
+
+        @@media(prefers-reduced-motion: reduce) {
+            .presidentes-page *,
+            .presidentes-page *::before,
+            .presidentes-page *::after {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-    <!-- HEADER -->
+    <!-- MENÚ DEL PORTAL -->
     <nav class="navbar navbar-expand-lg navbar-asada">
         <div class="container">
 
             <a class="navbar-brand d-flex align-items-center gap-2"
                asp-controller="Portal"
                asp-action="Index">
-
                 <i class="bi bi-droplet-fill"
                    style="font-size:26px;color:var(--azul-agua);"></i>
-
                 <span class="brand">
                     ASADA
                     <small>San José de la Montaña</small>
@@ -50,8 +716,10 @@
             <button class="navbar-toggler"
                     type="button"
                     data-bs-toggle="collapse"
-                    data-bs-target="#navMenu">
-
+                    data-bs-target="#navMenu"
+                    aria-controls="navMenu"
+                    aria-expanded="false"
+                    aria-label="Abrir menú">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
@@ -63,274 +731,417 @@
                     <li class="nav-item">
                         <a class="nav-link"
                            asp-controller="Portal"
-                           asp-action="Index">
-                            Inicio
-                        </a>
+                           asp-action="Index">Inicio</a>
                     </li>
 
                     <li class="nav-item">
                         <a class="nav-link active"
                            asp-controller="Portal"
-                           asp-action="Presidentes">
-                            Nuestra ASADA
-                        </a>
+                           asp-action="Presidentes">Nuestra ASADA</a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            Transparencia
-                        </a>
+                        <a class="nav-link" href="#">Transparencia</a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            Servicios
-                        </a>
+                        <a class="nav-link" href="#">Servicios</a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            Ambiente y Comunidad
-                        </a>
+                        <a class="nav-link"
+                           asp-controller="GestionAmbiental"
+                           asp-action="Index">Ambiente y Comunidad</a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            Galería
-                        </a>
+                        <a class="nav-link" href="#">Galería</a>
                     </li>
 
                     <li class="nav-item">
                         <a class="nav-link"
                            asp-controller="Portal"
                            asp-action="Index"
-                           asp-fragment="contacto">
-                            Contacto
-                        </a>
+                           asp-fragment="contacto">Contacto</a>
                     </li>
 
                     <li class="nav-item">
-                        <a asp-controller="Account"
-                           asp-action="Login"
-                           class="nav-link">
-                            Ingresar
-                        </a>
+                        <a class="nav-link"
+                           asp-controller="Account"
+                           asp-action="Login">Ingresar</a>
                     </li>
 
                 </ul>
-
             </div>
         </div>
     </nav>
 
+    <main class="presidentes-page">
 
-    <!-- PRESIDENTES -->
-    <section class="section">
-        <div class="container">
+        <!-- PORTADA EDITORIAL -->
+        <section class="history-cover">
 
-            <h2 class="section-title mb-1">
-                Presidentes de la ASADA
-            </h2>
+            <div class="container cover-content">
 
-            <p class="text-muted mb-4"
-               style="font-size:14px;">
-                Conozca al presidente actual y a quienes han formado parte de la historia institucional de la ASADA San José de la Montaña.
-            </p>
+                <span class="cover-number" aria-hidden="true">AS</span>
 
+                <div class="cover-eyebrow">
+                    ASADA SAN JOSÉ DE LA MONTAÑA
+                </div>
 
-            <!-- PRESIDENTE ACTUAL -->
-            @if (presidenteActual != null)
-            {
-                <div class="mb-5">
+                <h1 class="editorial-title cover-title">
+                    Nuestra historia.<br />
+                    <em>Su legado.</em>
+                </h1>
 
-                    <h2 class="section-title mb-3">
-                        Presidente actual
+                <p class="cover-description">
+                    Detrás de cada avance hay personas que han
+                    dedicado tiempo, compromiso y visión al
+                    bienestar de nuestra comunidad y al cuidado
+                    del recurso hídrico.
+                </p>
+
+                <div class="cover-actions">
+
+                    <a href="#liderazgo-actual" class="cover-button">
+                        Conocer nuestra historia
+                        <i class="bi bi-arrow-down-right"></i>
+                    </a>
+
+                    <span class="cover-scroll">
+                        DESLIZA PARA EXPLORAR
+                        <i class="bi bi-arrow-down ms-2"></i>
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- FRANJA INSTITUCIONAL -->
+        <div class="heritage-strip">
+
+            <div class="container heritage-inner">
+
+                <div class="heritage-item">
+                    <i class="bi bi-droplet-half"></i>
+                    <div>
+                        <strong>Compromiso con el agua</strong>
+                        <span>Nuestro recurso más valioso</span>
+                    </div>
+                </div>
+
+                <div class="heritage-item">
+                    <i class="bi bi-people"></i>
+                    <div>
+                        <strong>Liderazgo comunitario</strong>
+                        <span>Personas al servicio de la comunidad</span>
+                    </div>
+                </div>
+
+                <div class="heritage-item">
+                    <i class="bi bi-tree"></i>
+                    <div>
+                        <strong>Visión sostenible</strong>
+                        <span>Protección para futuras generaciones</span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- PRESIDENTE ACTUAL -->
+        <section class="current-section" id="liderazgo-actual">
+
+            <div class="container">
+
+                <div class="section-heading">
+
+                    <span class="section-kicker">
+                        01 / PRESENTE
+                    </span>
+
+                    <h2 class="editorial-title">
+                        El liderazgo de hoy.
                     </h2>
 
-                    <div class="row">
+                    <p>
+                        Conoce a la persona que actualmente
+                        representa la presidencia de nuestra ASADA.
+                    </p>
 
-                        <div class="col-lg-8">
+                </div>
 
-                            <div class="card-inst">
+                @if (presidenteActual != null)
+                {
+                    <article class="current-feature">
 
-                                <div class="row g-3 align-items-center">
+                        <div class="current-portrait-wrapper">
 
-                                    @if (!string.IsNullOrWhiteSpace(presidenteActual.Imagen))
-                                    {
-                                        <div class="col-md-4">
+                            <div class="current-portrait">
 
-                                            <img src="@presidenteActual.Imagen"
-                                                 alt="@presidenteActual.Nombre"
-                                                 class="img-fluid rounded">
-                                        </div>
-                                    }
+                                @if (!string.IsNullOrWhiteSpace(presidenteActual.Imagen))
+                                {
+                                    <img src="@presidenteActual.Imagen"
+                                         alt="Fotografía de @presidenteActual.Nombre"
+                                         loading="lazy"
+                                         onerror="this.style.display='none';this.nextElementSibling.hidden=false;" />
 
-                                    <div class="@(string.IsNullOrWhiteSpace(presidenteActual.Imagen) ? "col-12" : "col-md-8")">
-
-                                        <div class="icon-circle">
-                                            <i class="bi bi-person-fill"></i>
-                                        </div>
-
-                                        <h3>
-                                            @presidenteActual.Nombre
-                                        </h3>
-
-                                        @if (!string.IsNullOrWhiteSpace(presidenteActual.Trayectoria))
-                                        {
-                                            <p class="mb-2">
-                                                <strong>Trayectoria</strong>
-                                            </p>
-
-                                            <p>
-                                                @presidenteActual.Trayectoria
-                                            </p>
-                                        }
-
-                                        @if (!string.IsNullOrWhiteSpace(presidenteActual.Proyectos))
-                                        {
-                                            <p class="mb-2">
-                                                <strong>Proyectos</strong>
-                                            </p>
-
-                                            <p class="mb-0">
-                                                @presidenteActual.Proyectos
-                                            </p>
-                                        }
-
+                                    <div class="current-portrait-placeholder" hidden>
+                                        <i class="bi bi-person-circle"></i>
                                     </div>
+                                }
+                                else
+                                {
+                                    <div class="current-portrait-placeholder">
+                                        <i class="bi bi-person-circle"></i>
+                                    </div>
+                                }
 
-                                </div>
+                            </div>
+
+                            <div class="portrait-corner">
+                                PRESIDENCIA ACTUAL
+                            </div>
+
+                        </div>
+
+                        <div class="current-copy">
+
+                            <span class="current-role">
+                                <i class="bi bi-patch-check-fill"></i>
+                                REPRESENTACIÓN ACTUAL
+                            </span>
+
+                            <h3 class="editorial-title">
+                                @presidenteActual.Nombre
+                            </h3>
+
+                            <div class="gold-line"></div>
+
+                            <div class="story-block">
+
+                                <h4>Su trayectoria</h4>
+
+                                <p>
+                                    @(string.IsNullOrWhiteSpace(presidenteActual.Trayectoria)
+                                        ? "Información de trayectoria pendiente de publicación."
+                                        : presidenteActual.Trayectoria)
+                                </p>
+
+                            </div>
+
+                            <div class="story-block">
+
+                                <h4>Proyectos e iniciativas</h4>
+
+                                <p>
+                                    @(string.IsNullOrWhiteSpace(presidenteActual.Proyectos)
+                                        ? "Información de proyectos pendiente de publicación."
+                                        : presidenteActual.Proyectos)
+                                </p>
 
                             </div>
 
                         </div>
 
+                    </article>
+                }
+                else
+                {
+                    <div class="history-empty">
+                        <i class="bi bi-person-badge"></i>
+                        No hay información publicada sobre la presidencia actual.
+                    </div>
+                }
+
+            </div>
+
+        </section>
+
+        <!-- FRASE INSTITUCIONAL -->
+        <section class="history-quote">
+
+            <i class="bi bi-water"></i>
+
+            <p>
+                “El agua nos conecta.
+                Las personas construyen nuestro futuro.”
+            </p>
+
+        </section>
+
+        <!-- EXPRESIDENTES -->
+        <section class="legacy-section" id="nuestro-legado">
+
+            <div class="container">
+
+                <div class="legacy-intro">
+
+                    <div>
+
+                        <span class="section-kicker">
+                            02 / LEGADO
+                        </span>
+
+                        <h2 class="editorial-title">
+                            Huellas que permanecen.
+                        </h2>
+
                     </div>
 
+                    <span class="legacy-count">
+                        @expresidentes.Count
+                        @(expresidentes.Count == 1
+                            ? "REGISTRO HISTÓRICO"
+                            : "REGISTROS HISTÓRICOS")
+                    </span>
+
                 </div>
-            }
 
-
-            <!-- EXPRESIDENTES -->
-            @if (expresidentes.Any())
-            {
-                <div>
-
-                    <h2 class="section-title mb-3">
-                        Expresidentes
-                    </h2>
-
-                    <div class="row g-3">
+                @if (expresidentes.Any())
+                {
+                    <div class="legacy-grid">
 
                         @foreach (var expresidente in expresidentes)
                         {
-                            <div class="col-md-6 col-lg-4">
+                            numero++;
 
-                                <div class="card-inst">
+                            <article class="legacy-card">
+
+                                <div class="legacy-photo">
 
                                     @if (!string.IsNullOrWhiteSpace(expresidente.Imagen))
                                     {
                                         <img src="@expresidente.Imagen"
-                                             alt="@expresidente.Nombre"
-                                             class="img-fluid rounded mb-3">
+                                             alt="Fotografía de @expresidente.Nombre"
+                                             loading="lazy"
+                                             onerror="this.style.display='none';this.nextElementSibling.hidden=false;" />
+
+                                        <div class="legacy-placeholder" hidden>
+                                            <i class="bi bi-person-circle"></i>
+                                        </div>
                                     }
-
-                                    <div class="icon-circle">
-                                        <i class="bi bi-person-fill"></i>
-                                    </div>
-
-                                    <h3>
-                                        @expresidente.Nombre
-                                    </h3>
-
-                                    @if (!string.IsNullOrWhiteSpace(expresidente.Trayectoria))
+                                    else
                                     {
-                                        <p class="mb-2">
-                                            <strong>Trayectoria</strong>
-                                        </p>
-
-                                        <p>
-                                            @expresidente.Trayectoria
-                                        </p>
+                                        <div class="legacy-placeholder">
+                                            <i class="bi bi-person-circle"></i>
+                                        </div>
                                     }
 
-                                    @if (!string.IsNullOrWhiteSpace(expresidente.Proyectos))
-                                    {
-                                        <p class="mb-2">
-                                            <strong>Proyectos</strong>
-                                        </p>
-
-                                        <p class="mb-0">
-                                            @expresidente.Proyectos
-                                        </p>
-                                    }
+                                    <span class="legacy-number">
+                                        @numero.ToString("D2")
+                                    </span>
 
                                 </div>
 
-                            </div>
+                                <div class="legacy-content">
+
+                                    <span class="legacy-category">
+                                        EXPRESIDENCIA
+                                    </span>
+
+                                    <h3>@expresidente.Nombre</h3>
+
+                                    <details class="legacy-details">
+
+                                        <summary>
+                                            Descubrir su historia
+                                            <i class="bi bi-plus-lg"></i>
+                                        </summary>
+
+                                        <div class="legacy-details-body">
+
+                                            <h4>Trayectoria</h4>
+
+                                            <p>
+                                                @(string.IsNullOrWhiteSpace(expresidente.Trayectoria)
+                                                    ? "No hay información disponible."
+                                                    : expresidente.Trayectoria)
+                                            </p>
+
+                                            <h4>Proyectos realizados</h4>
+
+                                            <p>
+                                                @(string.IsNullOrWhiteSpace(expresidente.Proyectos)
+                                                    ? "No hay información disponible."
+                                                    : expresidente.Proyectos)
+                                            </p>
+
+                                        </div>
+
+                                    </details>
+
+                                </div>
+
+                            </article>
                         }
 
                     </div>
-
-                </div>
-            }
-
-
-            <!-- SIN INFORMACIÓN -->
-            @if (presidenteActual == null && !expresidentes.Any())
-            {
-                <div class="card-inst">
-
-                    <div class="icon-circle">
-                        <i class="bi bi-info-circle-fill"></i>
+                }
+                else
+                {
+                    <div class="history-empty">
+                        <i class="bi bi-journal-bookmark"></i>
+                        Todavía no hay expresidentes publicados.
                     </div>
+                }
 
-                    <h3>
-                        Información no disponible
-                    </h3>
+            </div>
 
-                    <p class="mb-0">
-                        No existen registros de presidentes disponibles en este momento.
-                    </p>
+        </section>
 
-                </div>
-            }
+        <!-- CIERRE EDITORIAL -->
+        <section class="history-end">
 
-        </div>
-    </section>
+            <div class="container">
 
+                <span class="section-kicker">
+                    UN LEGADO COMPARTIDO
+                </span>
 
-    <!-- FOOTER -->
+                <h2 class="editorial-title">
+                    Nuestra historia continúa
+                    con cada generación.
+                </h2>
+
+                <p>
+                    ASADA San José de la Montaña
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- PIE DE PÁGINA ORIGINAL -->
     <footer id="contacto">
         <div class="container">
 
             <div class="row g-4">
 
                 <div class="col-md-3">
-
                     <div class="d-flex align-items-center gap-2 mb-2">
-
                         <i class="bi bi-droplet-fill"
                            style="font-size:22px;"></i>
 
                         <strong>
-                            ASADA<br>
-                            <small style="font-weight:400;">
+                            ASADA
+                            <small style="font-weight:400;display:block;">
                                 San José de la Montaña
                             </small>
                         </strong>
-
                     </div>
 
                     <p style="font-size:13px;">
                         Transparencia, servicio y compromiso con el agua.
                     </p>
-
                 </div>
 
-
                 <div class="col-md-3">
-
                     <h3>Contacto</h3>
 
                     <p class="mb-1">
@@ -347,28 +1158,23 @@
                         <i class="bi bi-geo-alt-fill me-1"></i>
                         San José de la Montaña, Heredia, Costa Rica
                     </p>
-
                 </div>
 
-
                 <div class="col-md-3">
-
                     <h3>Horario de atención</h3>
 
                     <p class="mb-1">
-                        Lunes a viernes<br>
+                        Lunes a viernes
+                        <br />
                         7:30 a.m. – 3:30 p.m.
                     </p>
 
                     <p class="mb-0">
                         Jornada continua
                     </p>
-
                 </div>
 
-
                 <div class="col-md-3">
-
                     <h3>Enlaces rápidos</h3>
 
                     <p class="mb-1">
@@ -390,19 +1196,16 @@
                             Reglamentos y tarifas
                         </a>
                     </p>
-
                 </div>
 
             </div>
-
         </div>
     </footer>
 
-
     <div class="footer-bottom text-center">
-        © 2026 ASADA San José de la Montaña. Todos los derechos reservados.
+        © 2026 ASADA San José de la Montaña.
+        Todos los derechos reservados.
     </div>
-
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
 

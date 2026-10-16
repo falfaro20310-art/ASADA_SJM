@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AsadaSJM.Models;
 
@@ -7,6 +9,7 @@ public class Expresidente
     [Key]
     public int IdExpresidente { get; set; }
 
+    [NotMapped]
     public int IdUsuario { get; set; }
 
     [Required]
