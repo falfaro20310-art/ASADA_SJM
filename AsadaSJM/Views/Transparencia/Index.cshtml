@@ -40,16 +40,33 @@
     </div>
 
 
-    @if (User.IsInRole("Administrador"))
+    @if (User.Identity?.IsAuthenticated == true)
     {
-        <a asp-controller="Transparencia"
-           asp-action="Registrar"
-           class="btn btn-primary">
+        <div class="d-flex gap-2">
 
-            <i class="bi bi-file-earmark-arrow-up me-1"></i>
-            Publicar documento
+            <a asp-controller="Transparencia"
+               asp-action="Suscripciones"
+               class="btn btn-outline-primary">
 
-        </a>
+                <i class="bi bi-bell me-1"></i>
+                Mis notificaciones
+
+            </a>
+
+
+            @if (User.IsInRole("Administrador"))
+            {
+                <a asp-controller="Transparencia"
+                   asp-action="Registrar"
+                   class="btn btn-primary">
+
+                    <i class="bi bi-file-earmark-arrow-up me-1"></i>
+                    Publicar documento
+
+                </a>
+            }
+
+        </div>
     }
 
 </div>
