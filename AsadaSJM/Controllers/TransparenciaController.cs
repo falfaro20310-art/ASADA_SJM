@@ -29,10 +29,59 @@ public class TransparenciaController : Controller
     // =========================================================
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(
+        int? idCategoria,
+        int? anio,
+        string? periodo)
     {
         var documentos =
             new List<DocumentoTransparencia>();
+
+        var categorias =
+            new List<CategoriaDocumento>();
+
+        var anios =
+            new List<int>();
+
+
+        // =====================================================
+        // NORMALIZAR FILTROS
+        // =====================================================
+
+        if (idCategoria <= 0)
+        {
+            idCategoria = null;
+        }
+
+        if (anio <= 0)
+        {
+            anio = null;
+        }
+
+        periodo =
+            string.IsNullOrWhiteSpace(periodo)
+                ? null
+                : periodo.Trim();
+
+
+        ViewBag.IdCategoriaSeleccionada =
+            idCategoria;
+
+        ViewBag.AnioSeleccionado =
+            anio;
+
+        ViewBag.PeriodoSeleccionado =
+            periodo ?? string.Empty;
+
+        ViewBag.FiltrosAplicados =
+            idCategoria.HasValue ||
+            anio.HasValue ||
+            !string.IsNullOrWhiteSpace(periodo);
+
+
+        // =====================================================
+        // CONEXIÓN
+        // =====================================================
 
         string? connectionString =
             _configuration.GetConnectionString(
@@ -43,43 +92,204 @@ public class TransparenciaController : Controller
             ViewBag.Error =
                 "No se encontró la conexión a la base de datos.";
 
+            ViewBag.Categorias =
+                categorias;
+
+            ViewBag.Anios =
+                anios;
+
             return View(documentos);
         }
-
-
-        const string consulta = @"
-            SELECT
-                D.IdDocumento,
-                D.IdCategoria,
-                D.Titulo,
-                D.Descripcion,
-                D.Periodo,
-                D.RutaArchivo,
-                D.FechaPublicacion,
-                D.IdUsuarioPublicador,
-                D.Estado,
-                C.Nombre AS NombreCategoria
-            FROM DOCUMENTO_TRANSPARENCIA D
-            INNER JOIN CATEGORIA_DOCUMENTO C
-                ON C.IdCategoria = D.IdCategoria
-            WHERE
-                D.Estado = 1
-                AND C.Estado = 1
-            ORDER BY
-                D.FechaPublicacion DESC,
-                D.IdDocumento DESC;";
 
 
         await using SqlConnection connection =
             new SqlConnection(
                 connectionString);
 
-        await using SqlCommand command =
-            new SqlCommand(
-                consulta,
-                connection);
-
         await connection.OpenAsync();
+
+
+        // =====================================================
+        // CARGAR CATEGORÍAS PARA EL FILTRO
+        // =====================================================
+
+        const string consultaCategorias = @"
+            SELECT
+                IdCategoria,
+                Nombre,
+                Descripcion,
+                Estado
+            FROM CATEGORIA_DOCUMENTO
+            WHERE Estado = 1
+            ORDER BY Nombre;";
+
+
+        await using (
+            SqlCommand commandCategorias =
+                new SqlCommand(
+                    consultaCategorias,
+                    connection))
+        {
+            await using SqlDataReader readerCategorias =
+                await commandCategorias.ExecuteReaderAsync();
+
+            while (await readerCategorias.ReadAsync())
+            {
+                categorias.Add(
+                    new CategoriaDocumento
+                    {
+                        IdCategoria =
+                            Convert.ToInt32(
+                                readerCategorias["IdCategoria"]),
+
+                        Nombre =
+                            readerCategorias["Nombre"]?.ToString()
+                            ?? string.Empty,
+
+                        Descripcion =
+                            readerCategorias["Descripcion"] == DBNull.Value
+                                ? null
+                                : readerCategorias["Descripcion"]?.ToString(),
+
+                        Estado =
+                            Convert.ToBoolean(
+                                readerCategorias["Estado"])
+                    });
+            }
+        }
+
+
+        // =====================================================
+        // CARGAR AÑOS DISPONIBLES
+        // =====================================================
+
+        const string consultaAnios = @"
+            SELECT DISTINCT
+                YEAR(D.FechaPublicacion) AS Anio
+            FROM DOCUMENTO_TRANSPARENCIA D
+            INNER JOIN CATEGORIA_DOCUMENTO C
+                ON C.IdCategoria = D.IdCategoria
+            WHERE
+                D.Estado = 1
+                AND C.Estado = 1
+            ORDER BY Anio DESC;";
+
+
+        await using (
+            SqlCommand commandAnios =
+                new SqlCommand(
+                    consultaAnios,
+                    connection))
+        {
+            await using SqlDataReader readerAnios =
+                await commandAnios.ExecuteReaderAsync();
+
+            while (await readerAnios.ReadAsync())
+            {
+                anios.Add(
+                    Convert.ToInt32(
+                        readerAnios["Anio"]));
+            }
+        }
+
+
+        ViewBag.Categorias =
+            categorias;
+
+        ViewBag.Anios =
+            anios;
+
+
+        // =====================================================
+        // CONSULTA DE DOCUMENTOS CON FILTROS
+        // =====================================================
+
+        StringBuilder consulta =
+            new StringBuilder(@"
+                SELECT
+                    D.IdDocumento,
+                    D.IdCategoria,
+                    D.Titulo,
+                    D.Descripcion,
+                    D.Periodo,
+                    D.RutaArchivo,
+                    D.FechaPublicacion,
+                    D.IdUsuarioPublicador,
+                    D.Estado,
+                    C.Nombre AS NombreCategoria
+                FROM DOCUMENTO_TRANSPARENCIA D
+                INNER JOIN CATEGORIA_DOCUMENTO C
+                    ON C.IdCategoria = D.IdCategoria
+                WHERE
+                    D.Estado = 1
+                    AND C.Estado = 1");
+
+
+        await using SqlCommand command =
+            new SqlCommand();
+
+        command.Connection =
+            connection;
+
+
+        // -----------------------------------------------------
+        // FILTRO POR CATEGORÍA
+        // -----------------------------------------------------
+
+        if (idCategoria.HasValue)
+        {
+            consulta.Append(@"
+                AND D.IdCategoria = @IdCategoria");
+
+            command.Parameters.Add(
+                "@IdCategoria",
+                SqlDbType.Int).Value =
+                idCategoria.Value;
+        }
+
+
+        // -----------------------------------------------------
+        // FILTRO POR AÑO
+        // -----------------------------------------------------
+
+        if (anio.HasValue)
+        {
+            consulta.Append(@"
+                AND YEAR(D.FechaPublicacion) = @Anio");
+
+            command.Parameters.Add(
+                "@Anio",
+                SqlDbType.Int).Value =
+                anio.Value;
+        }
+
+
+        // -----------------------------------------------------
+        // FILTRO POR PERÍODO
+        // -----------------------------------------------------
+
+        if (!string.IsNullOrWhiteSpace(periodo))
+        {
+            consulta.Append(@"
+                AND D.Periodo LIKE @Periodo");
+
+            command.Parameters.Add(
+                "@Periodo",
+                SqlDbType.VarChar,
+                50).Value =
+                $"%{periodo}%";
+        }
+
+
+        consulta.Append(@"
+            ORDER BY
+                D.FechaPublicacion DESC,
+                D.IdDocumento DESC;");
+
+
+        command.CommandText =
+            consulta.ToString();
+
 
         await using SqlDataReader reader =
             await command.ExecuteReaderAsync();
