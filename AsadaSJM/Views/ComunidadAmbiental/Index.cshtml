@@ -1,0 +1,569 @@
+﻿
+@using AsadaSJM.Models
+@using Microsoft.EntityFrameworkCore
+@inject AsadaSJM.Data.ApplicationDbContext Db
+
+@{
+    ViewData["Title"] =
+        "Educación y participación ambiental";
+
+    // El administrador conserva el panel interno.
+    // Los visitantes utilizan el portal público.
+    bool vistaAdministrativa = User.IsInRole("Administrador");
+
+    Layout = vistaAdministrativa
+        ? "_Layout"
+        : "_LayoutNoAuth";
+
+    if (!vistaAdministrativa)
+    {
+        ViewData["BodyClass"] = "container py-4";
+
+        if (ViewBag.InformacionContacto == null)
+        {
+            ViewBag.InformacionContacto =
+                await Db.InformacionInstitucional
+                    .AsNoTracking()
+                    .OrderByDescending(i => i.IdInformacion)
+                    .FirstOrDefaultAsync();
+        }
+    }
+
+    var materiales =
+        ViewBag.Materiales as List<string>
+        ?? new List<string>();
+
+    var campanas =
+        ViewBag.Campanas as List<CampanaAmbiental>
+        ?? new List<CampanaAmbiental>();
+
+    var fotos =
+        ViewBag.FotosAmbientales as List<FotoProyectoAmbiental>
+        ?? new List<FotoProyectoAmbiental>();
+
+    var datos =
+        ViewBag.Inscripcion as InscripcionVoluntariado
+        ?? new InscripcionVoluntariado();
+}
+
+<style>
+    .ca-page {
+        color: #20384e;
+    }
+
+    .ca-hero {
+        background: #004a99;
+        color: white;
+        border-radius: 20px;
+        padding: 38px;
+        margin-bottom: 25px;
+    }
+
+    .ca-page .ca-hero h1 {
+        font-size: clamp(25px,4vw,40px);
+        font-weight: 700;
+        color: #FFFFFF !important;
+    }
+
+    .ca-page .ca-hero h1 i {
+        color: #FFFFFF !important;
+    }
+
+    .ca-hero p {
+        max-width: 750px;
+        opacity: .9;
+        margin: 0;
+        color: #FFFFFF;
+    }
+
+    .ca-section {
+        background: #fff;
+        border: 1px solid #e3eaf0;
+        border-radius: 18px;
+        padding: 28px;
+        margin-bottom: 24px;
+    }
+
+    .ca-section h2 {
+        font-size: 24px;
+        color: #004a99;
+        font-weight: 700;
+    }
+
+    .ca-sub {
+        color: #587083;
+    }
+
+    .ca-grid {
+        display: grid;
+        grid-template-columns:
+            repeat(auto-fit,minmax(220px,1fr));
+        gap: 18px;
+    }
+
+    .ca-card {
+        background: #f7f9fc;
+        border: 1px solid #e0e8f0;
+        border-radius: 14px;
+        padding: 18px;
+    }
+
+    .ca-card img {
+        width: 100%;
+        height: 190px;
+        object-fit: cover;
+        border-radius: 10px;
+        margin-bottom: 14px;
+    }
+
+    .ca-card h3 {
+        font-size: 19px;
+        font-weight: 700;
+    }
+
+    .ca-card p {
+        white-space: pre-line;
+        color: #4b657a;
+    }
+
+    .ca-btn {
+        background: #2d5a27;
+        color: white;
+        border: 0;
+        border-radius: 8px;
+        text-decoration: none;
+        display: inline-block;
+        padding: 10px 16px;
+        font-weight: 600;
+    }
+
+    .ca-btn:hover {
+        background: #21471c;
+        color: white;
+    }
+
+    .ca-empty {
+        border: 1px dashed #c6d7e5;
+        border-radius: 12px;
+        padding: 18px;
+        color: #536b7f;
+        background: #f7f9fc;
+    }
+
+    .ca-label {
+        font-weight: 600;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .ca-error {
+        color: #af2333;
+        font-size: 13px;
+        display: block;
+    }
+
+    @@media(max-width:600px) {
+        .ca-section,
+        .ca-hero {
+            padding: 22px;
+        }
+    }
+</style>
+
+<div class="ca-page">
+
+    <!-- ============================================
+         ENCABEZADO
+         ============================================ -->
+
+    <div class="ca-hero">
+
+        <h1>
+            <i class="bi bi-tree me-2"></i>
+            Educación y participación ambiental
+        </h1>
+
+        <p>
+            Conoce las campañas, participa como voluntario,
+            descarga materiales educativos y descubre
+            fotografías de los proyectos ambientales
+            de la ASADA.
+        </p>
+
+        <a asp-controller="GestionAmbiental"
+           asp-action="Index"
+           class="btn btn-light mt-3">
+
+            Volver a nacientes y tanques
+
+        </a>
+
+        @if (User.IsInRole("Administrador"))
+        {
+            <a asp-controller="ComunidadAmbiental"
+               asp-action="Administrar"
+               class="btn btn-outline-light mt-3 ms-2">
+
+                <i class="bi bi-gear-fill me-1"></i>
+                Administrar contenidos ambientales
+
+            </a>
+        }
+
+    </div>
+
+    @if (TempData["ExitoAmbiental"] != null)
+    {
+        <div class="alert alert-success" role="alert">
+            @TempData["ExitoAmbiental"]
+        </div>
+    }
+
+    @if (TempData["AvisoAmbiental"] != null)
+    {
+        <div class="alert alert-warning" role="alert">
+            @TempData["AvisoAmbiental"]
+        </div>
+    }
+
+    <!-- ============================================
+         MGA-02: MATERIAL EDUCATIVO
+         ============================================ -->
+
+    <section class="ca-section" id="materiales">
+
+        <h2>
+            <i class="bi bi-file-earmark-pdf me-2"></i>
+            Material educativo
+        </h2>
+
+        <p class="ca-sub">
+            Documentos PDF sobre protección del agua
+            y conservación ambiental.
+        </p>
+
+        @if (materiales.Any())
+        {
+            <div class="ca-grid">
+
+                @foreach (var archivo in materiales)
+                {
+                    <div class="ca-card">
+
+                        <i class="bi bi-file-earmark-pdf fs-1 text-danger"></i>
+
+                        <h3 class="mt-2">
+                            @System.IO.Path.GetFileNameWithoutExtension(archivo).Replace('_', ' ')
+                        </h3>
+
+                        <a class="ca-btn"
+                           asp-action="DescargarMaterial"
+                           asp-route-archivo="@archivo">
+
+                            <i class="bi bi-download"></i>
+                            Descargar PDF
+
+                        </a>
+
+                    </div>
+                }
+
+            </div>
+        }
+        else
+        {
+            <div class="ca-empty">
+                No hay material educativo disponible
+                por el momento.
+            </div>
+        }
+
+    </section>
+
+    <!-- ============================================
+         MGA-03: CAMPAÑAS AMBIENTALES
+         ============================================ -->
+
+    <section class="ca-section" id="campanas">
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+
+            <h2 class="mb-0">
+                <i class="bi bi-calendar-event me-2"></i>
+                Campañas ambientales
+            </h2>
+
+            @if (User.IsInRole("Administrador"))
+            {
+                <a class="ca-btn"
+                   asp-action="CrearCampana">
+
+                    Registrar campaña
+
+                </a>
+            }
+
+        </div>
+
+        @if (campanas.Any())
+        {
+            <div class="ca-grid">
+
+                @foreach (var campana in campanas)
+                {
+                    <article class="ca-card">
+
+                        <img src="@campana.ImagenUrl"
+                             alt="Imagen de @campana.Titulo"
+                             loading="lazy" />
+
+                        <h3>@campana.Titulo</h3>
+
+                        <p>@campana.Descripcion</p>
+
+                        <div class="small">
+
+                            <i class="bi bi-calendar3"></i>
+
+                            @campana.Fecha.ToString("dd/MM/yyyy")
+
+                        </div>
+
+                        <div class="small mt-1">
+
+                            <i class="bi bi-geo-alt"></i>
+
+                            @campana.Lugar
+
+                        </div>
+
+                    </article>
+                }
+
+            </div>
+        }
+        else
+        {
+            <div class="ca-empty">
+                No hay campañas ambientales registradas.
+            </div>
+        }
+
+    </section>
+
+    <!-- ============================================
+         MGA-04: VOLUNTARIADO
+         ============================================ -->
+
+    <section class="ca-section" id="voluntariado">
+
+        <h2>
+            <i class="bi bi-people me-2"></i>
+            Inscripción de voluntariado
+        </h2>
+
+        <p class="ca-sub">
+            Completa tus datos para participar
+            en actividades ambientales.
+        </p>
+
+        <form asp-action="Inscribirse"
+              method="post"
+              novalidate>
+
+            @Html.AntiForgeryToken()
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+
+                    <label class="ca-label"
+                           for="vol-nombre">
+
+                        Nombre *
+
+                    </label>
+
+                    <input class="form-control"
+                           id="vol-nombre"
+                           name="Nombre"
+                           maxlength="150"
+                           value="@datos.Nombre"
+                           required />
+
+                    @Html.ValidationMessage(
+                        "Nombre",
+                        null,
+                        new { @class = "ca-error" })
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <label class="ca-label"
+                           for="vol-correo">
+
+                        Correo electrónico *
+
+                    </label>
+
+                    <input class="form-control"
+                           id="vol-correo"
+                           name="Correo"
+                           type="email"
+                           maxlength="200"
+                           value="@datos.Correo"
+                           required />
+
+                    @Html.ValidationMessage(
+                        "Correo",
+                        null,
+                        new { @class = "ca-error" })
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <label class="ca-label"
+                           for="vol-telefono">
+
+                        Teléfono *
+
+                    </label>
+
+                    <input class="form-control"
+                           id="vol-telefono"
+                           name="Telefono"
+                           type="tel"
+                           maxlength="25"
+                           value="@datos.Telefono"
+                           required />
+
+                    @Html.ValidationMessage(
+                        "Telefono",
+                        null,
+                        new { @class = "ca-error" })
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <label class="ca-label"
+                           for="vol-campana">
+
+                        Campaña de interés (opcional)
+
+                    </label>
+
+                    <select class="form-select"
+                            id="vol-campana"
+                            name="IdCampana">
+
+                        <option value="">
+                            Voluntariado general
+                        </option>
+
+                        @foreach (var campana in campanas)
+                        {
+                            if (datos.IdCampana == campana.IdCampana)
+                            {
+                                <option value="@campana.IdCampana" selected>
+                                    @campana.Titulo
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="@campana.IdCampana">
+                                    @campana.Titulo
+                                </option>
+                            }
+                        }
+
+                    </select>
+
+                    @Html.ValidationMessage(
+                        "IdCampana",
+                        null,
+                        new { @class = "ca-error" })
+
+                </div>
+
+            </div>
+
+            <button class="ca-btn mt-3"
+                    type="submit">
+
+                Inscribirse
+
+            </button>
+
+        </form>
+
+    </section>
+
+    <!-- ============================================
+         MGA-05: GALERÍA AMBIENTAL
+         ============================================ -->
+
+    <section class="ca-section" id="galeria-ambiental">
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+
+            <h2 class="mb-0">
+
+                <i class="bi bi-images me-2"></i>
+
+                Galería de proyectos
+
+            </h2>
+
+            @if (User.IsInRole("Administrador"))
+            {
+                <a class="ca-btn"
+                   asp-action="PublicarFoto">
+
+                    Publicar fotografía
+
+                </a>
+            }
+
+        </div>
+
+        @if (fotos.Any())
+        {
+            <div class="ca-grid">
+
+                @foreach (var foto in fotos)
+                {
+                    <figure class="ca-card mb-0">
+
+                        <a href="@foto.ImagenUrl"
+                           target="_blank"
+                           rel="noopener noreferrer">
+
+                            <img src="@foto.ImagenUrl"
+                                 alt="@foto.Titulo"
+                                 loading="lazy" />
+
+                        </a>
+
+                        <figcaption class="fw-semibold">
+                            @foto.Titulo
+                        </figcaption>
+
+                    </figure>
+                }
+
+            </div>
+        }
+        else
+        {
+            <div class="ca-empty">
+                No hay fotografías de proyectos
+                ambientales disponibles.
+            </div>
+        }
+
+    </section>
+
+</div>

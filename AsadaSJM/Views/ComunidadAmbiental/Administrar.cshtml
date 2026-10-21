@@ -1,0 +1,578 @@
+﻿
+@using AsadaSJM.Models
+
+@{
+    ViewData["Title"] = "Administrar contenido ambiental";
+    Layout = "_Layout";
+
+    var materiales = ViewBag.Materiales as List<string>
+        ?? new List<string>();
+
+    var campanas = ViewBag.CampanasAdmin as List<CampanaAmbiental>
+        ?? new List<CampanaAmbiental>();
+
+    var inscripciones = ViewBag.InscripcionesAdmin as List<InscripcionVoluntariado>
+        ?? new List<InscripcionVoluntariado>();
+
+    var fotos = ViewBag.FotosAdmin as List<FotoProyectoAmbiental>
+        ?? new List<FotoProyectoAmbiental>();
+
+    var nombresCampanas = campanas.ToDictionary(
+        c => c.IdCampana,
+        c => c.Titulo);
+}
+
+<style>
+    .ad-amb {
+        color: #20384E;
+    }
+
+    .ad-amb .ad-header {
+        background: #004A99;
+        color: #FFFFFF;
+        padding: 30px;
+        border-radius: 18px;
+        margin-bottom: 24px;
+    }
+
+    .ad-amb .ad-section {
+        background: #FFFFFF;
+        border: 1px solid #DDE7EF;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 25px;
+    }
+
+    .ad-amb .ad-section h2 {
+        color: #004A99;
+        font-size: 23px;
+        font-weight: 700;
+    }
+
+    .ad-amb .ad-btn {
+        background: #2D5A27;
+        color: #FFFFFF;
+        border: 0;
+        padding: 9px 15px;
+        border-radius: 8px;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .ad-amb .ad-btn:hover {
+        background: #21471c;
+        color: #FFFFFF;
+    }
+
+    .ad-amb .ad-img {
+        width: 85px;
+        height: 65px;
+        object-fit: cover;
+        border-radius: 7px;
+    }
+
+    .ad-amb .table {
+        vertical-align: middle;
+    }
+
+    .ad-amb .ad-navigation {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin: 16px 0 0;
+    }
+
+    .ad-amb .ad-navigation a {
+        color: #FFFFFF;
+        border: 1px solid #B9D4F2;
+        border-radius: 9px;
+        padding: 7px 11px;
+        text-decoration: none;
+    }
+
+    .ad-amb .ad-navigation a:hover {
+        background: rgba(255,255,255,.12);
+    }
+</style>
+
+<div class="ad-amb">
+
+    <header class="ad-header">
+
+        <h1 class="h3 fw-bold mb-2">
+            Administración ambiental
+        </h1>
+
+        <p class="mb-1">
+            Material educativo, campañas, voluntariado y
+            galería de proyectos.
+        </p>
+
+        <a asp-action="Index"
+           class="btn btn-light mt-3">
+
+            Ver página pública
+
+        </a>
+
+        <nav class="ad-navigation"
+             aria-label="Secciones de administración">
+
+            <a href="#materiales">PDF educativos</a>
+            <a href="#campanas">Campañas</a>
+            <a href="#voluntarios">Voluntarios</a>
+            <a href="#fotos">Fotografías</a>
+
+        </nav>
+
+    </header>
+
+    @if (TempData["ExitoAmbiental"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["ExitoAmbiental"]
+        </div>
+    }
+
+    @if (TempData["AvisoAmbiental"] != null)
+    {
+        <div class="alert alert-warning">
+            @TempData["AvisoAmbiental"]
+        </div>
+    }
+
+    <!-- ============================================
+         MGA-02: ADMINISTRACIÓN DE PDF
+         ============================================ -->
+
+    <section class="ad-section" id="materiales">
+
+        <h2>
+            <i class="bi bi-file-earmark-pdf me-2"></i>
+            MGA-02 · Material educativo
+        </h2>
+
+        <p class="text-muted">
+            Subí archivos PDF de hasta 15 MB.
+            Los visitantes podrán descargarlos
+            desde la página pública.
+        </p>
+
+        <form asp-action="SubirMaterial"
+              method="post"
+              enctype="multipart/form-data"
+              class="row g-2 align-items-end mb-4">
+
+            @Html.AntiForgeryToken()
+
+            <div class="col-md-8">
+
+                <label for="archivo"
+                       class="form-label fw-semibold">
+
+                    Elegir PDF
+
+                </label>
+
+                <input type="file"
+                       id="archivo"
+                       name="archivo"
+                       class="form-control"
+                       accept=".pdf,application/pdf"
+                       required />
+
+            </div>
+
+            <div class="col-md-4">
+
+                <button type="submit"
+                        class="ad-btn w-100">
+
+                    <i class="bi bi-upload me-1"></i>
+                    Publicar PDF
+
+                </button>
+
+            </div>
+
+        </form>
+
+        @if (materiales.Any())
+        {
+            <div class="table-responsive">
+
+                <table class="table table-hover">
+
+                    <thead>
+                        <tr>
+                            <th>Documento</th>
+                            <th>Descargar</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var archivo in materiales)
+                        {
+                            <tr>
+
+                                <td>@archivo</td>
+
+                                <td>
+
+                                    <a asp-action="DescargarMaterial"
+                                       asp-route-archivo="@archivo"
+                                       class="btn btn-outline-primary btn-sm">
+
+                                        Descargar
+
+                                    </a>
+
+                                </td>
+
+                                <td>
+
+                                    <form asp-action="EliminarMaterial"
+                                          method="post"
+                                          onsubmit="return confirm('¿Eliminar definitivamente este PDF?');">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden"
+                                               name="archivo"
+                                               value="@archivo" />
+
+                                        <button type="submit"
+                                                class="btn btn-outline-danger btn-sm">
+
+                                            Eliminar
+
+                                        </button>
+
+                                    </form>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-light border">
+                No hay PDF publicados.
+            </div>
+        }
+
+    </section>
+
+    <!-- ============================================
+         MGA-03: ADMINISTRACIÓN DE CAMPAÑAS
+         ============================================ -->
+
+    <section class="ad-section" id="campanas">
+
+        <div class="d-flex flex-wrap justify-content-between gap-2 align-items-center mb-3">
+
+            <h2 class="mb-0">
+                <i class="bi bi-calendar-event me-2"></i>
+                MGA-03 · Campañas
+            </h2>
+
+            <a asp-action="CrearCampana"
+               class="ad-btn">
+
+                Nueva campaña
+
+            </a>
+
+        </div>
+
+        @if (campanas.Any())
+        {
+            <div class="table-responsive">
+
+                <table class="table table-hover">
+
+                    <thead>
+                        <tr>
+                            <th>Imagen</th>
+                            <th>Campaña</th>
+                            <th>Fecha</th>
+                            <th>Lugar</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var campana in campanas)
+                        {
+                            <tr>
+
+                                <td>
+
+                                    @if (!string.IsNullOrWhiteSpace(campana.ImagenUrl))
+                                    {
+                                        <img class="ad-img"
+                                             src="@campana.ImagenUrl"
+                                             alt="@campana.Titulo" />
+                                    }
+
+                                </td>
+
+                                <td class="fw-semibold">
+                                    @campana.Titulo
+                                </td>
+
+                                <td>
+                                    @campana.Fecha.ToString("dd/MM/yyyy")
+                                </td>
+
+                                <td>
+                                    @campana.Lugar
+                                </td>
+
+                                <td>
+
+                                    <div class="d-flex gap-2 flex-wrap">
+
+                                        <a asp-action="EditarCampana"
+                                           asp-route-id="@campana.IdCampana"
+                                           class="btn btn-outline-primary btn-sm">
+
+                                            Editar
+
+                                        </a>
+
+                                        <form asp-action="EliminarCampana"
+                                              method="post"
+                                              onsubmit="return confirm('¿Eliminar esta campaña? Se conservarán las inscripciones de voluntariado.');">
+
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="id"
+                                                   value="@campana.IdCampana" />
+
+                                            <button type="submit"
+                                                    class="btn btn-outline-danger btn-sm">
+
+                                                Eliminar
+
+                                            </button>
+
+                                        </form>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-light border">
+                No hay campañas registradas.
+            </div>
+        }
+
+    </section>
+
+    <!-- ============================================
+         MGA-04: CONSULTA DE VOLUNTARIOS
+         ============================================ -->
+
+    <section class="ad-section" id="voluntarios">
+
+        <h2>
+            <i class="bi bi-people me-2"></i>
+            MGA-04 · Personas inscritas
+        </h2>
+
+        <p class="text-muted">
+            Registro privado, visible solo para administradores.
+
+            Total: <strong>@inscripciones.Count</strong>
+        </p>
+
+        @if (inscripciones.Any())
+        {
+            <div class="table-responsive">
+
+                <table class="table table-hover">
+
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Correo</th>
+                            <th>Teléfono</th>
+                            <th>Campaña</th>
+                            <th>Inscripción</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var persona in inscripciones)
+                        {
+                            <tr>
+
+                                <td>@persona.Nombre</td>
+
+                                <td>@persona.Correo</td>
+
+                                <td>@persona.Telefono</td>
+
+                                <td>
+
+                                    @if (persona.IdCampana.HasValue &&
+                                        nombresCampanas.TryGetValue(
+                                            persona.IdCampana.Value,
+                                            out var nombreCampana))
+                                    {
+                                        @nombreCampana
+                                    }
+                                    else
+                                    {
+                                        <text>
+                                            General / campaña no disponible
+                                        </text>
+                                    }
+
+                                </td>
+
+                                <td>
+                                    @persona.FechaRegistro.ToString("dd/MM/yyyy HH:mm")
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-light border">
+                Todavía no hay voluntarios inscritos.
+            </div>
+        }
+
+    </section>
+
+    <!-- ============================================
+         MGA-05: ADMINISTRACIÓN DE FOTOGRAFÍAS
+         ============================================ -->
+
+    <section class="ad-section" id="fotos">
+
+        <div class="d-flex flex-wrap justify-content-between gap-2 align-items-center mb-3">
+
+            <h2 class="mb-0">
+                <i class="bi bi-images me-2"></i>
+                MGA-05 · Fotografías de proyectos
+            </h2>
+
+            <a asp-action="PublicarFoto"
+               class="ad-btn">
+
+                Publicar fotografía
+
+            </a>
+
+        </div>
+
+        @if (fotos.Any())
+        {
+            <div class="table-responsive">
+
+                <table class="table table-hover">
+
+                    <thead>
+                        <tr>
+                            <th>Fotografía</th>
+                            <th>Proyecto</th>
+                            <th>Publicado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var foto in fotos)
+                        {
+                            <tr>
+
+                                <td>
+
+                                    <img class="ad-img"
+                                         src="@foto.ImagenUrl"
+                                         alt="@foto.Titulo" />
+
+                                </td>
+
+                                <td>@foto.Titulo</td>
+
+                                <td>
+                                    @foto.FechaRegistro.ToString("dd/MM/yyyy")
+                                </td>
+
+                                <td>
+
+                                    <form asp-action="EliminarFoto"
+                                          method="post"
+                                          onsubmit="return confirm('¿Eliminar esta fotografía de la galería ambiental?');">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden"
+                                               name="id"
+                                               value="@foto.IdFoto" />
+
+                                        <button type="submit"
+                                                class="btn btn-outline-danger btn-sm">
+
+                                            Eliminar
+
+                                        </button>
+
+                                    </form>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-light border">
+                Todavía no hay fotografías publicadas.
+            </div>
+        }
+
+    </section>
+
+</div>

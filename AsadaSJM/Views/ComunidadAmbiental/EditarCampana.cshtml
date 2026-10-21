@@ -1,0 +1,186 @@
+﻿
+@model AsadaSJM.Models.CampanaAmbiental
+
+@{
+    ViewData["Title"] = "Editar campaña ambiental";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid" style="max-width:850px;">
+
+    <div class="card shadow-sm border-0 rounded-4">
+
+        <div class="card-body p-4">
+
+            <h1 class="h3 fw-bold" style="color:#004A99;">
+                Editar campaña ambiental
+            </h1>
+
+            <p class="text-muted">
+                Actualizá la información.
+                Si no seleccionás otra fotografía,
+                se conserva la actual.
+            </p>
+
+            <form asp-action="EditarCampana"
+                  asp-route-id="@Model.IdCampana"
+                  method="post"
+                  enctype="multipart/form-data"
+                  novalidate>
+
+                @Html.AntiForgeryToken()
+
+                <input asp-for="IdCampana" type="hidden" />
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger">
+                </div>
+
+                <div class="mb-3">
+
+                    <label asp-for="Titulo"
+                           class="form-label fw-semibold">
+
+                        Título *
+
+                    </label>
+
+                    <input asp-for="Titulo"
+                           class="form-control"
+                           maxlength="150"
+                           required />
+
+                    <span asp-validation-for="Titulo"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label asp-for="Descripcion"
+                           class="form-label fw-semibold">
+
+                        Descripción *
+
+                    </label>
+
+                    <textarea asp-for="Descripcion"
+                              class="form-control"
+                              rows="4"
+                              required></textarea>
+
+                    <span asp-validation-for="Descripcion"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Fecha"
+                               class="form-label fw-semibold">
+
+                            Fecha *
+
+                        </label>
+
+                        <input asp-for="Fecha"
+                               type="date"
+                               class="form-control"
+                               required />
+
+                        <span asp-validation-for="Fecha"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Lugar"
+                               class="form-label fw-semibold">
+
+                            Lugar *
+
+                        </label>
+
+                        <input asp-for="Lugar"
+                               class="form-control"
+                               maxlength="200"
+                               required />
+
+                        <span asp-validation-for="Lugar"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Model.ImagenUrl))
+                {
+                    <div class="mb-3">
+
+                        <div class="form-label fw-semibold">
+                            Fotografía actual
+                        </div>
+
+                        <img src="@Model.ImagenUrl"
+                             alt="Fotografía actual"
+                             style="max-width:220px;max-height:150px;object-fit:cover;border-radius:10px;" />
+
+                    </div>
+                }
+
+                <div class="mb-3">
+
+                    <label for="imagen"
+                           class="form-label fw-semibold">
+
+                        Reemplazar fotografía (opcional)
+
+                    </label>
+
+                    <input type="file"
+                           id="imagen"
+                           name="imagen"
+                           class="form-control"
+                           accept="image/jpeg,image/png,image/webp" />
+
+                    @Html.ValidationMessage(
+                        "imagen",
+                        null,
+                        new { @class = "text-danger" })
+
+                    <div class="form-text">
+                        JPG, PNG o WEBP, máximo 5 MB.
+                    </div>
+
+                </div>
+
+                <button type="submit"
+                        class="btn text-white"
+                        style="background:#2D5A27;">
+
+                    Guardar cambios
+
+                </button>
+
+                <a asp-action="Administrar"
+                   asp-fragment="campanas"
+                   class="btn btn-outline-secondary">
+
+                    Cancelar
+
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
