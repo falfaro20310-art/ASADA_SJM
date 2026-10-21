@@ -1,1213 +1,1079 @@
 ﻿
 @model IEnumerable<AsadaSJM.Models.Expresidente>
+@using Microsoft.EntityFrameworkCore
+@inject AsadaSJM.Data.ApplicationDbContext Db
 
 @{
-    Layout = null;
+    Layout = "_LayoutNoAuth";
     ViewData["Title"] = "Nuestra Historia - ASADA San José de la Montaña";
 
-    var presidenteActual = ViewBag.PresidenteActual as AsadaSJM.Models.Expresidente;
-    var expresidentes = Model?.ToList() ?? new List<AsadaSJM.Models.Expresidente>();
+    var presidenteActual =
+        ViewBag.PresidenteActual as AsadaSJM.Models.Expresidente;
+
+    var expresidentes = Model?.ToList()
+        ?? new List<AsadaSJM.Models.Expresidente>();
+
+    // Proporcionar al footer compartido la información
+    // institucional que también utiliza el portal principal.
+    if (ViewBag.InformacionContacto == null)
+    {
+        ViewBag.InformacionContacto = await Db.InformacionInstitucional
+            .AsNoTracking()
+            .FirstOrDefaultAsync();
+    }
+
     int numero = 0;
 }
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nuestra Historia - ASADA San José de la Montaña</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap"
+      rel="stylesheet" />
 
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"
-          rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css"
-          rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap"
-          rel="stylesheet" />
-    <link rel="stylesheet" href="~/css/portal.css" asp-append-version="true" />
+<style>
+    /* =============================================
+       PRESIDENTES - IDENTIDAD INSTITUCIONAL
+       ============================================= */
 
-    <style>
-        /* ==========================================
-           IDENTIDAD VISUAL DEL MÓDULO
-           ========================================== */
+    .presidentes-page {
+        --pr-blue: #004A99;
+        --pr-green: #2D5A27;
+        --pr-background: #F5F7F9;
+        --pr-text: #20384E;
+        --pr-muted: #6B7986;
 
-        .presidentes-page {
-            --deep: #102e32;
-            --forest: #174e49;
-            --teal: #4da99c;
-            --gold: #c4a571;
-            --cream: #f6f4ef;
-            --ink: #253b3d;
-            --muted: #748584;
+        background: var(--pr-background);
+        color: var(--pr-text);
+        font-family: 'DM Sans', sans-serif;
+        overflow: hidden;
+    }
 
-            font-family: 'DM Sans', sans-serif;
-            background: var(--cream);
-            color: var(--ink);
-            overflow: hidden;
+    .presidentes-page * {
+        box-sizing: border-box;
+    }
+
+    .presidentes-page .editorial-title {
+        font-family: 'Playfair Display', serif;
+        font-weight: 500;
+        letter-spacing: -1px;
+    }
+
+    .presidentes-page .section-kicker {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        font-weight: 700;
+        color: var(--pr-green);
+    }
+
+    /* =============================================
+       PORTADA
+       ============================================= */
+
+    .presidentes-page .history-cover {
+        position: relative;
+        min-height: 610px;
+        display: flex;
+        align-items: center;
+        background: #004A99;
+        color: #FFFFFF;
+        overflow: hidden;
+    }
+
+    .presidentes-page .history-cover::before {
+        content: "";
+        position: absolute;
+        width: 720px;
+        height: 720px;
+        border: 1px solid rgba(255,255,255,.10);
+        border-radius: 50%;
+        right: -190px;
+        top: -220px;
+        box-shadow:
+            0 0 0 90px rgba(255,255,255,.025),
+            0 0 0 180px rgba(255,255,255,.018),
+            0 0 0 270px rgba(255,255,255,.012);
+        pointer-events: none;
+    }
+
+    .presidentes-page .history-cover::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+            circle at 75% 55%,
+            rgba(45,90,39,.20),
+            transparent 43%
+        );
+        pointer-events: none;
+    }
+
+    .presidentes-page .cover-content {
+        position: relative;
+        z-index: 2;
+        padding-top: 80px;
+        padding-bottom: 95px;
+    }
+
+    .presidentes-page .cover-number {
+        position: absolute;
+        right: 0;
+        top: 10px;
+        font-size: clamp(100px,22vw,310px);
+        font-weight: 700;
+        color: rgba(255,255,255,.055);
+        line-height: 1;
+        pointer-events: none;
+        user-select: none;
+    }
+
+    .presidentes-page .cover-eyebrow {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        color: #FFFFFF;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        margin-bottom: 32px;
+    }
+
+    .presidentes-page .cover-eyebrow::before {
+        content: "";
+        display: block;
+        width: 38px;
+        height: 2px;
+        background: #FFFFFF;
+    }
+
+    .presidentes-page .cover-title {
+        font-size: clamp(50px,7.5vw,110px);
+        line-height: 1.04;
+        max-width: 950px;
+        margin: 0 0 35px;
+        color: #FFFFFF !important;
+    }
+
+    .presidentes-page .cover-title em {
+        color: #FFFFFF;
+        font-weight: 400;
+    }
+
+    .presidentes-page .cover-description {
+        max-width: 530px;
+        color: #E6F0FA;
+        font-size: 16px;
+        line-height: 1.9;
+    }
+
+    .presidentes-page .cover-actions {
+        display: flex;
+        gap: 22px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-top: 36px;
+    }
+
+    .presidentes-page .cover-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 15px;
+        color: #FFFFFF;
+        background: #2D5A27;
+        border-radius: 4px;
+        padding: 15px 22px;
+        text-decoration: none;
+        font-weight: 700;
+        transition: .25s;
+    }
+
+    .presidentes-page .cover-button:hover {
+        background: #24491F;
+        color: #FFFFFF;
+        transform: translateY(-2px);
+    }
+
+    .presidentes-page .cover-scroll {
+        font-size: 12px;
+        color: #E4EEF8;
+        letter-spacing: 1px;
+    }
+
+    /* =============================================
+       VALORES INSTITUCIONALES
+       ============================================= */
+
+    .presidentes-page .heritage-strip {
+        background: #EAF1F8;
+        border-bottom: 1px solid #D3E2F0;
+    }
+
+    .presidentes-page .heritage-inner {
+        min-height: 104px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+    }
+
+    .presidentes-page .heritage-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .presidentes-page .heritage-item i {
+        font-size: 28px;
+        color: #2D5A27;
+    }
+
+    .presidentes-page .heritage-item strong {
+        display: block;
+        color: #004A99;
+        font-size: 14px;
+    }
+
+    .presidentes-page .heritage-item span {
+        color: #617389;
+        font-size: 12px;
+    }
+
+    /* =============================================
+       LIDERAZGO ACTUAL
+       ============================================= */
+
+    .presidentes-page .current-section {
+        padding: 110px 0 115px;
+    }
+
+    .presidentes-page .section-heading {
+        margin-bottom: 55px;
+    }
+
+    .presidentes-page .section-heading h2 {
+        font-size: clamp(39px,5vw,65px);
+        line-height: 1.14;
+        margin-top: 14px;
+        color: #004A99;
+    }
+
+    .presidentes-page .section-heading p {
+        max-width: 550px;
+        font-size: 15px;
+        line-height: 1.9;
+        color: var(--pr-muted);
+    }
+
+    .presidentes-page .current-feature {
+        display: grid;
+        grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr);
+        align-items: center;
+        gap: clamp(30px,6vw,100px);
+    }
+
+    .presidentes-page .current-portrait-wrapper {
+        position: relative;
+        padding: 0 35px 38px 0;
+    }
+
+    .presidentes-page .current-portrait-wrapper::after {
+        content: "";
+        position: absolute;
+        top: 35px;
+        left: 35px;
+        right: 0;
+        bottom: 0;
+        border: 2px solid #2D5A27;
+        z-index: 0;
+    }
+
+    .presidentes-page .current-portrait {
+        position: relative;
+        z-index: 1;
+        height: 490px;
+        background: linear-gradient(145deg,#C9DFF1,#598AB7);
+        overflow: hidden;
+    }
+
+    .presidentes-page .current-portrait img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center 30%;
+        display: block;
+        filter: saturate(.90);
+    }
+
+    .presidentes-page .current-portrait-placeholder {
+        height: 100%;
+        display: grid;
+        place-items: center;
+        color: rgba(255,255,255,.85);
+        font-size: 110px;
+    }
+
+    .presidentes-page .portrait-corner {
+        position: absolute;
+        bottom: 64px;
+        right: 5px;
+        z-index: 3;
+        background: #004A99;
+        color: white;
+        padding: 16px 22px;
+        font-size: 11px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+
+    .presidentes-page .current-copy {
+        min-width: 0;
+    }
+
+    .presidentes-page .current-copy h3 {
+        font-size: clamp(39px,5vw,68px);
+        margin: 17px 0 22px;
+        line-height: 1.1;
+        color: #004A99;
+        overflow-wrap: anywhere;
+    }
+
+    .presidentes-page .current-role {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: #2D5A27;
+        background: #E8F2E6;
+        padding: 9px 15px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
+
+    .presidentes-page .green-line {
+        width: 65px;
+        height: 2px;
+        background: #2D5A27;
+        margin: 35px 0;
+    }
+
+    .presidentes-page .story-block {
+        margin-bottom: 28px;
+    }
+
+    .presidentes-page .story-block h4 {
+        font-weight: 700;
+        color: #2D5A27;
+        font-size: 12px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+    }
+
+    .presidentes-page .story-block p {
+        line-height: 1.9;
+        font-size: 15px;
+        color: #5F7180;
+        white-space: pre-line;
+        overflow-wrap: anywhere;
+    }
+
+    /* =============================================
+       FRASE INSTITUCIONAL
+       ============================================= */
+
+    .presidentes-page .history-quote {
+        background: #E8F2E6;
+        padding: 65px 20px;
+        text-align: center;
+    }
+
+    .presidentes-page .history-quote i {
+        display: block;
+        font-size: 33px;
+        color: #2D5A27;
+        margin-bottom: 15px;
+    }
+
+    .presidentes-page .history-quote p {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(24px,3.5vw,39px);
+        line-height: 1.45;
+        max-width: 850px;
+        margin: auto;
+        color: #004A99;
+    }
+
+    /* =============================================
+       EXPRESIDENTES
+       ============================================= */
+
+    .presidentes-page .legacy-section {
+        padding: 110px 0 130px;
+    }
+
+    .presidentes-page .legacy-intro {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 25px;
+        margin-bottom: 55px;
+    }
+
+    .presidentes-page .legacy-intro h2 {
+        font-size: clamp(40px,5vw,67px);
+        margin: 15px 0 0;
+        color: #004A99;
+    }
+
+    .presidentes-page .legacy-count {
+        color: var(--pr-muted);
+        font-size: 13px;
+        letter-spacing: 1px;
+    }
+
+    .presidentes-page .legacy-grid {
+        display: grid;
+        grid-template-columns: repeat(3,minmax(0,1fr));
+        gap: 30px;
+        align-items: start;
+    }
+
+    .presidentes-page .legacy-card {
+        min-width: 0;
+        background: #FFFFFF;
+        border: 1px solid #E1E9F1;
+        transition: transform .3s, box-shadow .3s;
+    }
+
+    .presidentes-page .legacy-card:nth-child(3n + 2) {
+        margin-top: 55px;
+    }
+
+    .presidentes-page .legacy-card:hover {
+        transform: translateY(-7px);
+        box-shadow: 0 24px 50px rgba(0,74,153,.13);
+    }
+
+    .presidentes-page .legacy-photo {
+        height: 320px;
+        position: relative;
+        background: #CEE1F0;
+        overflow: hidden;
+    }
+
+    .presidentes-page .legacy-photo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform .55s;
+    }
+
+    .presidentes-page .legacy-card:hover .legacy-photo img {
+        transform: scale(1.06);
+    }
+
+    .presidentes-page .legacy-placeholder {
+        height: 100%;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(140deg,#CADDEC,#457CA9);
+        color: white;
+        font-size: 75px;
+    }
+
+    .presidentes-page .legacy-number {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        padding: 8px 12px;
+        color: white;
+        background: rgba(0,74,153,.86);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 2px;
+    }
+
+    .presidentes-page .legacy-content {
+        padding: 27px;
+    }
+
+    .presidentes-page .legacy-category {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: #2D5A27;
+        font-weight: 700;
+    }
+
+    .presidentes-page .legacy-content h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 28px;
+        margin: 10px 0 20px;
+        color: #004A99;
+        overflow-wrap: anywhere;
+    }
+
+    /* =============================================
+       DETALLES INTERACTIVOS
+       ============================================= */
+
+    .presidentes-page .legacy-details {
+        border-top: 1px solid #E3EAF2;
+        padding-top: 15px;
+    }
+
+    .presidentes-page .legacy-details summary {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        list-style: none;
+        font-size: 13px;
+        font-weight: 700;
+        color: #2D5A27;
+        user-select: none;
+    }
+
+    .presidentes-page .legacy-details summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .presidentes-page .legacy-details summary i {
+        font-size: 17px;
+        transition: transform .2s;
+    }
+
+    .presidentes-page .legacy-details[open] summary i {
+        transform: rotate(45deg);
+    }
+
+    .presidentes-page .legacy-details-body {
+        padding-top: 23px;
+        animation: legacyReveal .25s ease;
+    }
+
+    .presidentes-page .legacy-details-body h4 {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: #2D5A27;
+        margin: 0 0 8px;
+    }
+
+    .presidentes-page .legacy-details-body p {
+        font-size: 13px;
+        line-height: 1.8;
+        color: #627285;
+        white-space: pre-line;
+        overflow-wrap: anywhere;
+        margin-bottom: 20px;
+    }
+
+    @@keyframes legacyReveal {
+        from {
+            opacity: 0;
+            transform: translateY(-7px);
         }
 
-        .presidentes-page * {
-            box-sizing: border-box;
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .presidentes-page .history-empty {
+        padding: 65px 25px;
+        text-align: center;
+        background: #FFFFFF;
+        border: 1px dashed #BDCDDF;
+        color: #6B7986;
+    }
+
+    .presidentes-page .history-empty i {
+        display: block;
+        font-size: 44px;
+        margin-bottom: 16px;
+        color: #2D5A27;
+    }
+
+    /* =============================================
+       CIERRE EDITORIAL
+       ============================================= */
+
+    .presidentes-page .history-end {
+        background: #004A99;
+        padding: 80px 20px 90px;
+        text-align: center;
+        color: #FFFFFF;
+    }
+
+    .presidentes-page .history-end .section-kicker {
+        color: #FFFFFF;
+    }
+
+    .presidentes-page .history-end .editorial-title {
+        font-size: clamp(30px,4vw,50px);
+        max-width: 750px;
+        margin: 20px auto;
+        color: #FFFFFF !important;
+    }
+
+    .presidentes-page .history-end p {
+        color: #FFFFFF;
+        margin-bottom: 0;
+    }
+
+    /* =============================================
+       CORRECCIÓN DE SEPARACIÓN CON EL FOOTER
+
+       Se conserva el diseño editorial azul.
+       La separación utiliza el fondo gris claro
+       institucional sin agregar bordes artificiales.
+       ============================================= */
+
+    .presidentes-page {
+        border-bottom: 0 !important;
+    }
+
+    .presidentes-page .history-end {
+        background: #F5F7F9 !important;
+        color: #004A99 !important;
+        border-top: 1px solid #E0E8F0;
+        border-bottom: 1px solid #E0E8F0;
+    }
+
+    .presidentes-page .history-end .section-kicker {
+        color: #2D5A27 !important;
+    }
+
+    .presidentes-page .history-end .editorial-title {
+        color: #004A99 !important;
+    }
+
+    .presidentes-page .history-end p {
+        color: #53677B !important;
+    }
+
+    /* =============================================
+       RESPONSIVE
+       ============================================= */
+
+    @@media(max-width: 991px) {
+        .presidentes-page .legacy-grid {
+            grid-template-columns: repeat(2,minmax(0,1fr));
         }
 
-        .editorial-title {
-            font-family: 'Playfair Display', serif;
-            font-weight: 500;
-            letter-spacing: -1px;
+        .presidentes-page .legacy-card:nth-child(3n + 2) {
+            margin-top: 0;
         }
 
-        .section-kicker {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            font-weight: 700;
-            color: var(--gold);
+        .presidentes-page .legacy-card:nth-child(even) {
+            margin-top: 35px;
         }
 
-        /* ==========================================
-           PORTADA
-           ========================================== */
-
-        .history-cover {
-            position: relative;
-            min-height: 610px;
-            display: flex;
-            align-items: center;
-            background: var(--deep);
-            color: white;
-            overflow: hidden;
+        .presidentes-page .current-feature {
+            gap: 35px;
         }
 
-        .history-cover::before {
-            content: "";
-            position: absolute;
-            width: 720px;
-            height: 720px;
-            border: 1px solid rgba(255,255,255,.10);
-            border-radius: 50%;
-            right: -190px;
-            top: -220px;
-            box-shadow:
-                0 0 0 90px rgba(255,255,255,.025),
-                0 0 0 180px rgba(255,255,255,.018),
-                0 0 0 270px rgba(255,255,255,.012);
-            pointer-events: none;
+        .presidentes-page .current-portrait {
+            height: 400px;
+        }
+    }
+
+    @@media(max-width: 767px) {
+        .presidentes-page .history-cover {
+            min-height: 550px;
         }
 
-        .history-cover::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(
-                circle at 75% 55%,
-                rgba(77,169,156,.15),
-                transparent 42%
-            );
-            pointer-events: none;
+        .presidentes-page .cover-content {
+            padding-top: 65px;
+            padding-bottom: 65px;
         }
 
-        .cover-content {
-            position: relative;
-            z-index: 2;
-            padding-top: 80px;
-            padding-bottom: 95px;
-        }
-
-        .cover-number {
-            position: absolute;
-            right: 0;
-            top: 10px;
-            font-size: clamp(100px, 22vw, 310px);
-            font-weight: 700;
-            color: rgba(255,255,255,.035);
-            line-height: 1;
-            pointer-events: none;
-            user-select: none;
-        }
-
-        .cover-eyebrow {
-            display: flex;
-            align-items: center;
-            gap: 13px;
-            color: var(--gold);
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            margin-bottom: 32px;
-        }
-
-        .cover-eyebrow::before {
-            content: "";
-            display: block;
-            width: 38px;
-            height: 1px;
-            background: var(--gold);
-        }
-
-        .cover-title {
-            font-size: clamp(50px, 7.5vw, 110px);
-            line-height: 1.04;
-            max-width: 950px;
-            margin: 0 0 35px;
-        }
-
-        .cover-title em {
-            font-weight: 400;
-            color: #a8d7c9;
-        }
-
-        .cover-description {
-            max-width: 530px;
-            color: #bdd1cc;
-            font-size: 16px;
-            line-height: 1.9;
-        }
-
-        .cover-actions {
-            display: flex;
-            gap: 22px;
-            align-items: center;
+        .presidentes-page .heritage-inner {
             flex-wrap: wrap;
-            margin-top: 36px;
+            padding: 25px 0;
         }
 
-        .cover-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 15px;
-            color: #173d39;
-            background: #d6bc88;
-            border-radius: 3px;
-            padding: 15px 22px;
-            text-decoration: none;
-            font-weight: 700;
-            transition: .25s;
-        }
-
-        .cover-button:hover {
-            background: white;
-            color: var(--deep);
-            transform: translateY(-2px);
-        }
-
-        .cover-scroll {
-            font-size: 12px;
-            color: #b4ccc4;
-            letter-spacing: 1px;
-        }
-
-        /* ==========================================
-           FRANJA INSTITUCIONAL
-           ========================================== */
-
-        .heritage-strip {
-            background: #e5e9df;
-            border-bottom: 1px solid #d6ddd4;
-        }
-
-        .heritage-inner {
-            min-height: 104px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-        }
-
-        .heritage-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .heritage-item i {
-            font-size: 28px;
-            color: var(--forest);
-        }
-
-        .heritage-item strong {
-            display: block;
-            color: var(--deep);
-            font-size: 14px;
-        }
-
-        .heritage-item span {
-            color: #6e8278;
-            font-size: 12px;
-        }
-
-        /* ==========================================
-           PRESENTACIÓN PRESIDENTE ACTUAL
-           ========================================== */
-
-        .current-section {
-            padding: 110px 0 115px;
-        }
-
-        .section-heading {
-            margin-bottom: 55px;
-        }
-
-        .section-heading h2 {
-            font-size: clamp(39px, 5vw, 65px);
-            line-height: 1.14;
-            margin-top: 14px;
-        }
-
-        .section-heading p {
-            max-width: 550px;
-            font-size: 15px;
-            line-height: 1.9;
-            color: var(--muted);
-        }
-
-        .current-feature {
-            display: grid;
-            grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
-            align-items: center;
-            gap: clamp(30px, 6vw, 100px);
-        }
-
-        .current-portrait-wrapper {
-            position: relative;
-            padding: 0 35px 38px 0;
-        }
-
-        .current-portrait-wrapper::after {
-            content: "";
-            position: absolute;
-            top: 35px;
-            left: 35px;
-            right: 0;
-            bottom: 0;
-            border: 2px solid var(--gold);
-            z-index: 0;
-        }
-
-        .current-portrait {
-            position: relative;
-            z-index: 1;
-            height: 490px;
-            background: linear-gradient(145deg,#aac8c0,#436e68);
-            overflow: hidden;
-        }
-
-        .current-portrait img {
+        .presidentes-page .heritage-item {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center 30%;
-            display: block;
-            filter: saturate(.85);
         }
 
-        .current-portrait-placeholder {
-            height: 100%;
-            display: grid;
-            place-items: center;
-            color: rgba(255,255,255,.8);
-            font-size: 110px;
+        .presidentes-page .current-section,
+        .presidentes-page .legacy-section {
+            padding: 70px 0;
         }
 
-        .portrait-corner {
-            position: absolute;
-            bottom: 64px;
-            right: 5px;
-            z-index: 3;
-            background: var(--deep);
-            color: white;
-            padding: 16px 22px;
-            font-size: 11px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
+        .presidentes-page .current-feature {
+            grid-template-columns: 1fr;
         }
 
-        .current-copy {
-            min-width: 0;
+        .presidentes-page .current-portrait {
+            height: 430px;
         }
 
-        .current-copy h3 {
-            font-size: clamp(39px, 5vw, 68px);
-            margin: 17px 0 22px;
-            line-height: 1.1;
-            overflow-wrap: anywhere;
+        .presidentes-page .legacy-grid {
+            grid-template-columns: 1fr;
         }
 
-        .current-role {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            color: #347d6c;
-            background: #e0ece6;
-            padding: 9px 15px;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 1px;
+        .presidentes-page .legacy-card:nth-child(even) {
+            margin-top: 0;
         }
 
-        .gold-line {
-            width: 65px;
-            height: 2px;
-            background: var(--gold);
-            margin: 35px 0;
-        }
-
-        .story-block {
-            margin-bottom: 28px;
-        }
-
-        .story-block h4 {
-            font-weight: 700;
-            color: var(--forest);
-            font-size: 12px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-bottom: 12px;
-        }
-
-        .story-block p {
-            line-height: 1.9;
-            font-size: 15px;
-            color: #667d79;
-            white-space: pre-line;
-            overflow-wrap: anywhere;
-        }
-
-        /* ==========================================
-           DIVISOR
-           ========================================== */
-
-        .history-quote {
-            background: #dce9e3;
-            padding: 65px 20px;
-            text-align: center;
-        }
-
-        .history-quote i {
-            display: block;
-            font-size: 33px;
-            color: var(--forest);
-            margin-bottom: 15px;
-        }
-
-        .history-quote p {
-            font-family: 'Playfair Display', serif;
-            font-size: clamp(24px, 3.5vw, 39px);
-            line-height: 1.45;
-            max-width: 850px;
-            margin: auto;
-            color: var(--deep);
-        }
-
-        /* ==========================================
-           GALERÍA DE EXPRESIDENTES
-           ========================================== */
-
-        .legacy-section {
-            padding: 110px 0 130px;
-        }
-
-        .legacy-intro {
-            display: flex;
-            align-items: end;
-            justify-content: space-between;
-            gap: 25px;
-            margin-bottom: 55px;
-        }
-
-        .legacy-intro h2 {
-            font-size: clamp(40px, 5vw, 67px);
-            margin: 15px 0 0;
-        }
-
-        .legacy-count {
-            color: var(--muted);
-            font-size: 13px;
-            letter-spacing: 1px;
-        }
-
-        .legacy-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 30px;
+        .presidentes-page .legacy-intro {
+            flex-direction: column;
             align-items: start;
         }
+    }
 
-        .legacy-card {
-            min-width: 0;
-            background: white;
-            border: 1px solid #e5eae6;
-            transition: transform .3s, box-shadow .3s;
+    @@media(prefers-reduced-motion: reduce) {
+        .presidentes-page *,
+        .presidentes-page *::before,
+        .presidentes-page *::after {
+            animation: none !important;
+            transition: none !important;
         }
+    }
+</style>
 
-        .legacy-card:nth-child(3n + 2) {
-            margin-top: 55px;
-        }
+<main class="presidentes-page">
 
-        .legacy-card:hover {
-            transform: translateY(-7px);
-            box-shadow: 0 24px 50px rgba(16,46,50,.13);
-        }
+    <!-- PORTADA -->
 
-        .legacy-photo {
-            height: 320px;
-            position: relative;
-            background: #bdd0c9;
-            overflow: hidden;
-        }
+    <section class="history-cover">
+        <div class="container cover-content">
 
-        .legacy-photo img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-            transition: transform .55s;
-        }
+            <span class="cover-number" aria-hidden="true">
+                AS
+            </span>
 
-        .legacy-card:hover .legacy-photo img {
-            transform: scale(1.06);
-        }
+            <div class="cover-eyebrow">
+                ASADA SAN JOSÉ DE LA MONTAÑA
+            </div>
 
-        .legacy-placeholder {
-            height: 100%;
-            display: grid;
-            place-items: center;
-            background: linear-gradient(140deg,#bfd3ce,#4e7972);
-            color: white;
-            font-size: 75px;
-        }
+            <h1 class="editorial-title cover-title">
+                Nuestra historia.<br />
+                <em>Su legado.</em>
+            </h1>
 
-        .legacy-number {
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            padding: 8px 12px;
-            color: white;
-            background: rgba(16,46,50,.80);
-            backdrop-filter: blur(8px);
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 2px;
-        }
+            <p class="cover-description">
+                Detrás de cada avance hay personas que han
+                dedicado tiempo, compromiso y visión al
+                bienestar de nuestra comunidad y al cuidado
+                del recurso hídrico.
+            </p>
 
-        .legacy-content {
-            padding: 27px;
-        }
+            <div class="cover-actions">
 
-        .legacy-category {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #608d80;
-            font-weight: 700;
-        }
+                <a href="#liderazgo-actual"
+                   class="cover-button">
+                    Conocer nuestra historia
+                    <i class="bi bi-arrow-down-right"></i>
+                </a>
 
-        .legacy-content h3 {
-            font-family: 'Playfair Display', serif;
-            font-size: 28px;
-            margin: 10px 0 20px;
-            color: var(--deep);
-            overflow-wrap: anywhere;
-        }
+                <span class="cover-scroll">
+                    DESLIZA PARA EXPLORAR
+                    <i class="bi bi-arrow-down ms-2"></i>
+                </span>
 
-        /* DETALLES INTERACTIVOS */
+            </div>
 
-        .legacy-details {
-            border-top: 1px solid #e3e9e5;
-            padding-top: 15px;
-        }
+        </div>
+    </section>
 
-        .legacy-details summary {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            list-style: none;
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--forest);
-            user-select: none;
-        }
+    <!-- PRINCIPIOS INSTITUCIONALES -->
 
-        .legacy-details summary::-webkit-details-marker {
-            display: none;
-        }
+    <section class="heritage-strip">
+        <div class="container heritage-inner">
 
-        .legacy-details summary i {
-            font-size: 17px;
-            transition: transform .2s;
-        }
+            <div class="heritage-item">
+                <i class="bi bi-droplet-half"></i>
+                <div>
+                    <strong>Compromiso con el agua</strong>
+                    <span>Nuestro recurso más valioso</span>
+                </div>
+            </div>
 
-        .legacy-details[open] summary i {
-            transform: rotate(45deg);
-        }
+            <div class="heritage-item">
+                <i class="bi bi-people"></i>
+                <div>
+                    <strong>Liderazgo comunitario</strong>
+                    <span>Personas al servicio de la comunidad</span>
+                </div>
+            </div>
 
-        .legacy-details-body {
-            padding-top: 23px;
-            animation: legacyReveal .25s ease;
-        }
+            <div class="heritage-item">
+                <i class="bi bi-tree"></i>
+                <div>
+                    <strong>Visión sostenible</strong>
+                    <span>Protección para futuras generaciones</span>
+                </div>
+            </div>
 
-        .legacy-details-body h4 {
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: #4b8475;
-            margin: 0 0 8px;
-        }
+        </div>
+    </section>
 
-        .legacy-details-body p {
-            font-size: 13px;
-            line-height: 1.8;
-            color: #657772;
-            white-space: pre-line;
-            overflow-wrap: anywhere;
-            margin-bottom: 20px;
-        }
+    <!-- PRESIDENTE ACTUAL -->
 
-        @@keyframes legacyReveal {
-            from {
-                opacity: 0;
-                transform: translateY(-7px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .history-empty {
-            padding: 65px 25px;
-            text-align: center;
-            background: white;
-            border: 1px dashed #b9cec5;
-            color: var(--muted);
-        }
-
-        .history-empty i {
-            display: block;
-            font-size: 44px;
-            margin-bottom: 16px;
-            color: #6aa18e;
-        }
-
-        /* ==========================================
-           CIERRE
-           ========================================== */
-
-        .history-end {
-            background: var(--deep);
-            padding: 80px 20px;
-            text-align: center;
-            color: white;
-        }
-
-        .history-end .editorial-title {
-            font-size: clamp(30px,4vw,50px);
-            max-width: 750px;
-            margin: 20px auto;
-        }
-
-        .history-end p {
-            color: #b6cec5;
-            margin-bottom: 0;
-        }
-
-        /* ==========================================
-           RESPONSIVE
-           ========================================== */
-
-        @@media(max-width: 991px) {
-            .legacy-grid {
-                grid-template-columns: repeat(2,minmax(0,1fr));
-            }
-
-            .legacy-card:nth-child(3n + 2) {
-                margin-top: 0;
-            }
-
-            .legacy-card:nth-child(even) {
-                margin-top: 35px;
-            }
-
-            .current-feature {
-                gap: 35px;
-            }
-
-            .current-portrait {
-                height: 400px;
-            }
-        }
-
-        @@media(max-width: 767px) {
-            .history-cover {
-                min-height: 550px;
-            }
-
-            .cover-content {
-                padding-top: 65px;
-                padding-bottom: 65px;
-            }
-
-            .heritage-inner {
-                flex-wrap: wrap;
-                padding: 25px 0;
-            }
-
-            .heritage-item {
-                width: 100%;
-            }
-
-            .current-section,
-            .legacy-section {
-                padding: 70px 0;
-            }
-
-            .current-feature {
-                grid-template-columns: 1fr;
-            }
-
-            .current-portrait {
-                height: 430px;
-            }
-
-            .legacy-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .legacy-card:nth-child(even) {
-                margin-top: 0;
-            }
-
-            .legacy-intro {
-                flex-direction: column;
-                align-items: start;
-            }
-        }
-
-        @@media(prefers-reduced-motion: reduce) {
-            .presidentes-page *,
-            .presidentes-page *::before,
-            .presidentes-page *::after {
-                animation: none !important;
-                transition: none !important;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <!-- MENÚ DEL PORTAL -->
-    <nav class="navbar navbar-expand-lg navbar-asada">
+    <section class="current-section" id="liderazgo-actual">
         <div class="container">
 
-            <a class="navbar-brand d-flex align-items-center gap-2"
-               asp-controller="Portal"
-               asp-action="Index">
-                <i class="bi bi-droplet-fill"
-                   style="font-size:26px;color:var(--azul-agua);"></i>
-                <span class="brand">
-                    ASADA
-                    <small>San José de la Montaña</small>
+            <div class="section-heading">
+
+                <span class="section-kicker">
+                    01 / PRESENTE
                 </span>
-            </a>
 
-            <button class="navbar-toggler"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#navMenu"
-                    aria-controls="navMenu"
-                    aria-expanded="false"
-                    aria-label="Abrir menú">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+                <h2 class="editorial-title">
+                    El liderazgo de hoy.
+                </h2>
 
-            <div class="collapse navbar-collapse justify-content-end"
-                 id="navMenu">
-
-                <ul class="navbar-nav gap-lg-3">
-
-                    <li class="nav-item">
-                        <a class="nav-link"
-                           asp-controller="Portal"
-                           asp-action="Index">Inicio</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link active"
-                           asp-controller="Portal"
-                           asp-action="Presidentes">Nuestra ASADA</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Transparencia</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Servicios</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link"
-                           asp-controller="GestionAmbiental"
-                           asp-action="Index">Ambiente y Comunidad</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Galería</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link"
-                           asp-controller="Portal"
-                           asp-action="Index"
-                           asp-fragment="contacto">Contacto</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link"
-                           asp-controller="Account"
-                           asp-action="Login">Ingresar</a>
-                    </li>
-
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <main class="presidentes-page">
-
-        <!-- PORTADA EDITORIAL -->
-        <section class="history-cover">
-
-            <div class="container cover-content">
-
-                <span class="cover-number" aria-hidden="true">AS</span>
-
-                <div class="cover-eyebrow">
-                    ASADA SAN JOSÉ DE LA MONTAÑA
-                </div>
-
-                <h1 class="editorial-title cover-title">
-                    Nuestra historia.<br />
-                    <em>Su legado.</em>
-                </h1>
-
-                <p class="cover-description">
-                    Detrás de cada avance hay personas que han
-                    dedicado tiempo, compromiso y visión al
-                    bienestar de nuestra comunidad y al cuidado
-                    del recurso hídrico.
+                <p>
+                    Conoce a la persona que actualmente
+                    representa la presidencia de nuestra ASADA.
                 </p>
 
-                <div class="cover-actions">
-
-                    <a href="#liderazgo-actual" class="cover-button">
-                        Conocer nuestra historia
-                        <i class="bi bi-arrow-down-right"></i>
-                    </a>
-
-                    <span class="cover-scroll">
-                        DESLIZA PARA EXPLORAR
-                        <i class="bi bi-arrow-down ms-2"></i>
-                    </span>
-
-                </div>
-
             </div>
 
-        </section>
+            @if (presidenteActual != null)
+            {
+                <article class="current-feature">
 
-        <!-- FRANJA INSTITUCIONAL -->
-        <div class="heritage-strip">
+                    <div class="current-portrait-wrapper">
 
-            <div class="container heritage-inner">
+                        <div class="current-portrait">
 
-                <div class="heritage-item">
-                    <i class="bi bi-droplet-half"></i>
-                    <div>
-                        <strong>Compromiso con el agua</strong>
-                        <span>Nuestro recurso más valioso</span>
+                            @if (!string.IsNullOrWhiteSpace(presidenteActual.Imagen))
+                            {
+                                <img src="@presidenteActual.Imagen"
+                                     alt="Fotografía de @presidenteActual.Nombre"
+                                     loading="lazy"
+                                     onerror="this.style.display='none';this.nextElementSibling.hidden=false;" />
+
+                                <div class="current-portrait-placeholder" hidden>
+                                    <i class="bi bi-person-circle"></i>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="current-portrait-placeholder">
+                                    <i class="bi bi-person-circle"></i>
+                                </div>
+                            }
+
+                        </div>
+
+                        <div class="portrait-corner">
+                            PRESIDENCIA ACTUAL
+                        </div>
+
                     </div>
-                </div>
 
-                <div class="heritage-item">
-                    <i class="bi bi-people"></i>
-                    <div>
-                        <strong>Liderazgo comunitario</strong>
-                        <span>Personas al servicio de la comunidad</span>
+                    <div class="current-copy">
+
+                        <span class="current-role">
+                            <i class="bi bi-patch-check-fill"></i>
+                            REPRESENTACIÓN ACTUAL
+                        </span>
+
+                        <h3 class="editorial-title">
+                            @presidenteActual.Nombre
+                        </h3>
+
+                        <div class="green-line"></div>
+
+                        <div class="story-block">
+
+                            <h4>Su trayectoria</h4>
+
+                            <p>
+                                @(string.IsNullOrWhiteSpace(presidenteActual.Trayectoria)
+                                    ? "Información de trayectoria pendiente de publicación."
+                                    : presidenteActual.Trayectoria)
+                            </p>
+
+                        </div>
+
+                        <div class="story-block">
+
+                            <h4>Proyectos e iniciativas</h4>
+
+                            <p>
+                                @(string.IsNullOrWhiteSpace(presidenteActual.Proyectos)
+                                    ? "Información de proyectos pendiente de publicación."
+                                    : presidenteActual.Proyectos)
+                            </p>
+
+                        </div>
+
                     </div>
-                </div>
 
-                <div class="heritage-item">
-                    <i class="bi bi-tree"></i>
-                    <div>
-                        <strong>Visión sostenible</strong>
-                        <span>Protección para futuras generaciones</span>
-                    </div>
+                </article>
+            }
+            else
+            {
+                <div class="history-empty">
+                    <i class="bi bi-person-badge"></i>
+                    No hay información publicada sobre la presidencia actual.
                 </div>
-
-            </div>
+            }
 
         </div>
+    </section>
 
-        <!-- PRESIDENTE ACTUAL -->
-        <section class="current-section" id="liderazgo-actual">
+    <!-- MENSAJE INSTITUCIONAL -->
 
-            <div class="container">
+    <section class="history-quote">
 
-                <div class="section-heading">
+        <i class="bi bi-water"></i>
 
+        <p>
+            “El agua nos conecta.
+            Las personas construyen nuestro futuro.”
+        </p>
+
+    </section>
+
+    <!-- EXPRESIDENTES -->
+
+    <section class="legacy-section" id="nuestro-legado">
+        <div class="container">
+
+            <div class="legacy-intro">
+
+                <div>
                     <span class="section-kicker">
-                        01 / PRESENTE
+                        02 / LEGADO
                     </span>
 
                     <h2 class="editorial-title">
-                        El liderazgo de hoy.
+                        Huellas que permanecen.
                     </h2>
-
-                    <p>
-                        Conoce a la persona que actualmente
-                        representa la presidencia de nuestra ASADA.
-                    </p>
-
                 </div>
 
-                @if (presidenteActual != null)
-                {
-                    <article class="current-feature">
+                <span class="legacy-count">
+                    @expresidentes.Count
+                    @(expresidentes.Count == 1
+                        ? "REGISTRO HISTÓRICO"
+                        : "REGISTROS HISTÓRICOS")
+                </span>
 
-                        <div class="current-portrait-wrapper">
+            </div>
 
-                            <div class="current-portrait">
+            @if (expresidentes.Any())
+            {
+                <div class="legacy-grid">
 
-                                @if (!string.IsNullOrWhiteSpace(presidenteActual.Imagen))
+                    @foreach (var expresidente in expresidentes)
+                    {
+                        numero++;
+
+                        <article class="legacy-card">
+
+                            <div class="legacy-photo">
+
+                                @if (!string.IsNullOrWhiteSpace(expresidente.Imagen))
                                 {
-                                    <img src="@presidenteActual.Imagen"
-                                         alt="Fotografía de @presidenteActual.Nombre"
+                                    <img src="@expresidente.Imagen"
+                                         alt="Fotografía de @expresidente.Nombre"
                                          loading="lazy"
                                          onerror="this.style.display='none';this.nextElementSibling.hidden=false;" />
 
-                                    <div class="current-portrait-placeholder" hidden>
+                                    <div class="legacy-placeholder" hidden>
                                         <i class="bi bi-person-circle"></i>
                                     </div>
                                 }
                                 else
                                 {
-                                    <div class="current-portrait-placeholder">
+                                    <div class="legacy-placeholder">
                                         <i class="bi bi-person-circle"></i>
                                     </div>
                                 }
 
-                            </div>
-
-                            <div class="portrait-corner">
-                                PRESIDENCIA ACTUAL
-                            </div>
-
-                        </div>
-
-                        <div class="current-copy">
-
-                            <span class="current-role">
-                                <i class="bi bi-patch-check-fill"></i>
-                                REPRESENTACIÓN ACTUAL
-                            </span>
-
-                            <h3 class="editorial-title">
-                                @presidenteActual.Nombre
-                            </h3>
-
-                            <div class="gold-line"></div>
-
-                            <div class="story-block">
-
-                                <h4>Su trayectoria</h4>
-
-                                <p>
-                                    @(string.IsNullOrWhiteSpace(presidenteActual.Trayectoria)
-                                        ? "Información de trayectoria pendiente de publicación."
-                                        : presidenteActual.Trayectoria)
-                                </p>
+                                <span class="legacy-number">
+                                    @numero.ToString("D2")
+                                </span>
 
                             </div>
 
-                            <div class="story-block">
+                            <div class="legacy-content">
 
-                                <h4>Proyectos e iniciativas</h4>
+                                <span class="legacy-category">
+                                    EXPRESIDENCIA
+                                </span>
 
-                                <p>
-                                    @(string.IsNullOrWhiteSpace(presidenteActual.Proyectos)
-                                        ? "Información de proyectos pendiente de publicación."
-                                        : presidenteActual.Proyectos)
-                                </p>
+                                <h3>@expresidente.Nombre</h3>
+
+                                <details class="legacy-details">
+
+                                    <summary>
+                                        Descubrir su historia
+                                        <i class="bi bi-plus-lg"></i>
+                                    </summary>
+
+                                    <div class="legacy-details-body">
+
+                                        <h4>Trayectoria</h4>
+
+                                        <p>
+                                            @(string.IsNullOrWhiteSpace(expresidente.Trayectoria)
+                                                ? "No hay información disponible."
+                                                : expresidente.Trayectoria)
+                                        </p>
+
+                                        <h4>Proyectos realizados</h4>
+
+                                        <p>
+                                            @(string.IsNullOrWhiteSpace(expresidente.Proyectos)
+                                                ? "No hay información disponible."
+                                                : expresidente.Proyectos)
+                                        </p>
+
+                                    </div>
+
+                                </details>
 
                             </div>
 
-                        </div>
-
-                    </article>
-                }
-                else
-                {
-                    <div class="history-empty">
-                        <i class="bi bi-person-badge"></i>
-                        No hay información publicada sobre la presidencia actual.
-                    </div>
-                }
-
-            </div>
-
-        </section>
-
-        <!-- FRASE INSTITUCIONAL -->
-        <section class="history-quote">
-
-            <i class="bi bi-water"></i>
-
-            <p>
-                “El agua nos conecta.
-                Las personas construyen nuestro futuro.”
-            </p>
-
-        </section>
-
-        <!-- EXPRESIDENTES -->
-        <section class="legacy-section" id="nuestro-legado">
-
-            <div class="container">
-
-                <div class="legacy-intro">
-
-                    <div>
-
-                        <span class="section-kicker">
-                            02 / LEGADO
-                        </span>
-
-                        <h2 class="editorial-title">
-                            Huellas que permanecen.
-                        </h2>
-
-                    </div>
-
-                    <span class="legacy-count">
-                        @expresidentes.Count
-                        @(expresidentes.Count == 1
-                            ? "REGISTRO HISTÓRICO"
-                            : "REGISTROS HISTÓRICOS")
-                    </span>
+                        </article>
+                    }
 
                 </div>
+            }
+            else
+            {
+                <div class="history-empty">
+                    <i class="bi bi-journal-bookmark"></i>
+                    Todavía no hay expresidentes publicados.
+                </div>
+            }
 
-                @if (expresidentes.Any())
-                {
-                    <div class="legacy-grid">
+        </div>
+    </section>
 
-                        @foreach (var expresidente in expresidentes)
-                        {
-                            numero++;
+    <!-- CIERRE EDITORIAL -->
 
-                            <article class="legacy-card">
+    <section class="history-end">
 
-                                <div class="legacy-photo">
-
-                                    @if (!string.IsNullOrWhiteSpace(expresidente.Imagen))
-                                    {
-                                        <img src="@expresidente.Imagen"
-                                             alt="Fotografía de @expresidente.Nombre"
-                                             loading="lazy"
-                                             onerror="this.style.display='none';this.nextElementSibling.hidden=false;" />
-
-                                        <div class="legacy-placeholder" hidden>
-                                            <i class="bi bi-person-circle"></i>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <div class="legacy-placeholder">
-                                            <i class="bi bi-person-circle"></i>
-                                        </div>
-                                    }
-
-                                    <span class="legacy-number">
-                                        @numero.ToString("D2")
-                                    </span>
-
-                                </div>
-
-                                <div class="legacy-content">
-
-                                    <span class="legacy-category">
-                                        EXPRESIDENCIA
-                                    </span>
-
-                                    <h3>@expresidente.Nombre</h3>
-
-                                    <details class="legacy-details">
-
-                                        <summary>
-                                            Descubrir su historia
-                                            <i class="bi bi-plus-lg"></i>
-                                        </summary>
-
-                                        <div class="legacy-details-body">
-
-                                            <h4>Trayectoria</h4>
-
-                                            <p>
-                                                @(string.IsNullOrWhiteSpace(expresidente.Trayectoria)
-                                                    ? "No hay información disponible."
-                                                    : expresidente.Trayectoria)
-                                            </p>
-
-                                            <h4>Proyectos realizados</h4>
-
-                                            <p>
-                                                @(string.IsNullOrWhiteSpace(expresidente.Proyectos)
-                                                    ? "No hay información disponible."
-                                                    : expresidente.Proyectos)
-                                            </p>
-
-                                        </div>
-
-                                    </details>
-
-                                </div>
-
-                            </article>
-                        }
-
-                    </div>
-                }
-                else
-                {
-                    <div class="history-empty">
-                        <i class="bi bi-journal-bookmark"></i>
-                        Todavía no hay expresidentes publicados.
-                    </div>
-                }
-
-            </div>
-
-        </section>
-
-        <!-- CIERRE EDITORIAL -->
-        <section class="history-end">
-
-            <div class="container">
-
-                <span class="section-kicker">
-                    UN LEGADO COMPARTIDO
-                </span>
-
-                <h2 class="editorial-title">
-                    Nuestra historia continúa
-                    con cada generación.
-                </h2>
-
-                <p>
-                    ASADA San José de la Montaña
-                </p>
-
-            </div>
-
-        </section>
-
-    </main>
-
-    <!-- PIE DE PÁGINA ORIGINAL -->
-    <footer id="contacto">
         <div class="container">
 
-            <div class="row g-4">
+            <span class="section-kicker">
+                UN LEGADO COMPARTIDO
+            </span>
 
-                <div class="col-md-3">
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <i class="bi bi-droplet-fill"
-                           style="font-size:22px;"></i>
+            <h2 class="editorial-title">
+                Nuestra historia continúa
+                con cada generación.
+            </h2>
 
-                        <strong>
-                            ASADA
-                            <small style="font-weight:400;display:block;">
-                                San José de la Montaña
-                            </small>
-                        </strong>
-                    </div>
+            <p>
+                ASADA San José de la Montaña
+            </p>
 
-                    <p style="font-size:13px;">
-                        Transparencia, servicio y compromiso con el agua.
-                    </p>
-                </div>
-
-                <div class="col-md-3">
-                    <h3>Contacto</h3>
-
-                    <p class="mb-1">
-                        <i class="bi bi-telephone-fill me-1"></i>
-                        2450-1234
-                    </p>
-
-                    <p class="mb-1">
-                        <i class="bi bi-envelope-fill me-1"></i>
-                        info@asadasjm.cr
-                    </p>
-
-                    <p class="mb-0">
-                        <i class="bi bi-geo-alt-fill me-1"></i>
-                        San José de la Montaña, Heredia, Costa Rica
-                    </p>
-                </div>
-
-                <div class="col-md-3">
-                    <h3>Horario de atención</h3>
-
-                    <p class="mb-1">
-                        Lunes a viernes
-                        <br />
-                        7:30 a.m. – 3:30 p.m.
-                    </p>
-
-                    <p class="mb-0">
-                        Jornada continua
-                    </p>
-                </div>
-
-                <div class="col-md-3">
-                    <h3>Enlaces rápidos</h3>
-
-                    <p class="mb-1">
-                        <a asp-controller="Recibos"
-                           asp-action="Index">
-                            Consultar recibos
-                        </a>
-                    </p>
-
-                    <p class="mb-1">
-                        <a asp-controller="Averias"
-                           asp-action="Index">
-                            Reportar avería
-                        </a>
-                    </p>
-
-                    <p class="mb-0">
-                        <a href="#">
-                            Reglamentos y tarifas
-                        </a>
-                    </p>
-                </div>
-
-            </div>
         </div>
-    </footer>
 
-    <div class="footer-bottom text-center">
-        © 2026 ASADA San José de la Montaña.
-        Todos los derechos reservados.
-    </div>
+    </section>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
-
-</body>
-</html>
+</main>

@@ -1,4 +1,5 @@
-﻿@{
+﻿
+@{
     ViewData["Title"] = "ASADA San José de la Montaña";
 
     var informacionContacto =
@@ -7,29 +8,66 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="es">
 <head>
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1" />
+
     <title>@ViewBag.Title</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/portal.css" asp-append-version="true"/>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"
+          rel="stylesheet" />
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css"
+          rel="stylesheet" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Roboto:wght@400;500&display=swap"
+          rel="stylesheet" />
+
+    <link rel="stylesheet"
+          href="/css/portal.css"
+          asp-append-version="true" />
 </head>
+
 <body>
-    <!-- HEADER -->
+
+    <!-- =========================================
+         MENÚ PRINCIPAL ASADA
+         ========================================= -->
+
     <nav class="navbar navbar-expand-lg navbar-asada">
+
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="#">
-                <i class="bi bi-droplet-fill" style="font-size:26px;color:var(--azul-agua);"></i>
-                <span class="brand">ASADA<small>San José de la Montaña</small></span>
+
+            <!-- LOGO -->
+
+            <a class="navbar-brand d-flex align-items-center gap-2"
+               asp-controller="Portal"
+               asp-action="Index">
+
+                <i class="bi bi-droplet-fill"
+                   style="font-size:26px;color:var(--azul-agua);">
+                </i>
+
+                <span class="brand">
+                    ASADA
+                    <small>San José de la Montaña</small>
+                </span>
+
             </a>
+
+            <!-- MENÚ RESPONSIVE -->
 
             <button class="navbar-toggler"
                     type="button"
                     data-bs-toggle="collapse"
-                    data-bs-target="#navMenu">
+                    data-bs-target="#navMenu"
+                    aria-controls="navMenu"
+                    aria-expanded="false"
+                    aria-label="Abrir menú">
+
                 <span class="navbar-toggler-icon"></span>
+
             </button>
 
             <div class="collapse navbar-collapse justify-content-end"
@@ -37,81 +75,160 @@
 
                 <ul class="navbar-nav gap-lg-3">
 
+                    <!-- INICIO -->
+
                     <li class="nav-item">
-                        <a class="nav-link active" asp-controller="Portal" asp-action="Index">
+
+                        <a class="nav-link"
+                           asp-controller="Portal"
+                           asp-action="Index">
+
                             Inicio
+
                         </a>
+
                     </li>
 
+                    <!-- NUESTRA ASADA -->
+
                     <li class="nav-item">
-                        <a class="nav-link" href="#institucional">
+
+                        <a class="nav-link"
+                           asp-controller="Portal"
+                           asp-action="Index"
+                           asp-fragment="institucional">
+
                             Nuestra ASADA
+
                         </a>
+
                     </li>
 
+                    <!-- TRANSPARENCIA -->
+
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
+
+                        <a class="nav-link"
+                           asp-controller="Transparencia"
+                           asp-action="Index">
+
                             Transparencia
+
                         </a>
+
                     </li>
 
+                    <!-- SERVICIOS -->
+
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
+
+                        <a class="nav-link"
+                           asp-controller="OficinaVirtual"
+                           asp-action="Index">
+
                             Servicios
+
                         </a>
+
                     </li>
 
+                    <!-- AMBIENTE Y COMUNIDAD -->
+
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
+
+                        <a class="nav-link"
+                           asp-controller="GestionAmbiental"
+                           asp-action="Index">
+
                             Ambiente y Comunidad
+
                         </a>
+
                     </li>
 
+                    <!-- GALERÍA -->
+
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Galeria" asp-action="Index">
+
+                        <a class="nav-link"
+                           asp-controller="Galeria"
+                           asp-action="Index">
+
                             Galería
+
                         </a>
+
                     </li>
 
+                    <!-- CONTACTO -->
+
                     <li class="nav-item">
-                        <a class="nav-link" href="#contacto">
+
+                        <a class="nav-link"
+                           href="#contacto">
+
                             Contacto
+
                         </a>
+
                     </li>
 
+                    <!-- INGRESAR -->
+
                     <li class="nav-item">
-                        <a asp-controller="Account"
-                           asp-action="Login"
-                           class="nav-link">
+
+                        <a class="nav-link"
+                           asp-controller="Account"
+                           asp-action="Login">
+
                             Ingresar
+
                         </a>
+
                     </li>
 
                 </ul>
+
             </div>
+
         </div>
+
     </nav>
 
-    <body class="@ViewData["BodyClass"]">
-        @RenderBody()
-    </body>
+    <!-- =========================================
+         CONTENIDO PRINCIPAL
+         ========================================= -->
 
-    <!-- FOOTER -->
+    <div class="@ViewData["BodyClass"]">
+
+        @RenderBody()
+
+    </div>
+
+    <!-- =========================================
+         FOOTER
+         ========================================= -->
+
     <footer id="contacto">
 
         <div class="container">
 
             <div class="row g-4">
 
+                <!-- INFORMACIÓN GENERAL -->
+
                 <div class="col-md-3">
 
                     <div class="d-flex align-items-center gap-2 mb-2">
 
                         <i class="bi bi-droplet-fill"
-                           style="font-size:22px;"></i>
+                           style="font-size:22px;">
+                        </i>
 
                         <strong>
-                            ASADA<br>
+                            ASADA
+                            <br />
+
                             <small style="font-weight:400;">
                                 San José de la Montaña
                             </small>
@@ -125,8 +242,8 @@
 
                 </div>
 
-
                 <!-- CONTACTO -->
+
                 <div class="col-md-3">
 
                     <h3>Contacto</h3>
@@ -136,24 +253,33 @@
                         @if (!string.IsNullOrWhiteSpace(informacionContacto.Telefono))
                         {
                             <p class="mb-1">
+
                                 <i class="bi bi-telephone-fill me-1"></i>
+
                                 @informacionContacto.Telefono
+
                             </p>
                         }
 
                         @if (!string.IsNullOrWhiteSpace(informacionContacto.Correo))
                         {
                             <p class="mb-1">
+
                                 <i class="bi bi-envelope-fill me-1"></i>
+
                                 @informacionContacto.Correo
+
                             </p>
                         }
 
                         @if (!string.IsNullOrWhiteSpace(informacionContacto.Direccion))
                         {
                             <p class="mb-0">
+
                                 <i class="bi bi-geo-alt-fill me-1"></i>
+
                                 @informacionContacto.Direccion
+
                             </p>
                         }
                     }
@@ -166,8 +292,8 @@
 
                 </div>
 
-
                 <!-- HORARIO -->
+
                 <div class="col-md-3">
 
                     <h3>Horario de atención</h3>
@@ -188,6 +314,7 @@
 
                 </div>
 
+                <!-- ENLACES RÁPIDOS -->
 
                 <div class="col-md-3">
 
@@ -197,7 +324,9 @@
 
                         <a asp-controller="Recibos"
                            asp-action="Index">
+
                             Consultar recibos
+
                         </a>
 
                     </p>
@@ -206,7 +335,9 @@
 
                         <a asp-controller="Averias"
                            asp-action="Index">
+
                             Reportar avería
+
                         </a>
 
                     </p>
@@ -221,16 +352,31 @@
 
                 </div>
 
-
             </div>
 
         </div>
 
     </footer>
 
+    <!-- =========================================
+         COPYRIGHT
+         ========================================= -->
 
     <div class="footer-bottom text-center">
-        © 2026 ASADA San José de la Montaña. Todos los derechos reservados.
+
+        © 2026 ASADA San José de la Montaña.
+        Todos los derechos reservados.
+
     </div>
+
+    <!-- =========================================
+         SCRIPTS
+         ========================================= -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js">
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
 </body>
 </html>

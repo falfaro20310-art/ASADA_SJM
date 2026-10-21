@@ -1,3 +1,4 @@
+
 using AsadaSJM.Data;
 using AsadaSJM.Services.FotoGaleria;
 using AsadaSJM.Services.Galeria;
@@ -49,9 +50,13 @@ builder.Services.AddAuthorization();
 // =========================================================
 
 builder.Services.AddControllersWithViews();
-// Services
+
+// =========================================================
+// SERVICES
+// =========================================================
+
+// Servicio de Galería existente
 builder.Services.AddScoped<IGaleriaService, GaleriaService>();
-builder.Services.AddScoped<IFotoGaleriaService, FotoGaleriaService>();
 
 var app = builder.Build();
 
