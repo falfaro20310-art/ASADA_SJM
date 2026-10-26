@@ -62,7 +62,7 @@
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
+                        <a class="nav-link" asp-controller="GestionAmbiental" asp-action="Index">
                             Ambiente y Comunidad
                         </a>
                     </li>
@@ -125,7 +125,6 @@
 
                 </div>
 
-
                 <!-- CONTACTO -->
                 <div class="col-md-3">
 
@@ -166,7 +165,6 @@
 
                 </div>
 
-
                 <!-- HORARIO -->
                 <div class="col-md-3">
 
@@ -187,7 +185,6 @@
                     }
 
                 </div>
-
 
                 <div class="col-md-3">
 
@@ -220,17 +217,19 @@
                     </p>
 
                 </div>
-
-
             </div>
-
         </div>
-
     </footer>
-
 
     <div class="footer-bottom text-center">
         © 2026 ASADA San José de la Montaña. Todos los derechos reservados.
     </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/FotoGaleriaScript.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
 </body>
 </html>

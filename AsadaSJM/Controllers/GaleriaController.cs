@@ -1,5 +1,6 @@
 ﻿using AsadaSJM.Models;
 using AsadaSJM.Services.Galeria;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,9 +15,10 @@ namespace AsadaSJM.Controllers
             _galeriaService = galeriaService;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? id)
         {
-            var resultado = await _galeriaService.ListarGaleriasAsync();
+            bool esAdministrador = User.IsInRole("Administrador");
+            var resultado = await _galeriaService.ListarGaleriasAsync(soloActivas: !esAdministrador);
 
             if (!resultado.EsValido)
             {
@@ -27,73 +29,85 @@ namespace AsadaSJM.Controllers
             return View(resultado.Datos);
         }
 
-        // GET: GaleriaController/Details/5
-        public ActionResult Details(int id)
+        [HttpGet]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> Crear()
         {
-            return View();
+            return View("CrearGaleria", new GaleriaDTO { Estado = true, Fecha = DateTime.Now });
         }
 
-        // GET: GaleriaController/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: GaleriaController/Create
         [HttpPost]
+        [Authorize(Roles = "Administrador")]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<IActionResult> Crear(GaleriaDTO modelo)
         {
-            try
+            var idUsuarioClaim = User.FindFirst("IdUsuario")?.Value;
+
+            if (int.TryParse(idUsuarioClaim, out int idUsuario))
             {
-                return RedirectToAction(nameof(Index));
+                modelo.IdUsuario = idUsuario;
             }
-            catch
+            else
             {
-                return View();
+                return RedirectToAction("Login", "Account");
             }
+
+            if (!ModelState.IsValid)
+            {
+                return View("CrearGaleria", modelo);
+            }
+
+            var resultado = await _galeriaService.CrearAsync(modelo);
+
+            if (resultado.EsValido)
+            {
+                return RedirectToAction("Index");
+            }
+
+            ModelState.AddModelError("", resultado.MensajeValidacion);
+            return View("CrearGaleria", modelo);
         }
 
-        // GET: GaleriaController/Edit/5
-        public ActionResult Edit(int id)
+        [HttpGet]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> Editar(int id)
         {
-            return View();
+            var resultado = await _galeriaService.ObtenerGaleriaPorIdAsync(id);
+
+            if (!resultado.EsValido || resultado.Datos == null)
+            {
+                TempData["Error"] = resultado.MensajeValidacion ?? "No se pudo cargar la galería.";
+                return RedirectToAction("Index");
+            }
+
+            return View("EditarGaleria", resultado.Datos);
         }
 
-        // POST: GaleriaController/Edit/5
         [HttpPost]
+        [Authorize(Roles = "Administrador")]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public async Task<IActionResult> Editar(GaleriaDTO modelo)
         {
-            try
+            var idUsuarioClaim = User.FindFirst("IdUsuario")?.Value;
+            if (int.TryParse(idUsuarioClaim, out int idUsuario))
             {
-                return RedirectToAction(nameof(Index));
+                modelo.IdUsuario = idUsuario;
             }
-            catch
-            {
-                return View();
-            }
-        }
 
-        // GET: GaleriaController/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
+            if (!ModelState.IsValid)
+            {
+                return View("EditarGaleria", modelo);
+            }
 
-        // POST: GaleriaController/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
+            var resultado = await _galeriaService.EditarAsync(modelo);
+
+            if (resultado.EsValido)
             {
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
             }
-            catch
-            {
-                return View();
-            }
+
+            ModelState.AddModelError("", resultado.MensajeValidacion);
+            return View("EditarGaleria", modelo);
         }
     }
 }
