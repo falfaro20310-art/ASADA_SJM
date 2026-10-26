@@ -1,11 +1,15 @@
 
 using AsadaSJM.Data;
+using AsadaSJM.Services.Firebase;
 using AsadaSJM.Services.FotoGaleria;
 using AsadaSJM.Services.Galeria;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var credentialPath = Path.Combine(builder.Environment.ContentRootPath, "Credentials", "asada-sjm-firebase-adminsdk-fbsvc-257e7b9b86.json");
+Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credentialPath);
 
 // =========================================================
 // BASE DE DATOS
@@ -49,14 +53,12 @@ builder.Services.AddAuthorization();
 // MVC
 // =========================================================
 
-builder.Services.AddControllersWithViews();
-
-// =========================================================
-// SERVICES
-// =========================================================
-
-// Servicio de Galería existente
+// Services
+builder.Services.AddSingleton<IFirebaseStorageService, FirebaseStorageService>();
 builder.Services.AddScoped<IGaleriaService, GaleriaService>();
+builder.Services.AddScoped<IFotoGaleriaService, FotoGaleriaService>();
+
+builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 

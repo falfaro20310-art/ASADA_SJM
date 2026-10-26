@@ -10,6 +10,23 @@
     ViewData["BodyClass"] = "body_gallery";
 }
 
+@*
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>¡Atención!</strong> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["MensajeExito"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["MensajeExito"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+*@
+
 <div class="@(isAdmin ? "container py-5 min-vh-100" : "container py-5 min-vh-100")">
 
     @if (!isAdmin)
@@ -21,7 +38,7 @@
 
         @if (isAdmin)
         {
-            <a asp-action="Crear" class="btn btn-primary">
+            <a asp-action="Crear" class="btn btn-primary ms-auto">
                 <i class="bi bi-plus-lg"></i> Nueva Galería
             </a>
         }
@@ -44,7 +61,3 @@
         </div>
     </div>
 </div>
-@*
-@section scripts {
-    <script src="~/js/FotoGaleriaScript.js"></script>
-} *@

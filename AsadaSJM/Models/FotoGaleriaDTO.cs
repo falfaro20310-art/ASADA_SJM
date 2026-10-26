@@ -11,6 +11,5 @@ namespace AsadaSJM.Models
         [Required(ErrorMessage = "La imagen es obligatoria.")]
         [StringLength(500, ErrorMessage = "La ruta de la imagen no puede superar los 500 caracteres.")]
         public string RutaImagen { get; set; } = string.Empty;
-        public DateTime? Fecha { get; set; }
     }
 }

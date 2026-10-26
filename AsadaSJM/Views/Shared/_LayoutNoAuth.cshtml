@@ -78,15 +78,11 @@
                     <!-- INICIO -->
 
                     <li class="nav-item">
-
                         <a class="nav-link"
                            asp-controller="Portal"
                            asp-action="Index">
-
                             Inicio
-
                         </a>
-
                     </li>
 
                     <!-- NUESTRA ASADA -->
@@ -97,102 +93,70 @@
                            asp-controller="Portal"
                            asp-action="Index"
                            asp-fragment="institucional">
-
                             Nuestra ASADA
-
                         </a>
-
                     </li>
 
                     <!-- TRANSPARENCIA -->
 
                     <li class="nav-item">
-
                         <a class="nav-link"
                            asp-controller="Transparencia"
                            asp-action="Index">
-
                             Transparencia
-
                         </a>
-
                     </li>
 
                     <!-- SERVICIOS -->
 
                     <li class="nav-item">
-
                         <a class="nav-link"
                            asp-controller="OficinaVirtual"
                            asp-action="Index">
-
                             Servicios
-
                         </a>
-
                     </li>
 
                     <!-- AMBIENTE Y COMUNIDAD -->
 
                     <li class="nav-item">
-
-                        <a class="nav-link"
-                           asp-controller="GestionAmbiental"
-                           asp-action="Index">
-
+                        <a class="nav-link" asp-controller="GestionAmbiental" asp-action="Index">
                             Ambiente y Comunidad
-
                         </a>
-
                     </li>
 
                     <!-- GALERÍA -->
 
                     <li class="nav-item">
-
                         <a class="nav-link"
                            asp-controller="Galeria"
                            asp-action="Index">
-
                             Galería
-
                         </a>
-
                     </li>
 
                     <!-- CONTACTO -->
 
                     <li class="nav-item">
-
                         <a class="nav-link"
                            href="#contacto">
-
                             Contacto
-
                         </a>
-
                     </li>
 
                     <!-- INGRESAR -->
 
                     <li class="nav-item">
-
                         <a class="nav-link"
                            asp-controller="Account"
                            asp-action="Login">
-
                             Ingresar
-
                         </a>
-
                     </li>
-
+                  
                 </ul>
-
             </div>
-
         </div>
-
     </nav>
 
     <!-- =========================================
@@ -210,30 +174,26 @@
          ========================================= -->
 
     <footer id="contacto">
-
         <div class="container">
-
             <div class="row g-4">
-
+              
                 <!-- INFORMACIÓN GENERAL -->
-
                 <div class="col-md-3">
-
                     <div class="d-flex align-items-center gap-2 mb-2">
-
+                      
                         <i class="bi bi-droplet-fill"
                            style="font-size:22px;">
                         </i>
-
+                      
                         <strong>
                             ASADA
                             <br />
-
+                          
                             <small style="font-weight:400;">
                                 San José de la Montaña
                             </small>
+                          
                         </strong>
-
                     </div>
 
                     <p style="font-size:13px;">
@@ -245,41 +205,30 @@
                 <!-- CONTACTO -->
 
                 <div class="col-md-3">
-
                     <h3>Contacto</h3>
-
                     @if (informacionContacto != null)
                     {
                         @if (!string.IsNullOrWhiteSpace(informacionContacto.Telefono))
                         {
                             <p class="mb-1">
-
                                 <i class="bi bi-telephone-fill me-1"></i>
-
                                 @informacionContacto.Telefono
-
                             </p>
                         }
 
                         @if (!string.IsNullOrWhiteSpace(informacionContacto.Correo))
                         {
                             <p class="mb-1">
-
                                 <i class="bi bi-envelope-fill me-1"></i>
-
                                 @informacionContacto.Correo
-
                             </p>
                         }
 
                         @if (!string.IsNullOrWhiteSpace(informacionContacto.Direccion))
                         {
                             <p class="mb-0">
-
                                 <i class="bi bi-geo-alt-fill me-1"></i>
-
                                 @informacionContacto.Direccion
-
                             </p>
                         }
                     }
@@ -289,15 +238,12 @@
                             Información de contacto no disponible.
                         </p>
                     }
-
                 </div>
 
                 <!-- HORARIO -->
 
                 <div class="col-md-3">
-
                     <h3>Horario de atención</h3>
-
                     @if (informacionContacto != null &&
                          !string.IsNullOrWhiteSpace(informacionContacto.Horario))
                     {
@@ -311,33 +257,28 @@
                             Horario no disponible.
                         </p>
                     }
-
                 </div>
 
                 <!-- ENLACES RÁPIDOS -->
 
                 <div class="col-md-3">
-
+                  
                     <h3>Enlaces rápidos</h3>
 
                     <p class="mb-1">
 
                         <a asp-controller="Recibos"
                            asp-action="Index">
-
                             Consultar recibos
-
                         </a>
-
+                      
                     </p>
 
                     <p class="mb-1">
 
                         <a asp-controller="Averias"
                            asp-action="Index">
-
                             Reportar avería
-
                         </a>
 
                     </p>
@@ -349,32 +290,19 @@
                         </a>
 
                     </p>
-
+                  
                 </div>
-
             </div>
-
         </div>
-
     </footer>
 
-    <!-- =========================================
-         COPYRIGHT
-         ========================================= -->
-
     <div class="footer-bottom text-center">
-
-        © 2026 ASADA San José de la Montaña.
-        Todos los derechos reservados.
-
+        © 2026 ASADA San José de la Montaña. Todos los derechos reservados.
     </div>
 
-    <!-- =========================================
-         SCRIPTS
-         ========================================= -->
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js">
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/FotoGaleriaScript.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 

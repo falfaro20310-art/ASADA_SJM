@@ -63,14 +63,7 @@ namespace AsadaSJM.Services.Galeria
                         Titulo = g.Titulo,
                         Descripcion = g.Descripcion,
                         Fecha = g.Fecha,
-                        Estado = g.Estado,
-                        // Mapeamos las fotos directamente en la misma consulta PENDIENTE
-                        Fotos = g.Fotos.Select(f => new FotoGaleriaDTO
-                        {
-                            IdGaleria = f.IdGaleria,
-                            RutaImagen = f.RutaImagen,
-                            Fecha = f.Fecha,
-                        }).ToList()
+                        Estado = g.Estado
                     })
                     .FirstOrDefaultAsync();
 

@@ -1,0 +1,41 @@
+﻿@model AsadaSJM.Models.ViewModels.GaleriaFotosViewModel
+
+@{
+    bool isAdmin = User.Identity?.IsAuthenticated == true && User.IsInRole("Administrador");
+}
+
+<div class="container py-5">
+    <div class="photo-wall">
+        @if (Model.Fotos != null && Model.Fotos.Any())
+        {
+            @foreach (var foto in Model.Fotos)
+            {
+                <div class="photo-wall-item">
+                    <img src="@foto.RutaImagen" alt="Foto de la galería" class="img-fluid rounded-3 shadow-sm object-fit-cover" loading="lazy" />
+                </div>
+            }
+        }
+        else
+        {
+            <p class="text-muted">Aún no hay fotos en esta galería.</p>
+        }
+    </div>
+
+    @if (isAdmin)
+    {
+        <form asp-action="Guardar" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="idGaleria" value="@Model.IdGaleria" />
+
+            <div class="form-group mt-5">
+                <label>Seleccionar Imagen</label>
+                <input type="file" name="archivoImagen" class="form-control" accept=".jpg,.jpeg,.heic,.heif" required />
+            </div>
+
+            <div class="form-text">
+                Formatos permitidos: JPG (.jpg), JPEG (.jpeg), HEIC (.heic) y HEIF (.heif).
+            </div>
+
+            <button type="submit" class="btn btn-primary mt-3">Subir Foto</button>
+        </form>
+    }
+</div>

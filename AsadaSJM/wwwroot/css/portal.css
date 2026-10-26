@@ -118,3 +118,30 @@ footer a:hover{ color:#fff; }
 body.body_gallery {
     background: var(--gris-claro);
 }
+
+.card-galeria {
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out !important;
+}
+
+.card-galeria:hover {
+    transform: scale(1.05) !important;
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
+}
+
+.photo-wall {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.photo-wall-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    transition: transform 0.3s ease;
+}
+
+    .photo-wall-item img:hover {
+        transform: scale(1.02);
+    }
