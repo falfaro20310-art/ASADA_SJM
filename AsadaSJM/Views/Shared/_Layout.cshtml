@@ -5,9 +5,12 @@
     bool esAbonado = User.IsInRole("Abonado");
     bool esOperativo = User.IsInRole("Operativo");
 
+    string controladorActual =
+        ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+
     bool esGestionAmbiental =
-        ViewContext.RouteData.Values["controller"]?.ToString()
-        == "GestionAmbiental";
+        controladorActual == "GestionAmbiental" ||
+        controladorActual == "ComunidadAmbiental";
 
     string nombreUsuario = User.Identity?.Name ?? "";
 
@@ -49,48 +52,10 @@
         <div class="nav flex-column">
 
             @* =========================================
-               MGA-01: NAVEGACIÓN SIMPLIFICADA
-               ========================================= *@
-
-            @if (esGestionAmbiental)
-            {
-                @if (esAdministrador)
-                {
-                    <a class="nav-link"
-                       asp-controller="Home"
-                       asp-action="Index">
-
-                        <i class="bi bi-arrow-left"></i>
-                        Volver
-                    </a>
-                }
-                else if (esAbonado)
-                {
-                    <a class="nav-link"
-                       asp-controller="OficinaVirtual"
-                       asp-action="Index">
-
-                        <i class="bi bi-arrow-left"></i>
-                        Volver
-                    </a>
-                }
-                else
-                {
-                    <a class="nav-link"
-                       asp-controller="Portal"
-                       asp-action="Index">
-
-                        <i class="bi bi-arrow-left"></i>
-                        Volver
-                    </a>
-                }
-            }
-
-            @* =========================================
                MENÚ NORMAL DEL ADMINISTRADOR
                ========================================= *@
 
-            else if (esAdministrador)
+            @if (esAdministrador)
             {
                 <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")"
                    asp-controller="Home"
@@ -164,11 +129,11 @@
                     Información institucional
                 </a>
 
-                <a class="nav-link"
+                <a class="nav-link @(esGestionAmbiental ? "active" : "")"
                    asp-controller="GestionAmbiental"
                    asp-action="Index">
 
-                    <i class="bi bi-leaf-fill"></i>
+                    <i class="bi bi-tree-fill"></i>
                     Gestión Ambiental
                 </a>
 
@@ -213,11 +178,11 @@
                     Portal
                 </a>
 
-                <a class="nav-link"
+                <a class="nav-link @(esGestionAmbiental ? "active" : "")"
                    asp-controller="GestionAmbiental"
                    asp-action="Index">
 
-                    <i class="bi bi-leaf-fill"></i>
+                    <i class="bi bi-tree-fill"></i>
                     Gestión Ambiental
                 </a>
 
@@ -246,11 +211,11 @@
                     Inicio
                 </a>
 
-                <a class="nav-link"
+                <a class="nav-link @(esGestionAmbiental ? "active" : "")"
                    asp-controller="GestionAmbiental"
                    asp-action="Index">
 
-                    <i class="bi bi-leaf-fill"></i>
+                    <i class="bi bi-tree-fill"></i>
                     Gestión Ambiental
                 </a>
             }

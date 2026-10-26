@@ -1,8 +1,32 @@
 ﻿
 @using AsadaSJM.Models
+@using Microsoft.EntityFrameworkCore
+@inject AsadaSJM.Data.ApplicationDbContext Db
 
 @{
     ViewData["Title"] = "Gestión Ambiental";
+
+    // El administrador conserva el panel interno.
+    // Los visitantes utilizan el portal público.
+    bool vistaAdministrativa = User.IsInRole("Administrador");
+
+    Layout = vistaAdministrativa
+        ? "_Layout"
+        : "_LayoutNoAuth";
+
+    if (!vistaAdministrativa)
+    {
+        ViewData["BodyClass"] = "container py-4";
+
+        if (ViewBag.InformacionContacto == null)
+        {
+            ViewBag.InformacionContacto =
+                await Db.InformacionInstitucional
+                    .AsNoTracking()
+                    .OrderByDescending(i => i.IdInformacion)
+                    .FirstOrDefaultAsync();
+        }
+    }
 
     var nacientes = ViewBag.Nacientes as List<Naciente>
         ?? new List<Naciente>();
@@ -14,136 +38,164 @@
 }
 
 <style>
+    /* ==========================================
+       MGA-01 - COLORES INSTITUCIONALES ASADA
+       Azul Agua: #004A99
+       Verde Bosque: #2D5A27
+       ========================================== */
+
     .ga-page {
+        --ga-blue: #004A99;
+        --ga-blue-dark: #003B7A;
+        --ga-green: #2D5A27;
+        --ga-white: #FFFFFF;
+        --ga-background: #F5F7F9;
+        --ga-text: #20384E;
+        --ga-muted: #657584;
+
         font-family: 'Roboto', sans-serif;
-        color: #193b35;
+        color: var(--ga-text);
     }
 
-    .ga-hero {
+    /* ==========================================
+       ENCABEZADO PRINCIPAL
+       ========================================== */
+
+    .ga-page .ga-hero {
         position: relative;
         overflow: hidden;
         border-radius: 24px;
         padding: 55px 45px;
-        background:
-            radial-gradient(circle at 90% 15%,
-                rgba(132, 220, 189, .30),
-                transparent 38%),
-            linear-gradient(125deg, #103e36, #19785f);
-        color: white;
+        background: #004A99 !important;
+        color: #FFFFFF !important;
         margin-bottom: 28px;
     }
 
-    .ga-hero::after {
+    .ga-page .ga-hero::after {
         content: "◉";
         position: absolute;
         right: 35px;
         bottom: -110px;
         font-size: 300px;
-        opacity: .07;
+        color: rgba(255,255,255,.10);
         pointer-events: none;
     }
 
-    .ga-eyebrow {
+    .ga-page .ga-eyebrow {
         display: inline-flex;
         align-items: center;
         gap: 8px;
         padding: 8px 15px;
         border-radius: 30px;
-        background: rgba(255,255,255,.13);
+        background: rgba(255,255,255,.16);
+        color: #FFFFFF !important;
         font-size: 13px;
         font-weight: 600;
         margin-bottom: 20px;
     }
 
-    .ga-hero h2 {
+    .ga-page .ga-hero h2 {
         font-family: 'Montserrat', sans-serif;
         font-size: clamp(26px, 4vw, 42px);
         font-weight: 700;
         line-height: 1.2;
         max-width: 680px;
+        color: #FFFFFF !important;
     }
 
-    .ga-hero p {
+    .ga-page .ga-hero p {
         max-width: 610px;
-        color: #e0f3ea;
+        color: #FFFFFF !important;
         line-height: 1.8;
         margin-top: 16px;
     }
 
-    .ga-manage {
+    .ga-page .ga-manage {
         display: inline-flex;
         align-items: center;
         gap: 9px;
-        background: white;
-        color: #14644d;
+        background: #FFFFFF;
+        color: #004A99;
         border-radius: 12px;
         padding: 12px 20px;
         font-weight: 700;
         text-decoration: none;
         margin-top: 15px;
+        transition: .2s;
     }
 
-    .ga-manage:hover {
-        background: #e5f7ed;
-        color: #104c3b;
+    .ga-page .ga-manage:hover {
+        background: #E7F1FB;
+        color: #003B7A;
     }
 
-    .ga-stats {
+    /* ==========================================
+       ESTADÍSTICAS
+       ========================================== */
+
+    .ga-page .ga-stats {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 15px;
         margin-bottom: 35px;
     }
 
-    .ga-stat {
-        background: white;
-        border: 1px solid #e4eee8;
+    .ga-page .ga-stat {
+        background: #FFFFFF;
+        border: 1px solid #DEE7F0;
         border-radius: 16px;
         padding: 22px;
+        box-shadow: 0 4px 16px rgba(0,74,153,.04);
     }
 
-    .ga-stat i {
-        color: #27866a;
+    .ga-page .ga-stat i {
+        color: #004A99;
         font-size: 24px;
     }
 
-    .ga-stat strong {
+    .ga-page .ga-stat strong {
         display: block;
         margin-top: 10px;
         font-size: 27px;
         font-weight: 700;
+        color: #004A99;
     }
 
-    .ga-stat span {
+    .ga-page .ga-stat span {
         font-size: 13px;
-        color: #688078;
+        color: #657584;
     }
 
-    .ga-intro {
+    /* ==========================================
+       TÍTULOS Y FILTROS
+       ========================================== */
+
+    .ga-page .ga-intro {
         margin: 32px 0 20px;
     }
 
-    .ga-intro h3 {
+    .ga-page .ga-intro h3 {
         font-family: 'Montserrat', sans-serif;
         font-weight: 700;
         font-size: 24px;
+        color: #004A99;
     }
 
-    .ga-intro p {
-        color: #687c75;
+    .ga-page .ga-intro p {
+        color: #657584;
     }
 
-    .ga-tabs {
+    .ga-page .ga-tabs {
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
         margin-bottom: 25px;
     }
 
-    .ga-tab {
-        background: white;
-        border: 1px solid #dbe8e1;
-        color: #386b58;
+    .ga-page .ga-tab {
+        background: #FFFFFF;
+        border: 1px solid #CCDCEB;
+        color: #004A99;
         border-radius: 30px;
         padding: 10px 20px;
         font-weight: 600;
@@ -151,34 +203,38 @@
         transition: .2s;
     }
 
-    .ga-tab:hover,
-    .ga-tab.active {
-        background: #176b52;
-        color: white;
-        border-color: #176b52;
+    .ga-page .ga-tab:hover,
+    .ga-page .ga-tab.active {
+        background: #2D5A27;
+        color: #FFFFFF;
+        border-color: #2D5A27;
     }
 
-    .ga-grid {
+    /* ==========================================
+       TARJETAS
+       ========================================== */
+
+    .ga-page .ga-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 22px;
     }
 
-    .ga-card {
-        background: white;
-        border: 1px solid #e5eee8;
+    .ga-page .ga-card {
+        background: #FFFFFF;
+        border: 1px solid #DEE7F0;
         border-radius: 19px;
         overflow: hidden;
-        box-shadow: 0 4px 16px rgba(17,73,52,.04);
+        box-shadow: 0 4px 16px rgba(0,74,153,.04);
         transition: transform .2s, box-shadow .2s;
     }
 
-    .ga-card:hover {
+    .ga-page .ga-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 12px 28px rgba(17,73,52,.12);
+        box-shadow: 0 12px 28px rgba(0,74,153,.12);
     }
 
-    .ga-card-top {
+    .ga-page .ga-card-top {
         height: 100px;
         padding: 20px;
         display: flex;
@@ -186,118 +242,227 @@
         align-items: center;
     }
 
-    .ga-naciente {
-        background: linear-gradient(115deg,#d9f4e7,#a9d9c4);
+    /* Nacientes: verde institucional */
+
+    .ga-page .ga-naciente {
+        background: #E5F0E3;
     }
 
-    .ga-tanque {
-        background: linear-gradient(115deg,#dceff8,#a5cfdf);
+    /* Tanques: azul institucional */
+
+    .ga-page .ga-tanque {
+        background: #E4F0FC;
     }
 
-    .ga-card-icon {
+    .ga-page .ga-card-icon {
         width: 58px;
         height: 58px;
         border-radius: 16px;
-        background: rgba(255,255,255,.8);
+        background: #FFFFFF;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 27px;
-        color: #175c54;
+        color: #004A99;
     }
 
-    .ga-type {
-        background: rgba(255,255,255,.85);
+    .ga-page .ga-naciente .ga-card-icon {
+        color: #2D5A27;
+    }
+
+    .ga-page .ga-type {
+        background: #FFFFFF;
+        color: #20384E;
         padding: 7px 12px;
         border-radius: 30px;
         font-size: 12px;
         font-weight: 700;
     }
 
-    .ga-card-body {
+    .ga-page .ga-card-body {
         padding: 24px;
     }
 
-    .ga-card-body h4 {
+    .ga-page .ga-card-body h4 {
         font-size: 21px;
         font-weight: 700;
         margin-bottom: 14px;
+        color: #004A99;
     }
 
-    .ga-location {
+    .ga-page .ga-location {
         display: flex;
         align-items: center;
         gap: 8px;
-        color: #457b69;
+        color: #2D5A27;
         font-size: 14px;
         margin-bottom: 15px;
     }
 
-    .ga-description {
-        color: #5c706a;
+    .ga-page .ga-description {
+        color: #657584;
         font-size: 14px;
         line-height: 1.8;
         white-space: pre-line;
         overflow-wrap: anywhere;
     }
 
-    .ga-card-footer {
-        border-top: 1px solid #edf2ef;
+    .ga-page .ga-card-footer {
+        border-top: 1px solid #E5EBF1;
         padding-top: 16px;
         margin-top: 20px;
-        color: #258164;
+        color: #2D5A27;
         font-size: 13px;
         font-weight: 600;
     }
 
-    .ga-empty {
+    /* ==========================================
+       ESTADO VACÍO
+       ========================================== */
+
+    .ga-page .ga-empty {
         grid-column: 1 / -1;
-        background: #f5faf7;
-        border: 1px dashed #bad8c9;
+        background: #F5F7F9;
+        border: 1px dashed #9EBB9A;
         text-align: center;
         padding: 60px 20px;
         border-radius: 20px;
     }
 
-    .ga-empty i {
+    .ga-page .ga-empty i {
         font-size: 38px;
-        color: #72a991;
+        color: #2D5A27;
     }
 
-    .ga-empty h4 {
+    .ga-page .ga-empty h4 {
         margin-top: 16px;
         font-weight: 700;
+        color: #004A99;
     }
 
-    .ga-empty p {
-        color: #6a8479;
+    .ga-page .ga-empty p {
+        color: #657584;
     }
 
-    .ga-note {
+    /* ==========================================
+       MENSAJE FINAL
+       ========================================== */
+
+    .ga-page .ga-note {
         text-align: center;
-        background: #eef8f2;
+        background: #E8F2E6;
         border-radius: 16px;
         padding: 24px;
         margin-top: 40px;
-        color: #316e58;
+        color: #2D5A27;
     }
 
+    /* ==========================================
+       MGA-02 A MGA-05 - ACCESOS AMBIENTALES
+       ========================================== */
+
+    .ga-page .ga-community {
+        margin-top: 40px;
+        padding: 30px;
+        background: #EAF1F8;
+        border: 1px solid #CCDDED;
+        border-radius: 20px;
+    }
+
+    .ga-page .ga-community h3 {
+        font-family: 'Montserrat', sans-serif;
+        color: #004A99;
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .ga-page .ga-community p {
+        color: #536D82;
+        line-height: 1.7;
+    }
+
+    .ga-page .ga-community-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 15px;
+        margin-top: 22px;
+    }
+
+    .ga-page .ga-community-link {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 20px;
+        border-radius: 14px;
+        background: #FFFFFF;
+        border: 1px solid #DCE6EF;
+        color: #004A99;
+        text-decoration: none;
+        transition: transform .2s, box-shadow .2s;
+    }
+
+    .ga-page .ga-community-link:hover {
+        color: #004A99;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 74, 153, .10);
+    }
+
+    .ga-page .ga-community-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 52px;
+        height: 52px;
+        flex-shrink: 0;
+        border-radius: 12px;
+        background: #E8F2E6;
+        color: #2D5A27;
+        font-size: 24px;
+    }
+
+    .ga-page .ga-community-link strong {
+        display: block;
+        font-size: 15px;
+        margin-bottom: 3px;
+    }
+
+    .ga-page .ga-community-link small {
+        display: block;
+        color: #657584;
+        line-height: 1.5;
+    }
+
+    /* ==========================================
+       RESPONSIVE
+       ========================================== */
+
     @@media(max-width: 768px) {
-        .ga-hero {
+        .ga-page .ga-hero {
             padding: 35px 25px;
         }
 
-        .ga-stats {
+        .ga-page .ga-stats {
             grid-template-columns: 1fr;
         }
 
-        .ga-grid {
+        .ga-page .ga-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .ga-page .ga-community {
+            padding: 22px;
+        }
+
+        .ga-page .ga-community-grid {
             grid-template-columns: 1fr;
         }
     }
 </style>
 
 <div class="ga-page">
+
+    <!-- ENCABEZADO -->
 
     <section class="ga-hero">
 
@@ -332,6 +497,8 @@
 
     </section>
 
+    <!-- ESTADÍSTICAS -->
+
     <section class="ga-stats">
 
         <div class="ga-stat">
@@ -354,6 +521,8 @@
 
     </section>
 
+    <!-- EXPLORADOR DE RECURSOS -->
+
     <section>
 
         <div class="ga-intro">
@@ -366,6 +535,8 @@
             </p>
 
         </div>
+
+        <!-- FILTROS -->
 
         <div class="ga-tabs">
 
@@ -390,6 +561,8 @@
             </button>
 
         </div>
+
+        <!-- TARJETAS -->
 
         <div class="ga-grid" id="gaGrid">
 
@@ -473,6 +646,8 @@
                 </article>
             }
 
+            <!-- MENSAJE SIN RESULTADOS -->
+
             <div class="ga-empty"
                  id="gaEmpty"
                  style="display:none">
@@ -492,6 +667,99 @@
 
     </section>
 
+    <!-- ==========================================
+         MGA-02 A MGA-05 - PARTICIPACIÓN AMBIENTAL
+         ========================================== -->
+
+    <section class="ga-community" aria-labelledby="gaCommunityTitle">
+
+        <h3 id="gaCommunityTitle">
+            <i class="bi bi-tree me-2"></i>
+            Educación y participación ambiental
+        </h3>
+
+        <p>
+            Accede al material educativo, conoce las campañas,
+            participa en actividades de voluntariado y explora
+            fotografías de los proyectos ambientales de la ASADA.
+        </p>
+
+        <div class="ga-community-grid">
+
+            <!-- MGA-02 -->
+            <a class="ga-community-link"
+               asp-controller="ComunidadAmbiental"
+               asp-action="Index"
+               asp-fragment="materiales">
+
+                <span class="ga-community-icon">
+                    <i class="bi bi-file-earmark-pdf"></i>
+                </span>
+
+                <span>
+                    <strong>Material educativo</strong>
+                    <small>Consultar y descargar documentos PDF.</small>
+                </span>
+
+            </a>
+
+            <!-- MGA-03 -->
+            <a class="ga-community-link"
+               asp-controller="ComunidadAmbiental"
+               asp-action="Index"
+               asp-fragment="campanas">
+
+                <span class="ga-community-icon">
+                    <i class="bi bi-calendar-event"></i>
+                </span>
+
+                <span>
+                    <strong>Campañas ambientales</strong>
+                    <small>Conocer las campañas registradas.</small>
+                </span>
+
+            </a>
+
+            <!-- MGA-04 -->
+            <a class="ga-community-link"
+               asp-controller="ComunidadAmbiental"
+               asp-action="Index"
+               asp-fragment="voluntariado">
+
+                <span class="ga-community-icon">
+                    <i class="bi bi-people"></i>
+                </span>
+
+                <span>
+                    <strong>Voluntariado</strong>
+                    <small>Inscribirse en actividades ambientales.</small>
+                </span>
+
+            </a>
+
+            <!-- MGA-05 -->
+            <a class="ga-community-link"
+               asp-controller="ComunidadAmbiental"
+               asp-action="Index"
+               asp-fragment="galeria-ambiental">
+
+                <span class="ga-community-icon">
+                    <i class="bi bi-images"></i>
+                </span>
+
+                <span>
+                    <strong>Galería ambiental</strong>
+                    <small>Ver fotografías de proyectos realizados.</small>
+                </span>
+
+            </a>
+
+        </div>
+
+    </section>
+
+    <!-- MENSAJE FINAL -->
+
     <section class="ga-note">
 
         <i class="bi bi-heart-fill"></i>
@@ -507,6 +775,8 @@
     </section>
 
 </div>
+
+<!-- FILTROS INTERACTIVOS -->
 
 <script>
     (function () {

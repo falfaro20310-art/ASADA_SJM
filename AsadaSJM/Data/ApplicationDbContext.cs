@@ -1,5 +1,5 @@
-using AsadaSJM.Data.Entidades;
 
+using AsadaSJM.Data.Entidades;
 using AsadaSJM.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,7 +7,8 @@ namespace AsadaSJM.Data;
 
 public class ApplicationDbContext : DbContext
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+    public ApplicationDbContext(
+        DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
     }
@@ -19,18 +20,44 @@ public class ApplicationDbContext : DbContext
     public DbSet<Tramite> Tramites => Set<Tramite>();
     public DbSet<Documento> Documentos => Set<Documento>();
     public DbSet<Recibo> Recibos => Set<Recibo>();
-    public DbSet<BitacoraItemViewModel> Bitacoras => Set<BitacoraItemViewModel>();
-    public DbSet<Expresidente> Expresidentes => Set<Expresidente>();
-    public DbSet<InformacionInstitucional> InformacionInstitucional => Set<InformacionInstitucional>();
-    public DbSet<GaleriaEntidad> Galerias => Set<GaleriaEntidad>();
-    public DbSet<FotoGaleriaEntidad> FotosGaleria => Set<FotoGaleriaEntidad>();
+
+    public DbSet<BitacoraItemViewModel> Bitacoras
+        => Set<BitacoraItemViewModel>();
+
+    public DbSet<Expresidente> Expresidentes
+        => Set<Expresidente>();
+
+    public DbSet<InformacionInstitucional> InformacionInstitucional
+        => Set<InformacionInstitucional>();
+
+    public DbSet<GaleriaEntidad> Galerias
+        => Set<GaleriaEntidad>();
+
+    public DbSet<FotoGaleriaEntidad> FotosGaleria
+        => Set<FotoGaleriaEntidad>();
 
     // =====================================================
-    // MGA-01: GESTIÓN AMBIENTAL
+    // MGA-01: GESTIÓN AMBIENTAL EXISTENTE
     // =====================================================
 
-    public DbSet<Naciente> Nacientes => Set<Naciente>();
-    public DbSet<Tanque> Tanques => Set<Tanque>();
+    public DbSet<Naciente> Nacientes
+        => Set<Naciente>();
+
+    public DbSet<Tanque> Tanques
+        => Set<Tanque>();
+
+    // =====================================================
+    // MGA-03, MGA-04 Y MGA-05: NUEVAS TABLAS
+    // =====================================================
+
+    public DbSet<CampanaAmbiental> CampanasAmbientales
+        => Set<CampanaAmbiental>();
+
+    public DbSet<InscripcionVoluntariado> InscripcionesVoluntariado
+        => Set<InscripcionVoluntariado>();
+
+    public DbSet<FotoProyectoAmbiental> FotosProyectosAmbientales
+        => Set<FotoProyectoAmbiental>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -75,6 +102,7 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<FotoGaleriaEntidad>()
             .ToTable("FOTO_GALERIA");
+
         // =====================================================
         // MGA-01: TABLA NACIENTE
         // =====================================================
@@ -138,6 +166,102 @@ public class ApplicationDbContext : DbContext
         });
 
         // =====================================================
+        // MGA-03: CAMPAÑAS AMBIENTALES
+        // =====================================================
+
+        modelBuilder.Entity<CampanaAmbiental>(entity =>
+        {
+            entity.ToTable("CAMPANA_AMBIENTAL");
+
+            entity.HasKey(c => c.IdCampana);
+
+            entity.Property(c => c.IdCampana)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(c => c.Titulo)
+                .HasMaxLength(150)
+                .IsRequired();
+
+            entity.Property(c => c.Descripcion)
+                .IsRequired();
+
+            entity.Property(c => c.Lugar)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            entity.Property(c => c.Fecha)
+                .HasColumnType("date");
+
+            entity.Property(c => c.ImagenUrl)
+                .HasMaxLength(500)
+                .IsRequired();
+
+            entity.Property(c => c.FechaRegistro)
+                .HasDefaultValueSql("GETDATE()");
+        });
+
+        // =====================================================
+        // MGA-04: INSCRIPCIONES DE VOLUNTARIADO
+        // =====================================================
+
+        modelBuilder.Entity<InscripcionVoluntariado>(entity =>
+        {
+            entity.ToTable("INSCRIPCION_VOLUNTARIADO");
+
+            entity.HasKey(i => i.IdInscripcion);
+
+            entity.Property(i => i.IdInscripcion)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(i => i.Nombre)
+                .HasMaxLength(150)
+                .IsRequired();
+
+            entity.Property(i => i.Correo)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            entity.Property(i => i.Telefono)
+                .HasMaxLength(25)
+                .IsRequired();
+
+            entity.Property(i => i.FechaRegistro)
+                .HasDefaultValueSql("GETDATE()");
+
+            entity.HasOne<CampanaAmbiental>()
+                .WithMany()
+                .HasForeignKey(i => i.IdCampana)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // =====================================================
+        // MGA-05: FOTOGRAFÍAS AMBIENTALES
+        //
+        // Independiente de GALERIA y FOTO_GALERIA.
+        // =====================================================
+
+        modelBuilder.Entity<FotoProyectoAmbiental>(entity =>
+        {
+            entity.ToTable("FOTO_PROYECTO_AMBIENTAL");
+
+            entity.HasKey(f => f.IdFoto);
+
+            entity.Property(f => f.IdFoto)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(f => f.Titulo)
+                .HasMaxLength(150)
+                .IsRequired();
+
+            entity.Property(f => f.ImagenUrl)
+                .HasMaxLength(500)
+                .IsRequired();
+
+            entity.Property(f => f.FechaRegistro)
+                .HasDefaultValueSql("GETDATE()");
+        });
+
+        // =====================================================
         // RELACIÓN ABONADO -> AVERIA
         // =====================================================
 
@@ -180,6 +304,7 @@ public class ApplicationDbContext : DbContext
         // =====================================================
         // RELACIÓN USUARIO -> GALERIA
         // =====================================================
+
         modelBuilder.Entity<GaleriaEntidad>()
             .HasOne(g => g.Usuario)
             .WithMany()
@@ -189,6 +314,7 @@ public class ApplicationDbContext : DbContext
         // =====================================================
         // RELACIÓN GALERIA -> FOTO_GALERIA
         // =====================================================
+
         modelBuilder.Entity<FotoGaleriaEntidad>()
             .HasOne(f => f.Galeria)
             .WithMany(g => g.Fotos)

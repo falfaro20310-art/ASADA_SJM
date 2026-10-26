@@ -2,7 +2,30 @@
 
 @{
     ViewData["Title"] = "Transparencia institucional";
+
+    var categorias =
+        ViewBag.Categorias as List<AsadaSJM.Models.CategoriaDocumento>
+        ?? new List<AsadaSJM.Models.CategoriaDocumento>();
+
+    var anios =
+        ViewBag.Anios as List<int>
+        ?? new List<int>();
+
+    int? idCategoriaSeleccionada =
+        ViewBag.IdCategoriaSeleccionada as int?;
+
+    int? anioSeleccionado =
+        ViewBag.AnioSeleccionado as int?;
+
+    string periodoSeleccionado =
+        ViewBag.PeriodoSeleccionado?.ToString()
+        ?? string.Empty;
+
+    bool filtrosAplicados =
+        ViewBag.FiltrosAplicados is bool valorFiltros
+        && valorFiltros;
 }
+
 
 <div class="d-flex justify-content-between align-items-center mb-4">
 
@@ -16,16 +39,34 @@
         </p>
     </div>
 
-    @if (User.IsInRole("Administrador"))
+
+    @if (User.Identity?.IsAuthenticated == true)
     {
-        <a asp-controller="Transparencia"
-           asp-action="Registrar"
-           class="btn btn-primary">
+        <div class="d-flex gap-2">
 
-            <i class="bi bi-file-earmark-arrow-up me-1"></i>
-            Publicar documento
+            <a asp-controller="Transparencia"
+               asp-action="Suscripciones"
+               class="btn btn-outline-primary">
 
-        </a>
+                <i class="bi bi-bell me-1"></i>
+                Mis notificaciones
+
+            </a>
+
+
+            @if (User.IsInRole("Administrador"))
+            {
+                <a asp-controller="Transparencia"
+                   asp-action="Registrar"
+                   class="btn btn-primary">
+
+                    <i class="bi bi-file-earmark-arrow-up me-1"></i>
+                    Publicar documento
+
+                </a>
+            }
+
+        </div>
     }
 
 </div>
@@ -50,27 +91,260 @@
 }
 
 
-@if (!Model.Any())
+@if (ViewBag.Error != null)
 {
-    <div class="panel text-center py-5">
+    <div class="alert alert-danger"
+         role="alert">
 
-        <i class="bi bi-folder2-open"
-           style="font-size:40px; color:var(--azul-agua);">
-        </i>
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
 
-        <h5 class="mt-3 mb-2">
-            No hay documentos publicados
-        </h5>
-
-        <p class="text-muted mb-0">
-            Actualmente no existen documentos disponibles
-            en Transparencia Institucional.
-        </p>
+        @ViewBag.Error
 
     </div>
 }
+
+
+<div class="panel mb-4">
+
+    <div class="mb-3">
+
+        <h5 class="mb-1">
+            Filtrar documentos
+        </h5>
+
+        <p class="text-muted mb-0"
+           style="font-size:14px;">
+
+            Utilice uno o varios filtros para localizar documentos institucionales.
+
+        </p>
+
+    </div>
+
+
+    <form asp-controller="Transparencia"
+          asp-action="Index"
+          method="get">
+
+        <div class="row g-3 align-items-end">
+
+
+            <div class="col-md-4">
+
+                <label for="idCategoria"
+                       class="form-label fw-semibold">
+
+                    Categoría
+
+                </label>
+
+
+                <select id="idCategoria"
+                        name="idCategoria"
+                        class="form-select">
+
+                    <option value="">
+                        Todas las categorías
+                    </option>
+
+
+                    @foreach (var categoria in categorias)
+                    {
+                        if (idCategoriaSeleccionada == categoria.IdCategoria)
+                        {
+                            <option value="@categoria.IdCategoria"
+                                    selected>
+                                @categoria.Nombre
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="@categoria.IdCategoria">
+                                @categoria.Nombre
+                            </option>
+                        }
+                    }
+
+                </select>
+
+            </div>
+
+
+            <div class="col-md-3">
+
+                <label for="anio"
+                       class="form-label fw-semibold">
+
+                    Año
+
+                </label>
+
+
+                <select id="anio"
+                        name="anio"
+                        class="form-select">
+
+                    <option value="">
+                        Todos los años
+                    </option>
+
+
+                    @foreach (var anio in anios)
+                    {
+                        if (anioSeleccionado == anio)
+                        {
+                            <option value="@anio"
+                                    selected>
+                                @anio
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="@anio">
+                                @anio
+                            </option>
+                        }
+                    }
+
+                </select>
+
+            </div>
+
+
+            <div class="col-md-3">
+
+                <label for="periodo"
+                       class="form-label fw-semibold">
+
+                    Período
+
+                </label>
+
+
+                <input type="text"
+                       id="periodo"
+                       name="periodo"
+                       value="@periodoSeleccionado"
+                       class="form-control"
+                       maxlength="50"
+                       placeholder="Ejemplo: I semestre" />
+
+            </div>
+
+
+            <div class="col-md-2">
+
+                <div class="d-grid gap-2">
+
+                    <button type="submit"
+                            class="btn btn-primary">
+
+                        <i class="bi bi-search me-1"></i>
+                        Filtrar
+
+                    </button>
+
+
+                    <a asp-controller="Transparencia"
+                       asp-action="Index"
+                       class="btn btn-outline-secondary">
+
+                        <i class="bi bi-x-circle me-1"></i>
+                        Limpiar
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+@if (!Model.Any())
+{
+    if (filtrosAplicados)
+    {
+        <div class="panel text-center py-5">
+
+            <i class="bi bi-search"
+               style="font-size:40px; color:var(--azul-agua);">
+            </i>
+
+            <h5 class="mt-3 mb-2">
+                No se encontraron documentos
+            </h5>
+
+            <p class="text-muted mb-3">
+
+                No existen documentos que coincidan con los filtros seleccionados.
+
+            </p>
+
+            <a asp-controller="Transparencia"
+               asp-action="Index"
+               class="btn btn-outline-primary">
+
+                <i class="bi bi-arrow-counterclockwise me-1"></i>
+                Mostrar todos los documentos
+
+            </a>
+
+        </div>
+    }
+    else
+    {
+        <div class="panel text-center py-5">
+
+            <i class="bi bi-folder2-open"
+               style="font-size:40px; color:var(--azul-agua);">
+            </i>
+
+            <h5 class="mt-3 mb-2">
+                No hay documentos publicados
+            </h5>
+
+            <p class="text-muted mb-0">
+
+                Actualmente no existen documentos disponibles
+                en Transparencia Institucional.
+
+            </p>
+
+        </div>
+    }
+}
 else
 {
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <div class="text-muted"
+             style="font-size:14px;">
+
+            @if (filtrosAplicados)
+            {
+                <span>
+                    Resultados encontrados:
+                    <strong>@Model.Count</strong>
+                </span>
+            }
+            else
+            {
+                <span>
+                    Documentos publicados:
+                    <strong>@Model.Count</strong>
+                </span>
+            }
+
+        </div>
+
+    </div>
+
+
     <div class="row g-3">
 
         @foreach (var documento in Model)
@@ -78,6 +352,7 @@ else
             <div class="col-md-6 col-lg-4">
 
                 <div class="panel h-100 d-flex flex-column">
+
 
                     <div class="mb-3">
 
@@ -122,7 +397,10 @@ else
 
                             <i class="bi bi-calendar3 me-2"></i>
 
-                            <strong>Fecha de publicación:</strong>
+                            <strong>
+                                Fecha de publicación:
+                            </strong>
+
 
                             @if (documento.FechaPublicacion != default)
                             {
@@ -142,7 +420,10 @@ else
 
                             <i class="bi bi-clock-history me-2"></i>
 
-                            <strong>Período:</strong>
+                            <strong>
+                                Período:
+                            </strong>
+
 
                             @if (!string.IsNullOrWhiteSpace(documento.Periodo))
                             {
