@@ -1,0 +1,96 @@
+﻿@model AsadaSJM.Models.FiltroConsumoViewModel
+
+@{
+    ViewData["Title"] = "Mi consumo";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mi consumo | ASADA SJM</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/oficina-virtual.css" />
+</head>
+<body>
+    <main class="container py-4">
+        <a asp-controller="OficinaVirtual" asp-action="Index"
+           class="btn btn-outline-secondary mb-3">
+            <i class="bi bi-arrow-left"></i> Volver a la Oficina Virtual
+        </a>
+
+        <h1 class="h3 mb-2">Mi consumo de agua</h1>
+        <p class="text-muted">Consulta el historial de consumo de tu servicio.</p>
+
+        <form asp-controller="OficinaVirtual"
+              asp-action="MiConsumo"
+              method="get"
+              class="card card-body mb-4">
+            <div asp-validation-summary="All" class="text-danger mb-2"></div>
+
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="fechaInicio" class="form-label">Desde</label>
+                    <input type="date" id="fechaInicio" name="fechaInicio"
+                           value="@Model.FechaInicio?.ToString("yyyy-MM-dd")"
+                           class="form-control" />
+                </div>
+
+                <div class="col-md-4">
+                    <label for="fechaFin" class="form-label">Hasta</label>
+                    <input type="date" id="fechaFin" name="fechaFin"
+                           value="@Model.FechaFin?.ToString("yyyy-MM-dd")"
+                           class="form-control" />
+                </div>
+
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search"></i> Filtrar
+                    </button>
+                    <a asp-controller="OficinaVirtual"
+                       asp-action="MiConsumo"
+                       class="btn btn-outline-secondary">
+                        Limpiar
+                    </a>
+                </div>
+            </div>
+        </form>
+
+        @if (Model.Consumos.Count == 0)
+        {
+            <div class="alert alert-info">
+                No se encontraron lecturas para el período seleccionado.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Período</th>
+                            <th>Fecha de lectura</th>
+                            <th>Consumo (m³)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var consumo in Model.Consumos)
+                        {
+                            <tr>
+                                <td>@consumo.Periodo</td>
+                                <td>@consumo.FechaLectura.ToString("dd/MM/yyyy")</td>
+                                <td>@consumo.MetrosCubicos.ToString("N2") m³</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </main>
+</body>
+</html>
+
+
