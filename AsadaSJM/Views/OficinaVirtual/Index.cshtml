@@ -1,28 +1,20 @@
-﻿
-@model AsadaSJM.Models.OficinaVirtualViewModel
+﻿@model AsadaSJM.Models.OficinaVirtualViewModel
 
 @{
     Layout = null;
+    ViewData["Title"] = "Oficina Virtual";
 
-    ViewData["Title"] =
-        "Oficina Virtual";
+    var nombre = string.IsNullOrWhiteSpace(Model.NombreCompleto)
+        ? "Abonado"
+        : Model.NombreCompleto;
 }
 
 <!DOCTYPE html>
-
 <html lang="es">
-
 <head>
-
     <meta charset="utf-8" />
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1" />
-
-    <title>
-        Oficina Virtual - ASADA SJM
-    </title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Oficina Virtual | ASADA SJM</title>
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"
           rel="stylesheet" />
@@ -30,592 +22,532 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css"
           rel="stylesheet" />
 
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Roboto:wght@400;500&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap"
           rel="stylesheet" />
 
-    <link rel="stylesheet"
-          href="~/css/site.css" />
-
+    <link rel="stylesheet" href="~/css/oficina-virtual.css" />
 </head>
 
-
 <body>
+    <div class="dashboard">
 
+        <!-- MENÚ LATERAL -->
+        <aside class="sidebar" id="sidebar">
 
-    <!-- =====================================================
-         BARRA SUPERIOR
-         ===================================================== -->
-
-    <nav class="navbar navbar-expand-lg bg-white border-bottom">
-
-        <div class="container">
-
-            <a class="navbar-brand fw-bold"
+            <a class="brand"
                asp-controller="OficinaVirtual"
                asp-action="Index">
-
-                <i class="bi bi-droplet-fill"></i>
-
-                ASADA SJM
-
-            </a>
-
-
-            <div class="d-flex align-items-center gap-3">
-
-                <span class="text-muted">
-
-                    @Model.NombreCompleto
-
+                <span class="brand-icon">
+                    <i class="bi bi-droplet-fill"></i>
                 </span>
 
+                <span class="brand-text">
+                    <strong>ASADA SJM</strong>
+                    <small>San José de la Montaña</small>
+                </span>
+            </a>
 
-                <form asp-controller="Account"
-                      asp-action="Logout"
-                      method="post">
+            <nav class="side-navigation">
 
-                    <button type="submit"
-                            class="btn btn-outline-danger btn-sm">
+                <a class="side-link active"
+                   asp-controller="OficinaVirtual"
+                   asp-action="Index">
+                    <i class="bi bi-house-door-fill"></i>
+                    <span>Inicio</span>
+                </a>
 
-                        <i class="bi bi-box-arrow-right"></i>
+                <div class="side-section">MI SERVICIO</div>
 
-                        Cerrar sesión
+                <a class="side-link"
+                   asp-controller="OficinaVirtual"
+                   asp-action="MisRecibos">
+                    <i class="bi bi-receipt"></i>
+                    <span>Mis recibos</span>
+                </a>
 
-                    </button>
+                <a class="side-link"
+                   asp-controller="OficinaVirtual"
+                   asp-action="RecibosPendientes">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>Recibos pendientes</span>
+                </a>
 
-                </form>
+                <a class="side-link"
+                   asp-controller="OficinaVirtual"
+                   asp-action="MiConsumo">
+                    <i class="bi bi-bar-chart-line"></i>
+                    <span>Mi consumo</span>
+                </a>
 
+                <a class="side-link"
+                   asp-controller="OficinaVirtual"
+                   asp-action="MisPagos">
+                    <i class="bi bi-credit-card"></i>
+                    <span>Mis pagos</span>
+                </a>
+
+                <a class="side-link"
+                   asp-controller="OficinaVirtual"
+                   asp-action="CanalesPago">
+                    <i class="bi bi-wallet2"></i>
+                    <span>Canales de pago</span>
+                </a>
+
+                <div class="side-section">SOLICITUDES</div>
+
+                <a class="side-link"
+                   asp-controller="OficinaVirtual"
+                   asp-action="MisTramites">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span>Mis trámites</span>
+                </a>
+
+                <a class="side-link"
+                   asp-controller="OficinaVirtual"
+                   asp-action="MisAverias">
+                    <i class="bi bi-tools"></i>
+                    <span>Mis averías</span>
+                </a>
+
+                <div class="side-section">INSTITUCIONAL</div>
+
+                <a class="side-link"
+                   asp-controller="Portal"
+                   asp-action="Index">
+                    <i class="bi bi-globe2"></i>
+                    <span>Portal institucional</span>
+                </a>
+
+                <a class="side-link"
+                   asp-controller="GestionAmbiental"
+                   asp-action="Index">
+                    <i class="bi bi-tree"></i>
+                    <span>Gestión ambiental</span>
+                </a>
+
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="water-symbol">
+                    <i class="bi bi-droplet-half"></i>
+                </div>
+                <p>Cuidamos el agua,<br />protegemos la vida.</p>
             </div>
 
-        </div>
+        </aside>
 
-    </nav>
+        <!-- ÁREA PRINCIPAL -->
+        <div class="main-area">
 
+            <!-- BARRA SUPERIOR -->
+            <header class="topbar">
 
-    <!-- =====================================================
-         CONTENIDO
-         ===================================================== -->
+                <button type="button"
+                        class="menu-toggle"
+                        id="menuToggle"
+                        aria-label="Abrir o cerrar menú">
+                    <i class="bi bi-list"></i>
+                </button>
 
-    <main class="container py-4">
+                <div class="topbar-right">
 
-
-        <!-- =================================================
-             BIENVENIDA
-             ================================================= -->
-
-        <div class="mb-4">
-
-            <h1 class="fw-bold">
-
-                Bienvenido(a),
-                @Model.NombreCompleto
-
-            </h1>
-
-            <p class="text-muted">
-
-                Oficina Virtual del Abonado
-
-            </p>
-
-        </div>
-
-
-        <!-- =================================================
-             INFORMACIÓN DEL SERVICIO
-             ================================================= -->
-
-        <div class="card shadow-sm border-0 mb-4">
-
-            <div class="card-body">
-
-                <h5 class="fw-bold mb-4">
-
-                    <i class="bi bi-person-vcard"></i>
-
-                    Información de mi servicio
-
-                </h5>
-
-
-                <div class="row g-4">
-
-                    <div class="col-md-3">
-
-                        <small class="text-muted">
-                            NIS
-                        </small>
-
-                        <div class="fw-semibold">
-                            @Model.NIS
-                        </div>
-
+                    <div class="topbar-user-icon">
+                        <i class="bi bi-person-circle"></i>
                     </div>
 
+                    <span class="topbar-name">@nombre</span>
 
-                    <div class="col-md-3">
+                    <form asp-controller="Account"
+                          asp-action="Logout"
+                          method="post">
+                        @Html.AntiForgeryToken()
 
-                        <small class="text-muted">
-                            Número de paja
-                        </small>
-
-                        <div class="fw-semibold">
-                            @Model.NumeroPaja
-                        </div>
-
-                    </div>
-
-
-                    <div class="col-md-3">
-
-                        <small class="text-muted">
-                            Tarifa
-                        </small>
-
-                        <div class="fw-semibold">
-                            @Model.Tarifa
-                        </div>
-
-                    </div>
-
-
-                    <div class="col-md-3">
-
-                        <small class="text-muted">
-                            Sector
-                        </small>
-
-                        <div class="fw-semibold">
-                            @Model.Sector
-                        </div>
-
-                    </div>
-
-
-                    <div class="col-md-4">
-
-                        <small class="text-muted">
-                            Número de finca
-                        </small>
-
-                        <div class="fw-semibold">
-                            @Model.NumeroFinca
-                        </div>
-
-                    </div>
-
-
-                    <div class="col-md-4">
-
-                        <small class="text-muted">
-                            Número de plano
-                        </small>
-
-                        <div class="fw-semibold">
-                            @Model.NumeroPlano
-                        </div>
-
-                    </div>
-
-
-                    <div class="col-md-4">
-
-                        <small class="text-muted">
-                            Teléfono
-                        </small>
-
-                        <div class="fw-semibold">
-                            @Model.Telefono
-                        </div>
-
-                    </div>
-
-
-                    <div class="col-md-8">
-
-                        <small class="text-muted">
-                            Dirección
-                        </small>
-
-                        <div class="fw-semibold">
-                            @Model.Direccion
-                        </div>
-
-                    </div>
-
-
-                    <div class="col-md-4">
-
-                        <small class="text-muted">
-                            Correo electrónico
-                        </small>
-
-                        <div class="fw-semibold">
-                            @Model.Correo
-                        </div>
-
-                    </div>
+                        <button type="submit" class="logout-button">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span>Cerrar sesión</span>
+                        </button>
+                    </form>
 
                 </div>
 
-            </div>
+            </header>
 
-        </div>
+            <!-- CONTENIDO -->
+            <main class="content-area">
 
+                <!-- ENCABEZADO -->
+                <section class="welcome-section">
 
-        <!-- =================================================
-             OPCIONES
-             ================================================= -->
+                    <div class="welcome-text">
+                        <div class="breadcrumb-custom">
+                            <span>Inicio</span>
+                            <i class="bi bi-chevron-right"></i>
+                            <span>Servicios</span>
+                            <i class="bi bi-chevron-right"></i>
+                            <strong>Oficina Virtual</strong>
+                        </div>
 
-        <div class="row g-4">
+                        <h1>¡Bienvenido(a), @nombre!</h1>
 
-
-            <!-- =============================================
-                 RECIBOS
-                 ============================================= -->
-
-            <div class="col-md-6 col-lg-4">
-
-                <div class="card h-100 shadow-sm border-0">
-
-                    <div class="card-body">
-
-                        <i class="bi bi-receipt fs-1"></i>
-
-                        <h5 class="fw-bold mt-3">
-                            Mis recibos
-                        </h5>
-
-                        <p class="text-muted">
-
-                            Consulte sus recibos asociados
-                            a su NIS.
-
+                        <p>
+                            Consulta la información de tu servicio,
+                            revisa tus recibos y accede a los servicios
+                            digitales de la ASADA.
                         </p>
+                    </div>
+
+                    <!-- IDENTIFICACIÓN DEL SERVICIO -->
+                    <div class="nis-card">
+                        <div class="nis-label">
+                            NIS (Número de Identificación de Servicio)
+                        </div>
+
+                        <div class="nis-value">
+                            @(string.IsNullOrWhiteSpace(Model.NIS)
+                                ? "No disponible"
+                                : Model.NIS)
+                        </div>
+
+                        <div class="nis-detail">
+                            <span>Abonado:</span>
+                            <strong>@nombre</strong>
+                        </div>
+
+                        <div class="nis-detail">
+                            <span>Sector:</span>
+                            <strong>
+                                @(string.IsNullOrWhiteSpace(Model.Sector)
+                                    ? "No disponible"
+                                    : Model.Sector)
+                            </strong>
+                        </div>
+                    </div>
+
+                </section>
+
+                <!-- TARJETAS DE ACCESO -->
+                <section class="summary-grid">
+
+                    <article class="summary-card">
+                        <div class="summary-top">
+                            <div class="summary-icon icon-blue">
+                                <i class="bi bi-receipt"></i>
+                            </div>
+                            <div>
+                                <span class="summary-title">Mis recibos</span>
+                                <h3>Consulta de recibos</h3>
+                                <p>Revisa los recibos de tu servicio.</p>
+                            </div>
+                        </div>
 
                         <a asp-controller="OficinaVirtual"
                            asp-action="MisRecibos"
-                           class="btn btn-agua">
-
+                           class="summary-link">
                             Consultar recibos
-
+                            <i class="bi bi-arrow-right"></i>
                         </a>
+                    </article>
 
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- =============================================
-                 CONSUMO
-                 ============================================= -->
-
-            <div class="col-md-6 col-lg-4">
-
-                <div class="card h-100 shadow-sm border-0">
-
-                    <div class="card-body">
-
-                        <i class="bi bi-bar-chart-fill fs-1"></i>
-
-                        <h5 class="fw-bold mt-3">
-                            Mi consumo
-                        </h5>
-
-                        <p class="text-muted">
-
-                            Consulte su historial
-                            de consumo.
-
-                        </p>
+                    <article class="summary-card">
+                        <div class="summary-top">
+                            <div class="summary-icon icon-green">
+                                <i class="bi bi-bar-chart-line-fill"></i>
+                            </div>
+                            <div>
+                                <span class="summary-title">Consumo de agua</span>
+                                <h3>Mi consumo</h3>
+                                <p>Consulta tu historial de consumo.</p>
+                            </div>
+                        </div>
 
                         <a asp-controller="OficinaVirtual"
                            asp-action="MiConsumo"
-                           class="btn btn-agua">
-
-                            Ver consumo
-
+                           class="summary-link">
+                            Ver historial
+                            <i class="bi bi-arrow-right"></i>
                         </a>
+                    </article>
 
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- =============================================
-                 PAGOS
-                 ============================================= -->
-
-            <div class="col-md-6 col-lg-4">
-
-                <div class="card h-100 shadow-sm border-0">
-
-                    <div class="card-body">
-
-                        <i class="bi bi-credit-card-fill fs-1"></i>
-
-                        <h5 class="fw-bold mt-3">
-                            Mis pagos
-                        </h5>
-
-                        <p class="text-muted">
-
-                            Consulte su historial
-                            de pagos.
-
-                        </p>
+                    <article class="summary-card">
+                        <div class="summary-top">
+                            <div class="summary-icon icon-purple">
+                                <i class="bi bi-credit-card-2-front-fill"></i>
+                            </div>
+                            <div>
+                                <span class="summary-title">Pagos realizados</span>
+                                <h3>Mis pagos</h3>
+                                <p>Revisa tu historial de pagos.</p>
+                            </div>
+                        </div>
 
                         <a asp-controller="OficinaVirtual"
                            asp-action="MisPagos"
-                           class="btn btn-agua">
-
+                           class="summary-link">
                             Ver pagos
-
+                            <i class="bi bi-arrow-right"></i>
                         </a>
+                    </article>
 
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- =============================================
-                 RECIBOS PENDIENTES
-                 ============================================= -->
-
-            <div class="col-md-6 col-lg-4">
-
-                <div class="card h-100 shadow-sm border-0">
-
-                    <div class="card-body">
-
-                        <i class="bi bi-exclamation-circle-fill fs-1"></i>
-
-                        <h5 class="fw-bold mt-3">
-                            Recibos pendientes
-                        </h5>
-
-                        <p class="text-muted">
-
-                            Consulte las obligaciones
-                            pendientes.
-
-                        </p>
+                    <article class="summary-card">
+                        <div class="summary-top">
+                            <div class="summary-icon icon-orange">
+                                <i class="bi bi-exclamation-circle-fill"></i>
+                            </div>
+                            <div>
+                                <span class="summary-title">Estado de cuenta</span>
+                                <h3>Recibos pendientes</h3>
+                                <p>Consulta tus obligaciones pendientes.</p>
+                            </div>
+                        </div>
 
                         <a asp-controller="OficinaVirtual"
                            asp-action="RecibosPendientes"
-                           class="btn btn-agua">
-
+                           class="summary-link">
                             Ver pendientes
-
+                            <i class="bi bi-arrow-right"></i>
                         </a>
+                    </article>
+
+                </section>
+
+                <!-- INFORMACIÓN DEL SERVICIO -->
+                <section class="panel service-panel">
+
+                    <div class="panel-heading">
+                        <div>
+                            <span class="eyebrow">INFORMACIÓN PERSONAL</span>
+                            <h2>Información de mi servicio</h2>
+                            <p>Datos asociados a tu servicio de agua potable.</p>
+                        </div>
+
+                        <div class="heading-icon">
+                            <i class="bi bi-person-vcard"></i>
+                        </div>
+                    </div>
+
+                    <div class="service-grid">
+
+                        <div class="service-item">
+                            <span>NIS</span>
+                            <strong>@Model.NIS</strong>
+                        </div>
+
+                        <div class="service-item">
+                            <span>Número de paja</span>
+                            <strong>@Model.NumeroPaja</strong>
+                        </div>
+
+                        <div class="service-item">
+                            <span>Tarifa</span>
+                            <strong>@Model.Tarifa</strong>
+                        </div>
+
+                        <div class="service-item">
+                            <span>Sector</span>
+                            <strong>@Model.Sector</strong>
+                        </div>
+
+                        <div class="service-item">
+                            <span>Número de finca</span>
+                            <strong>@Model.NumeroFinca</strong>
+                        </div>
+
+                        <div class="service-item">
+                            <span>Número de plano</span>
+                            <strong>@Model.NumeroPlano</strong>
+                        </div>
+
+                        <div class="service-item">
+                            <span>Teléfono</span>
+                            <strong>@Model.Telefono</strong>
+                        </div>
+
+                        <div class="service-item">
+                            <span>Correo electrónico</span>
+                            <strong>@Model.Correo</strong>
+                        </div>
+
+                        <div class="service-item service-address">
+                            <span>Dirección</span>
+                            <strong>@Model.Direccion</strong>
+                        </div>
 
                     </div>
 
-                </div>
+                </section>
 
-            </div>
+                <!-- ACCESOS Y SERVICIOS -->
+                <section class="lower-grid">
 
+                    <div class="panel services-panel">
+                        <div class="panel-heading">
+                            <div>
+                                <span class="eyebrow">GESTIONES DIGITALES</span>
+                                <h2>Servicios disponibles</h2>
+                            </div>
+                        </div>
 
-            <!-- =============================================
-                 TRÁMITES
-                 ============================================= -->
+                        <div class="service-shortcuts">
 
-            <div class="col-md-6 col-lg-4">
+                            <a asp-controller="OficinaVirtual"
+                               asp-action="MisTramites"
+                               class="shortcut">
+                                <span class="shortcut-icon icon-blue">
+                                    <i class="bi bi-file-earmark-text"></i>
+                                </span>
+                                <span class="shortcut-copy">
+                                    <strong>Mis trámites</strong>
+                                    <small>Consulta y seguimiento de solicitudes</small>
+                                </span>
+                                <i class="bi bi-chevron-right shortcut-arrow"></i>
+                            </a>
 
-                <div class="card h-100 shadow-sm border-0">
+                            <a asp-controller="OficinaVirtual"
+                               asp-action="MisAverias"
+                               class="shortcut">
+                                <span class="shortcut-icon icon-orange">
+                                    <i class="bi bi-tools"></i>
+                                </span>
+                                <span class="shortcut-copy">
+                                    <strong>Mis averías</strong>
+                                    <small>Consulta tus reportes</small>
+                                </span>
+                                <i class="bi bi-chevron-right shortcut-arrow"></i>
+                            </a>
 
-                    <div class="card-body">
+                            <a asp-controller="OficinaVirtual"
+                               asp-action="CanalesPago"
+                               class="shortcut">
+                                <span class="shortcut-icon icon-green">
+                                    <i class="bi bi-wallet2"></i>
+                                </span>
+                                <span class="shortcut-copy">
+                                    <strong>Canales de pago</strong>
+                                    <small>Consulta las opciones disponibles</small>
+                                </span>
+                                <i class="bi bi-chevron-right shortcut-arrow"></i>
+                            </a>
 
-                        <i class="bi bi-file-earmark-text-fill fs-1"></i>
+                            <a asp-controller="Portal"
+                               asp-action="Index"
+                               class="shortcut">
+                                <span class="shortcut-icon icon-purple">
+                                    <i class="bi bi-globe2"></i>
+                                </span>
+                                <span class="shortcut-copy">
+                                    <strong>Portal institucional</strong>
+                                    <small>Información de nuestra ASADA</small>
+                                </span>
+                                <i class="bi bi-chevron-right shortcut-arrow"></i>
+                            </a>
 
-                        <h5 class="fw-bold mt-3">
-                            Mis trámites
-                        </h5>
+                            <a asp-controller="GestionAmbiental"
+                               asp-action="Index"
+                               class="shortcut">
+                                <span class="shortcut-icon icon-green">
+                                    <i class="bi bi-tree"></i>
+                                </span>
+                                <span class="shortcut-copy">
+                                    <strong>Gestión ambiental</strong>
+                                    <small>Conoce los recursos protegidos</small>
+                                </span>
+                                <i class="bi bi-chevron-right shortcut-arrow"></i>
+                            </a>
 
-                        <p class="text-muted">
-
-                            Consulte y dé seguimiento
-                            a sus trámites.
-
-                        </p>
-
-                        <a asp-controller="OficinaVirtual"
-                           asp-action="MisTramites"
-                           class="btn btn-agua">
-
-                            Ver trámites
-
-                        </a>
-
+                        </div>
                     </div>
 
-                </div>
+                    <!-- PANEL DE PAGO -->
+                    <aside class="payment-column">
 
-            </div>
+                        <div class="payment-panel">
+                            <div class="payment-illustration">
+                                <i class="bi bi-credit-card-2-front"></i>
+                                <span>
+                                    <i class="bi bi-shield-check"></i>
+                                </span>
+                            </div>
 
+                            <h2>Consulta tus pagos</h2>
 
-            <!-- =============================================
-                 AVERÍAS
-                 ============================================= -->
+                            <p>
+                                Accede a tus recibos y consulta las
+                                opciones de pago disponibles.
+                            </p>
 
-            <div class="col-md-6 col-lg-4">
+                            <a asp-controller="OficinaVirtual"
+                               asp-action="CanalesPago"
+                               class="primary-button">
+                                <i class="bi bi-wallet2"></i>
+                                Ver canales de pago
+                            </a>
 
-                <div class="card h-100 shadow-sm border-0">
+                            <a asp-controller="OficinaVirtual"
+                               asp-action="MisPagos"
+                               class="secondary-button">
+                                Consultar historial de pagos
+                            </a>
+                        </div>
 
-                    <div class="card-body">
+                        <div class="help-panel">
+                            <div class="help-icon">
+                                <i class="bi bi-info-circle"></i>
+                            </div>
+                            <div>
+                                <strong>¿Necesitas ayuda?</strong>
+                                <p>
+                                    Consulta el portal institucional
+                                    para obtener información de la ASADA.
+                                </p>
+                                <a asp-controller="Portal"
+                                   asp-action="Index">
+                                    Ir al portal
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
 
-                        <i class="bi bi-tools fs-1"></i>
+                    </aside>
 
-                        <h5 class="fw-bold mt-3">
-                            Mis averías
-                        </h5>
+                </section>
 
-                        <p class="text-muted">
+                <!-- PIE DE PÁGINA -->
+                <footer class="dashboard-footer">
+                    <span>
+                        © @DateTime.Now.Year ASADA San José de la Montaña.
+                        Todos los derechos reservados.
+                    </span>
+                    <span>
+                        <i class="bi bi-droplet-fill"></i>
+                        Cuidamos el agua, protegemos la vida.
+                    </span>
+                </footer>
 
-                            Consulte y dé seguimiento
-                            a sus reportes.
-
-                        </p>
-
-                        <a asp-controller="OficinaVirtual"
-                           asp-action="MisAverias"
-                           class="btn btn-agua">
-
-                            Ver averías
-
-                        </a>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- =============================================
-                 CANALES DE PAGO
-                 ============================================= -->
-
-            <div class="col-md-6 col-lg-4">
-
-                <div class="card h-100 shadow-sm border-0">
-
-                    <div class="card-body">
-
-                        <i class="bi bi-phone-fill fs-1"></i>
-
-                        <h5 class="fw-bold mt-3">
-                            Canales de pago
-                        </h5>
-
-                        <p class="text-muted">
-
-                            Acceda a los canales de pago
-                            disponibles.
-
-                        </p>
-
-                        <a asp-controller="OficinaVirtual"
-                           asp-action="CanalesPago"
-                           class="btn btn-agua">
-
-                            Ver canales
-
-                        </a>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- =============================================
-                 PORTAL INSTITUCIONAL
-                 ============================================= -->
-
-            <div class="col-md-6 col-lg-4">
-
-                <div class="card h-100 shadow-sm border-0">
-
-                    <div class="card-body">
-
-                        <i class="bi bi-globe2 fs-1"></i>
-
-                        <h5 class="fw-bold mt-3">
-                            Portal institucional
-                        </h5>
-
-                        <p class="text-muted">
-
-                            Consulte información
-                            institucional.
-
-                        </p>
-
-                        <a asp-controller="Portal"
-                           asp-action="Index"
-                           class="btn btn-outline-secondary">
-
-                            Ir al portal
-
-                        </a>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- =============================================
-                 MGA-01: GESTIÓN AMBIENTAL
-                 ============================================= -->
-
-            <div class="col-md-6 col-lg-4">
-
-                <div class="card h-100 shadow-sm border-0">
-
-                    <div class="card-body">
-
-                        <i class="bi bi-tree-fill fs-1"></i>
-
-                        <h5 class="fw-bold mt-3">
-                            Gestión Ambiental
-                        </h5>
-
-                        <p class="text-muted">
-                            Consulte las nacientes protegidas y los
-                            tanques administrados por la ASADA.
-                        </p>
-
-                        <a asp-controller="GestionAmbiental"
-                           asp-action="Index"
-                           class="btn btn-agua">
-                            Consultar recursos
-                        </a>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
+            </main>
         </div>
+    </div>
 
-    </main>
+    <script>
+            const menuToggle = document.getElementById("menuToggle");
+            const sidebar = document.getElementById("sidebar");
 
+            menuToggle.addEventListener("click", function () {
+                sidebar.classList.toggle("sidebar-open");
+            });
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js">
+            document.addEventListener("click", function (event) {
+                const isMobile = window.matchMedia("(max-width: 900px)").matches;
+
+                if (
+                    isMobile &&
+                    !sidebar.contains(event.target) &&
+                    !menuToggle.contains(event.target)
+                ) {
+                    sidebar.classList.remove("sidebar-open");
+                }
+            });
     </script>
 
 </body>
-
 </html>
+
