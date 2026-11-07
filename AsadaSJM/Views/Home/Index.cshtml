@@ -1,33 +1,410 @@
-@model List<Averia>
+
+@model AsadaSJM.Models.ViewModels.PanelAdministrativoDashboardViewModel
+@using System.Globalization
+
 @{
     ViewData["Title"] = "Inicio";
+
+    var cultura = CultureInfo.GetCultureInfo("es-CR");
+
+    var etiquetaPeriodo = Model.Mes.HasValue
+        ? $"{cultura.DateTimeFormat.GetMonthName(Model.Mes.Value)} de {Model.Ano}"
+        : $"año {Model.Ano}";
 }
 
-<div class="row g-3 mb-4">
-    <div class="col-md-3"><div class="stat-card"><div class="num">@ViewBag.AbonadosActivos</div><div class="lbl">Abonados activos</div></div></div>
-    <div class="col-md-3"><div class="stat-card verde"><div class="num">@ViewBag.AveriasProceso</div><div class="lbl">Averías en proceso</div></div></div>
-    <div class="col-md-3"><div class="stat-card"><div class="num">@ViewBag.TramitesPendientes</div><div class="lbl">Trámites pendientes</div></div></div>
-    <div class="col-md-3"><div class="stat-card verde"><div class="num">96%</div><div class="lbl">Disponibilidad del servicio</div></div></div>
+<div class="panel mb-4">
+
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+        <div>
+            <h2 class="mb-1" style="font-size:20px;">
+                Indicadores administrativos
+            </h2>
+
+            <p class="mb-0 text-muted">
+                Información correspondiente al @etiquetaPeriodo.
+            </p>
+        </div>
+
+        <form asp-controller="Home"
+              asp-action="Index"
+              method="get"
+              class="d-flex flex-wrap gap-2 align-items-end">
+
+            <div>
+                <label for="ano" class="form-label mb-1">
+                    Año
+                </label>
+
+                <select id="ano"
+                        name="ano"
+                        class="form-select">
+
+                    @for (var y = Math.Max(DateTime.Today.Year, Model.Ano);
+                          y >= 2000;
+                          y--)
+                    {
+                        if (Model.Ano == y)
+                        {
+                            <option value="@y" selected="selected">
+                                @y
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="@y">
+                                @y
+                            </option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label for="mes" class="form-label mb-1">
+                    Mes
+                </label>
+
+                <select id="mes"
+                        name="mes"
+                        class="form-select">
+
+                    @if (!Model.Mes.HasValue)
+                    {
+                        <option value="" selected="selected">
+                            Todo el año
+                        </option>
+                    }
+                    else
+                    {
+                        <option value="">
+                            Todo el año
+                        </option>
+                    }
+
+                    @for (var m = 1; m <= 12; m++)
+                    {
+                        var nombreMes = cultura.DateTimeFormat.GetMonthName(m);
+
+                        if (Model.Mes == m)
+                        {
+                            <option value="@m" selected="selected">
+                                @nombreMes
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="@m">
+                                @nombreMes
+                            </option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-agua">
+                Aplicar filtros
+            </button>
+
+        </form>
+    </div>
 </div>
 
+<!-- INDICADORES -->
+
+<div class="row g-3 mb-4">
+
+    <div class="col-md-4 col-xl-3">
+        <div class="stat-card">
+            <div class="num">
+                @Model.TotalAbonadosActuales.ToString("N0", cultura)
+            </div>
+            <div class="lbl">
+                Total de abonados actuales
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-xl-3">
+        <div class="stat-card verde">
+            <div class="num">
+                @Model.AbonadosRegistradosPeriodo.ToString("N0", cultura)
+            </div>
+            <div class="lbl">
+                Abonados registrados en el período
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-xl-3">
+        <div class="stat-card">
+            <div class="num">
+                @Model.ConsumoTotalM3.ToString("N2", cultura)
+            </div>
+            <div class="lbl">
+                Consumo del período (m³)
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-xl-3">
+        <div class="stat-card verde">
+            <div class="num">
+                @(Model.LitrosPorPersonaDia.HasValue
+                    ? Model.LitrosPorPersonaDia.Value.ToString("N2", cultura)
+                    : "N/D")
+            </div>
+            <div class="lbl">
+                Litros por persona por día (estimado)
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-xl-3">
+        <div class="stat-card">
+            <div class="num">
+                @(Model.IndiceMoraPorcentaje.HasValue
+                    ? Model.IndiceMoraPorcentaje.Value.ToString("N2", cultura) + "%"
+                    : "N/D")
+            </div>
+            <div class="lbl">
+                Índice de mora (estimado)
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-xl-3">
+        <div class="stat-card verde">
+            <div class="num">
+                @Model.AveriasRegistradas.ToString("N0", cultura)
+            </div>
+            <div class="lbl">
+                Averías registradas
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-xl-3">
+        <div class="stat-card">
+            <div class="num">
+                @Model.TramitesPendientes.ToString("N0", cultura)
+            </div>
+            <div class="lbl">
+                Trámites pendientes
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@if (Model.ConsumoPorAbonado.Count == 0)
+{
+    <div class="alert alert-info mb-4" role="status">
+        No hay consumos registrados en el período seleccionado.
+    </div>
+}
+
+<!-- CONSUMO POR SECTOR Y TARIFA -->
+
+<div class="row g-3 mb-4">
+
+    <div class="col-lg-6">
+
+        <div class="panel h-100">
+
+            <h2 class="mb-3" style="font-size:18px;">
+                Consumo por sector
+            </h2>
+
+            @if (Model.ConsumoPorSector.Count == 0)
+            {
+                <p class="text-muted mb-0">
+                    Sin información para el período seleccionado.
+                </p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-asada mb-0">
+                        <thead>
+                            <tr>
+                                <th>Sector</th>
+                                <th class="text-end">Consumo (m³)</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var fila in Model.ConsumoPorSector)
+                            {
+                                <tr>
+                                    <td>@fila.Nombre</td>
+                                    <td class="text-end">
+                                        @fila.MetrosCubicos.ToString("N2", cultura)
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+
+        <div class="panel h-100">
+
+            <h2 class="mb-3" style="font-size:18px;">
+                Consumo por tarifa
+            </h2>
+
+            @if (Model.ConsumoPorTarifa.Count == 0)
+            {
+                <p class="text-muted mb-0">
+                    Sin información para el período seleccionado.
+                </p>
+            }
+            else
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-asada mb-0">
+                        <thead>
+                            <tr>
+                                <th>Tarifa</th>
+                                <th class="text-end">Consumo (m³)</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var fila in Model.ConsumoPorTarifa)
+                            {
+                                <tr>
+                                    <td>@fila.Nombre</td>
+                                    <td class="text-end">
+                                        @fila.MetrosCubicos.ToString("N2", cultura)
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+<!-- CONSUMO POR ABONADO -->
+
+<div class="panel mb-4">
+
+    <h2 class="mb-3" style="font-size:18px;">
+        Consumo por abonado
+    </h2>
+
+    @if (Model.ConsumoPorAbonado.Count == 0)
+    {
+        <p class="text-muted mb-0">
+            Sin consumos por abonado para este período.
+        </p>
+    }
+    else
+    {
+        <div class="table-responsive">
+
+            <table class="table table-asada mb-0">
+
+                <thead>
+                    <tr>
+                        <th>NIS</th>
+                        <th>Sector</th>
+                        <th>Tarifa</th>
+                        <th class="text-end">Personas</th>
+                        <th class="text-end">Consumo (m³)</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var abonado in Model.ConsumoPorAbonado)
+                    {
+                        <tr>
+                            <td>@abonado.NIS</td>
+                            <td>@abonado.Sector</td>
+                            <td>@abonado.Tarifa</td>
+                            <td class="text-end">
+                                @(abonado.CantidadPersonas?.ToString(cultura) ?? "N/D")
+                            </td>
+                            <td class="text-end">
+                                @abonado.MetrosCubicos.ToString("N2", cultura)
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+
+        </div>
+    }
+</div>
+
+<!-- ÚLTIMAS AVERÍAS -->
+
 <div class="panel">
-    <h2 class="mb-3" style="font-size:18px;">Últimas averías reportadas</h2>
-    <table class="table table-asada mb-0">
-        <thead><tr><th>Caso</th><th>Abonado</th><th>Descripción</th><th>Estado</th></tr></thead>
-        <tbody>
-        @foreach (var a in Model)
-        {
-            <tr>
-                    <td>#A-@a.IdAveria.ToString("000")</td>
-                    <td>@(a.IdAbonado?.ToString() ?? "No registrado")</td>
-                    <td>@a.Descripcion</td>
-                <td>
-                        <span class="estado @a.Prioridad">
-                            @a.Prioridad
-                        </span>
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
+
+    <h2 class="mb-3" style="font-size:18px;">
+        Últimas averías reportadas
+    </h2>
+
+    <div class="table-responsive">
+
+        <table class="table table-asada mb-0">
+
+            <thead>
+                <tr>
+                    <th>Caso</th>
+                    <th>Abonado</th>
+                    <th>Descripción</th>
+                    <th>Prioridad</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @if (Model.UltimasAverias.Count == 0)
+                {
+                    <tr>
+                        <td colspan="4" class="text-muted">
+                            No hay averías registradas.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var a in Model.UltimasAverias)
+                    {
+                        <tr>
+                            <td>
+                                #A-@a.IdAveria.ToString("000")
+                            </td>
+                            <td>
+                                @(a.IdAbonado?.ToString() ?? "No registrado")
+                            </td>
+                            <td>@a.Descripcion</td>
+                            <td>
+                                <span class="estado @a.Prioridad">
+                                    @a.Prioridad
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
 </div>

@@ -1,9 +1,16 @@
 
 @{
-    bool autenticado = User.Identity?.IsAuthenticated ?? false;
-    bool esAdministrador = User.IsInRole("Administrador");
-    bool esAbonado = User.IsInRole("Abonado");
-    bool esOperativo = User.IsInRole("Operativo");
+    bool autenticado =
+        User.Identity?.IsAuthenticated ?? false;
+
+    bool esAdministrador =
+        User.IsInRole("Administrador");
+
+    bool esAbonado =
+        User.IsInRole("Abonado");
+
+    bool esOperativo =
+        User.IsInRole("Operativo");
 
     string controladorActual =
         ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
@@ -12,7 +19,8 @@
         controladorActual == "GestionAmbiental" ||
         controladorActual == "ComunidadAmbiental";
 
-    string nombreUsuario = User.Identity?.Name ?? "";
+    string nombreUsuario =
+        User.Identity?.Name ?? "";
 
     string rolActual =
         esAdministrador ? "Administrador" :
@@ -23,6 +31,7 @@
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="utf-8" />
 
@@ -33,11 +42,22 @@
         @ViewData["Title"] - Sistema Web ASADA SJM
     </title>
 
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
-    <link rel="stylesheet" href="~/css/portal.css" asp-append-version="true"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"
+          rel="stylesheet" />
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css"
+          rel="stylesheet" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Roboto:wght@400;500&display=swap"
+          rel="stylesheet" />
+
+    <link rel="stylesheet"
+          href="~/css/site.css"
+          asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="~/css/portal.css"
+          asp-append-version="true" />
 </head>
 
 <body>
@@ -51,13 +71,11 @@
 
         <div class="nav flex-column">
 
-            @* =========================================
-               MENÚ NORMAL DEL ADMINISTRADOR
-               ========================================= *@
+            @* MENÚ DEL ADMINISTRADOR *@
 
             @if (esAdministrador)
             {
-                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")"
+                <a class="nav-link @(controladorActual == "Home" ? "active" : "")"
                    asp-controller="Home"
                    asp-action="Index">
 
@@ -65,7 +83,7 @@
                     Inicio
                 </a>
 
-                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Abonados" ? "active" : "")"
+                <a class="nav-link @(controladorActual == "Abonados" ? "active" : "")"
                    asp-controller="Abonados"
                    asp-action="Index">
 
@@ -73,7 +91,7 @@
                     Abonados
                 </a>
 
-                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Averias" ? "active" : "")"
+                <a class="nav-link @(controladorActual == "Averias" ? "active" : "")"
                    asp-controller="Averias"
                    asp-action="Index">
 
@@ -81,7 +99,7 @@
                     Averías
                 </a>
 
-                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Tramites" ? "active" : "")"
+                <a class="nav-link @(controladorActual == "Tramites" ? "active" : "")"
                    asp-controller="Tramites"
                    asp-action="Index">
 
@@ -89,7 +107,7 @@
                     Trámites
                 </a>
 
-                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Documentos" ? "active" : "")"
+                <a class="nav-link @(controladorActual == "Documentos" ? "active" : "")"
                    asp-controller="Documentos"
                    asp-action="Index">
 
@@ -97,7 +115,7 @@
                     Documentos
                 </a>
 
-                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Recibos" ? "active" : "")"
+                <a class="nav-link @(controladorActual == "Recibos" ? "active" : "")"
                    asp-controller="Recibos"
                    asp-action="Index">
 
@@ -105,7 +123,7 @@
                     Recibos
                 </a>
 
-                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Expresidentes" ? "active" : "")"
+                <a class="nav-link @(controladorActual == "Expresidentes" ? "active" : "")"
                    asp-controller="Expresidentes"
                    asp-action="Index">
 
@@ -113,7 +131,7 @@
                     Presidentes
                 </a>
 
-                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Galerias" ? "active" : "")"
+                <a class="nav-link @(controladorActual == "Galeria" ? "active" : "")"
                    asp-controller="Galeria"
                    asp-action="Index">
 
@@ -121,7 +139,7 @@
                     Galería Fotográfica
                 </a>
 
-                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Institucional" ? "active" : "")"
+                <a class="nav-link @(controladorActual == "Institucional" ? "active" : "")"
                    asp-controller="Institucional"
                    asp-action="Editar">
 
@@ -137,7 +155,7 @@
                     Gestión Ambiental
                 </a>
 
-                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Bitacora" ? "active" : "")"
+                <a class="nav-link @(controladorActual == "Bitacora" ? "active" : "")"
                    asp-controller="Bitacora"
                    asp-action="Index">
 
@@ -145,12 +163,22 @@
                     Bitácora
                 </a>
 
-                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Usuarios" ? "active" : "")"
+                <a class="nav-link @(controladorActual == "Usuarios" ? "active" : "")"
                    asp-controller="Usuarios"
                    asp-action="Index">
 
                     <i class="bi bi-person-badge-fill"></i>
                     Usuarios y roles
+                </a>
+
+                @* NUEVO: MPA-02 A MPA-06 *@
+
+                <a class="nav-link @(controladorActual == "PanelAdministrativo" ? "active" : "")"
+                   asp-controller="PanelAdministrativo"
+                   asp-action="Index">
+
+                    <i class="bi bi-speedometer2"></i>
+                    Gestión del panel
                 </a>
 
                 <hr class="mx-3" />
@@ -164,9 +192,7 @@
                 </a>
             }
 
-            @* =========================================
-               MENÚ DE ABONADOS Y OPERATIVOS
-               ========================================= *@
+            @* MENÚ DE ABONADOS Y OPERATIVOS *@
 
             else if (autenticado)
             {
@@ -197,9 +223,7 @@
                 </a>
             }
 
-            @* =========================================
-               MENÚ PÚBLICO
-               ========================================= *@
+            @* MENÚ PÚBLICO *@
 
             else
             {
@@ -221,7 +245,6 @@
             }
 
         </div>
-
     </nav>
 
     <main class="main-content">
@@ -269,7 +292,6 @@
 
                 </div>
             }
-
         </div>
 
         @RenderBody()
@@ -277,8 +299,11 @@
     </main>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/FotoGaleriaScript.js" asp-append-version="true"></script>
+
+    <script src="~/js/FotoGaleriaScript.js"
+            asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 

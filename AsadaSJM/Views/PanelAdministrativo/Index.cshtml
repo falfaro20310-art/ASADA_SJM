@@ -1,0 +1,2206 @@
+﻿
+@using System.Data
+
+@{
+    ViewData["Title"] = "Gestión del Panel Administrativo";
+
+    var tab = ViewBag.Tab as string ?? "noticias";
+
+    var noticias = (DataTable)ViewBag.Noticias;
+    var documentos = (DataTable)ViewBag.Documentos;
+    var versiones = (DataTable)ViewBag.Versiones;
+    var tramites = (DataTable)ViewBag.Tramites;
+    var fontaneros = (DataTable)ViewBag.Fontaneros;
+    var averias = (DataTable)ViewBag.Averias;
+    var ordenes = (DataTable)ViewBag.Ordenes;
+    var abonados = (DataTable)ViewBag.Abonados;
+    var tarifas = (DataTable)ViewBag.Tarifas;
+    var seleccionado = (DataTable)ViewBag.AbonadoSeleccionado;
+    var cambios = (DataTable)ViewBag.Cambios;
+    var contratos = (DataTable)ViewBag.Contratos;
+
+    var persona = seleccionado.Rows.Count > 0
+        ? seleccionado.Rows[0] : null;
+
+    string Texto(DataRow fila, string columna) =>
+        fila.Table.Columns.Contains(columna) &&
+        fila[columna] != DBNull.Value
+            ? fila[columna].ToString() ?? ""
+            : "";
+
+    string Fecha(DataRow fila, string columna) =>
+        fila.Table.Columns.Contains(columna) &&
+        fila[columna] is DateTime fecha
+            ? fecha.ToString("dd/MM/yyyy")
+            : "—";
+
+    string FechaInput(DataRow fila, string columna) =>
+        fila.Table.Columns.Contains(columna) &&
+        fila[columna] is DateTime fecha
+            ? fecha.ToString("yyyy-MM-dd")
+            : "";
+}
+
+<style>
+    .mpa-title {
+        color: #004a99;
+        font-size: 19px;
+        font-weight: 700;
+    }
+
+    .mpa-subtitle {
+        color: #2d5a27;
+        font-size: 17px;
+        font-weight: 700;
+    }
+
+    .mpa-actions {
+        white-space: nowrap;
+    }
+
+    .mpa-actions .btn {
+        margin-right: 5px;
+        margin-bottom: 3px;
+    }
+
+    .mpa-modal-title {
+        color: #004a99;
+        font-weight: 700;
+    }
+
+    .mpa-muted {
+        color: #64748b;
+        font-size: 13px;
+    }
+
+    .mpa-long {
+        max-width: 430px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mpa-tabs .btn {
+        margin: 0 5px 6px 0;
+    }
+</style>
+
+<!-- MENÚ DEL PANEL -->
+
+<div class="panel mb-3">
+
+    <h2 class="mpa-title mb-2">
+        Panel administrativo
+    </h2>
+
+    <nav class="mpa-tabs d-flex flex-wrap"
+         aria-label="Secciones administrativas">
+
+        <a asp-action="Index"
+           asp-route-tab="noticias"
+           class="btn @(tab == "noticias" ? "btn-agua" : "btn-outline-primary")">
+            Noticias · MPA-02
+        </a>
+
+        <a asp-action="Index"
+           asp-route-tab="documentos"
+           class="btn @(tab == "documentos" ? "btn-agua" : "btn-outline-primary")">
+            Documentos · MPA-03
+        </a>
+
+        <a asp-action="Index"
+           asp-route-tab="tramites"
+           class="btn @(tab == "tramites" ? "btn-agua" : "btn-outline-primary")">
+            Trámites · MPA-04
+        </a>
+
+        <a asp-action="Index"
+           asp-route-tab="averias"
+           class="btn @(tab == "averias" ? "btn-agua" : "btn-outline-primary")">
+            Averías · MPA-05
+        </a>
+
+        <a asp-action="Index"
+           asp-route-tab="abonados"
+           class="btn @(tab == "abonados" ? "btn-agua" : "btn-outline-primary")">
+            Abonados · MPA-06
+        </a>
+
+    </nav>
+</div>
+
+@if (TempData["Ok"] != null)
+{
+    <div class="alert alert-success" role="status">
+        @TempData["Ok"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger" role="alert">
+        @TempData["Error"]
+    </div>
+}
+
+<!-- ====================================== -->
+<!-- MPA-02: NOTICIAS -->
+<!-- ====================================== -->
+
+@if (tab == "noticias")
+{
+    <div class="panel">
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+
+            <div>
+                <h3 class="mpa-subtitle mb-1">
+                    Noticias institucionales
+                </h3>
+
+                <p class="mpa-muted mb-0">
+                    Publica, guarda borradores y modifica noticias desde el listado.
+                </p>
+            </div>
+
+            <button type="button"
+                    class="btn btn-agua js-noticia-nueva"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalNoticia">
+
+                <i class="bi bi-plus-lg"></i>
+                Nueva noticia
+            </button>
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="table table-asada align-middle mb-0">
+
+                <thead>
+                    <tr>
+                        <th>Título</th>
+                        <th>Estado</th>
+                        <th>Vigencia</th>
+                        <th>Imagen</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach (DataRow n in noticias.Rows)
+                    {
+                        bool vencida = Texto(n, "Vencida") == "1";
+
+                        <tr>
+                            <td>
+                                <strong>@Texto(n, "Titulo")</strong>
+
+                                <div class="mpa-muted mpa-long">
+                                    @Texto(n, "Contenido")
+                                </div>
+                            </td>
+
+                            <td>
+                                @if (vencida)
+                                {
+                                    <span class="badge bg-secondary">
+                                        Vencida
+                                    </span>
+                                }
+                                else if (Texto(n, "Estado") == "Publicado")
+                                {
+                                    <span class="badge bg-success">
+                                        Publicada
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        Borrador
+                                    </span>
+                                }
+                            </td>
+
+                            <td>@Fecha(n, "FechaVigencia")</td>
+
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(Texto(n, "RutaImagen")))
+                                {
+                                    <img src="@Texto(n, "RutaImagen")"
+                                         alt="Imagen de noticia"
+                                         style="width:78px;height:52px;object-fit:cover;border-radius:5px;" />
+                                }
+                                else
+                                {
+                                    <span class="mpa-muted">Sin imagen</span>
+                                }
+                            </td>
+
+                            <td class="mpa-actions">
+
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-primary js-noticia-editar"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalNoticia"
+                                        data-id="@Texto(n, "IdNoticia")"
+                                        data-titulo="@Texto(n, "Titulo")"
+                                        data-contenido="@Texto(n, "Contenido")"
+                                        data-vigencia="@FechaInput(n, "FechaVigencia")">
+
+                                    <i class="bi bi-pencil-square"></i>
+                                    Editar
+                                </button>
+
+                                <form asp-action="CambiarEstadoNoticia"
+                                      method="post"
+                                      class="d-inline">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="idNoticia"
+                                           value="@Texto(n, "IdNoticia")" />
+
+                                    <input type="hidden"
+                                           name="estado"
+                                           value="@(Texto(n, "Estado") == "Publicado" ? "Borrador" : "Publicado")" />
+
+                                    <button type="submit"
+                                            class="btn btn-sm btn-outline-secondary">
+
+                                        @(Texto(n, "Estado") == "Publicado" ? "Retirar" : "Publicar")
+                                    </button>
+
+                                </form>
+
+                            </td>
+                        </tr>
+                    }
+
+                    @if (noticias.Rows.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="5">
+                                Aún no hay noticias registradas.
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- MODAL EDITAR NOTICIA -->
+
+    <div class="modal fade"
+         id="modalNoticia"
+         tabindex="-1"
+         aria-labelledby="tituloModalNoticia"
+         aria-hidden="true">
+
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+
+            <div class="modal-content">
+
+                <form asp-action="GuardarNoticia"
+                      method="post"
+                      enctype="multipart/form-data">
+
+                    @Html.AntiForgeryToken()
+
+                    <div class="modal-header">
+
+                        <h5 class="modal-title mpa-modal-title"
+                            id="tituloModalNoticia">
+                            Nueva noticia
+                        </h5>
+
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Cerrar">
+                        </button>
+
+                    </div>
+
+                    <div class="modal-body row g-3">
+
+                        <input type="hidden"
+                               id="n-id"
+                               name="idNoticia"
+                               value="0" />
+
+                        <div class="col-md-8">
+                            <label for="n-titulo" class="form-label">
+                                Título
+                            </label>
+
+                            <input id="n-titulo"
+                                   name="titulo"
+                                   class="form-control"
+                                   maxlength="200"
+                                   required />
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="n-fecha" class="form-label">
+                                Vigente hasta
+                            </label>
+
+                            <input id="n-fecha"
+                                   name="fechaVigencia"
+                                   type="date"
+                                   class="form-control" />
+                        </div>
+
+                        <div class="col-12">
+                            <label for="n-contenido" class="form-label">
+                                Contenido
+                            </label>
+
+                            <textarea id="n-contenido"
+                                      name="contenido"
+                                      rows="5"
+                                      class="form-control"
+                                      required></textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="n-imagen" class="form-label">
+                                Imagen (JPG, PNG o WEBP)
+                            </label>
+
+                            <input id="n-imagen"
+                                   name="imagen"
+                                   type="file"
+                                   accept=".jpg,.jpeg,.png,.webp"
+                                   class="form-control" />
+
+                            <div class="form-text">
+                                Si estás editando, deja este campo vacío para conservar la imagen anterior.
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+
+                        <button type="button"
+                                class="btn btn-outline-secondary"
+                                data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+
+                        <button type="submit"
+                                name="accion"
+                                value="Borrador"
+                                class="btn btn-outline-primary">
+                            Guardar borrador
+                        </button>
+
+                        <button type="submit"
+                                name="accion"
+                                value="Publicar"
+                                class="btn btn-agua">
+                            Publicar
+                        </button>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ====================================== -->
+<!-- MPA-03: DOCUMENTOS -->
+<!-- ====================================== -->
+
+@if (tab == "documentos")
+{
+    <div class="panel mb-3">
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+
+            <div>
+                <h3 class="mpa-subtitle mb-1">
+                    Documentos y control de versiones
+                </h3>
+
+                <p class="mpa-muted mb-0">
+                    Edita documentos o registra nuevas versiones.
+                </p>
+            </div>
+
+            <button type="button"
+                    class="btn btn-agua js-version-nueva"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalVersion">
+
+                <i class="bi bi-plus-lg"></i>
+                Nuevo documento
+            </button>
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="table table-asada align-middle mb-0">
+
+                <thead>
+                    <tr>
+                        <th>Documento</th>
+                        <th>Tipo</th>
+                        <th>Versiones</th>
+                        <th>Actualización</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach (DataRow d in documentos.Rows)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@Texto(d, "Titulo")</strong>
+
+                                <div class="mpa-muted">
+                                    @Texto(d, "Descripcion")
+                                </div>
+                            </td>
+
+                            <td>@Texto(d, "TipoDocumento")</td>
+                            <td>@Texto(d, "Versiones")</td>
+                            <td>@Fecha(d, "UltimaActualizacion")</td>
+
+                            <td class="mpa-actions">
+
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-primary js-doc-editar"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalDocumento"
+                                        data-id="@Texto(d, "IdDocumentoControl")"
+                                        data-titulo="@Texto(d, "Titulo")"
+                                        data-tipo="@Texto(d, "TipoDocumento")"
+                                        data-descripcion="@Texto(d, "Descripcion")">
+
+                                    Editar ficha
+                                </button>
+
+                                <button type="button"
+                                        class="btn btn-sm btn-agua js-version-existente"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalVersion"
+                                        data-id="@Texto(d, "IdDocumentoControl")"
+                                        data-titulo="@Texto(d, "Titulo")"
+                                        data-tipo="@Texto(d, "TipoDocumento")">
+
+                                    Nueva versión
+                                </button>
+
+                            </td>
+                        </tr>
+                    }
+
+                    @if (documentos.Rows.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="5">
+                                No hay documentos registrados.
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- HISTORIAL -->
+
+    <div class="panel">
+
+        <h3 class="mpa-subtitle mb-3">
+            Historial de versiones
+        </h3>
+
+        <div class="table-responsive">
+
+            <table class="table table-asada align-middle mb-0">
+
+                <thead>
+                    <tr>
+                        <th>Documento</th>
+                        <th>Versión</th>
+                        <th>Archivo</th>
+                        <th>Responsable</th>
+                        <th>Cargo</th>
+                        <th>Fecha</th>
+                        <th>Descarga</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach (DataRow v in versiones.Rows)
+                    {
+                        <tr>
+                            <td>@Texto(v, "Titulo")</td>
+                            <td>@Texto(v, "NumeroVersion")</td>
+                            <td>@Texto(v, "NombreArchivo")</td>
+                            <td>@Texto(v, "Responsable")</td>
+                            <td>@Texto(v, "Cargo")</td>
+                            <td>@Fecha(v, "FechaActualizacion")</td>
+
+                            <td>
+                                <a asp-action="DescargarVersion"
+                                   asp-route-id="@Texto(v, "IdVersion")"
+                                   class="btn btn-sm btn-outline-primary">
+
+                                    Descargar PDF
+                                </a>
+                            </td>
+                        </tr>
+                    }
+
+                    @if (versiones.Rows.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="7">
+                                Todavía no hay versiones registradas.
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+    <!-- MODAL EDITAR DOCUMENTO -->
+
+    <div class="modal fade"
+         id="modalDocumento"
+         tabindex="-1"
+         aria-labelledby="tituloModalDocumento"
+         aria-hidden="true">
+
+        <div class="modal-dialog modal-dialog-centered">
+
+            <div class="modal-content">
+
+                <form asp-action="ActualizarDocumento"
+                      method="post">
+
+                    @Html.AntiForgeryToken()
+
+                    <div class="modal-header">
+
+                        <h5 class="modal-title mpa-modal-title"
+                            id="tituloModalDocumento">
+                            Editar documento
+                        </h5>
+
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Cerrar">
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        <input type="hidden"
+                               id="d-id"
+                               name="idDocumentoControl" />
+
+                        <label for="d-titulo" class="form-label">
+                            Título
+                        </label>
+
+                        <input id="d-titulo"
+                               name="titulo"
+                               maxlength="250"
+                               required
+                               class="form-control mb-3" />
+
+                        <label for="d-tipo" class="form-label">
+                            Tipo de documento
+                        </label>
+
+                        <select id="d-tipo"
+                                name="tipoDocumento"
+                                class="form-select mb-3">
+
+                            <option>Ficha institucional</option>
+                            <option>Resolución exoneración</option>
+
+                        </select>
+
+                        <label for="d-descripcion" class="form-label">
+                            Descripción
+                        </label>
+
+                        <textarea id="d-descripcion"
+                                  name="descripcion"
+                                  maxlength="1000"
+                                  rows="3"
+                                  class="form-control"></textarea>
+
+                        <p class="mpa-muted mt-2 mb-0">
+                            Las versiones anteriores se conservarán.
+                        </p>
+                    </div>
+
+                    <div class="modal-footer">
+
+                        <button type="button"
+                                class="btn btn-outline-secondary"
+                                data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+
+                        <button class="btn btn-agua">
+                            Guardar cambios
+                        </button>
+
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL NUEVA VERSIÓN -->
+
+    <div class="modal fade"
+         id="modalVersion"
+         tabindex="-1"
+         aria-labelledby="tituloModalVersion"
+         aria-hidden="true">
+
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+
+            <div class="modal-content">
+
+                <form asp-action="NuevaVersion"
+                      method="post"
+                      enctype="multipart/form-data">
+
+                    @Html.AntiForgeryToken()
+
+                    <div class="modal-header">
+
+                        <h5 class="modal-title mpa-modal-title"
+                            id="tituloModalVersion">
+                            Nuevo documento
+                        </h5>
+
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Cerrar">
+                        </button>
+                    </div>
+
+                    <div class="modal-body row g-3">
+
+                        <input id="v-id"
+                               name="idDocumentoControl"
+                               type="hidden"
+                               value="0" />
+
+                        <div class="col-md-8">
+                            <label for="v-titulo" class="form-label">
+                                Documento
+                            </label>
+
+                            <input id="v-titulo"
+                                   name="titulo"
+                                   maxlength="250"
+                                   class="form-control"
+                                   required />
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="v-tipo" class="form-label">
+                                Tipo
+                            </label>
+
+                            <select id="v-tipo"
+                                    name="tipoDocumento"
+                                    class="form-select">
+
+                                <option>Ficha institucional</option>
+                                <option>Resolución exoneración</option>
+
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="v-responsable" class="form-label">
+                                Responsable
+                            </label>
+
+                            <input id="v-responsable"
+                                   name="responsable"
+                                   maxlength="200"
+                                   required
+                                   class="form-control" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="v-cargo" class="form-label">
+                                Cargo
+                            </label>
+
+                            <input id="v-cargo"
+                                   name="cargo"
+                                   maxlength="150"
+                                   required
+                                   class="form-control" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="v-archivo" class="form-label">
+                                Nueva versión PDF
+                            </label>
+
+                            <input id="v-archivo"
+                                   type="file"
+                                   name="archivo"
+                                   accept=".pdf"
+                                   required
+                                   class="form-control" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="v-firma" class="form-label">
+                                Declaración firmada
+                            </label>
+
+                            <input id="v-firma"
+                                   type="file"
+                                   name="declaracionFirmada"
+                                   accept=".pdf"
+                                   class="form-control" />
+                        </div>
+
+                        <div class="col-12">
+                            <div class="alert alert-light border mb-0">
+                                Para fichas institucionales es obligatorio adjuntar la declaración firmada.
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+
+                        <button type="button"
+                                class="btn btn-outline-secondary"
+                                data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+
+                        <button class="btn btn-agua">
+                            Guardar versión
+                        </button>
+
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ====================================== -->
+<!-- MPA-04: TRÁMITES -->
+<!-- ====================================== -->
+
+@if (tab == "tramites")
+{
+    <div class="panel mb-3">
+
+        <h3 class="mpa-subtitle mb-3">
+            Bandeja de trámites
+        </h3>
+
+        <form asp-action="Index"
+              method="get"
+              class="row g-2 align-items-end">
+
+            <input type="hidden"
+                   name="tab"
+                   value="tramites" />
+
+            <div class="col-md-4">
+
+                <label for="f-tipo" class="form-label">
+                    Tipo de solicitud
+                </label>
+
+                <input id="f-tipo"
+                       name="tipo"
+                       value="@ViewBag.Tipo"
+                       class="form-control"
+                       placeholder="Buscar disponibilidad, inscripción..." />
+            </div>
+
+            <div class="col-md-4">
+
+                <label for="f-estado" class="form-label">
+                    Estado
+                </label>
+
+                <select id="f-estado"
+                        name="estado"
+                        class="form-select">
+
+                    <option value="">Todos</option>
+
+                    @foreach (var estadoFiltro in new[]
+                    {
+                        "Recibido",
+                        "Pendiente",
+                        "En proceso",
+                        "En revisión",
+                        "Cerrada"
+                    })
+                    {
+                        if ((ViewBag.Estado as string) == estadoFiltro)
+                        {
+                            <option value="@estadoFiltro" selected>
+                                @estadoFiltro
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="@estadoFiltro">
+                                @estadoFiltro
+                            </option>
+                        }
+                    }
+
+                </select>
+            </div>
+
+            <div class="col-md-2">
+
+                <label class="form-label d-block"
+                       for="f-pendientes">
+                    Solo pendientes
+                </label>
+
+                <input id="f-pendientes"
+                       type="checkbox"
+                       name="pendientes"
+                       value="true"
+                       checked="@ViewBag.Pendientes"
+                       class="form-check-input" />
+
+            </div>
+
+            <div class="col-md-2">
+
+                <button type="submit"
+                        class="btn btn-agua w-100">
+                    Aplicar filtros
+                </button>
+
+            </div>
+        </form>
+    </div>
+
+    <div class="panel">
+
+        <div class="table-responsive">
+
+            <table class="table table-asada align-middle mb-0">
+
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>N.°</th>
+                        <th>Estado</th>
+                        <th>Canal</th>
+                        <th>Fecha</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach (DataRow t in tramites.Rows)
+                    {
+                        bool esAveria = Texto(t, "TipoRegistro") == "Averia";
+
+                        <tr class="@(esAveria ? "table-warning" : "")">
+
+                            <td>
+                                @(esAveria ? "⚠ Avería / fuga" : Texto(t, "Tipo"))
+                            </td>
+
+                            <td>#@Texto(t, "IdRegistro")</td>
+                            <td>@Texto(t, "Estado")</td>
+                            <td>@Texto(t, "CanalOrigen")</td>
+                            <td>@Fecha(t, "FechaRecepcion")</td>
+
+                            <td>
+
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-primary js-tramite-editar"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalTramite"
+                                        data-id="@Texto(t, "IdRegistro")"
+                                        data-tipoorigen="@Texto(t, "TipoRegistro")"
+                                        data-tipo="@Texto(t, "Tipo")"
+                                        data-estado="@Texto(t, "Estado")"
+                                        data-canal="@Texto(t, "CanalOrigen")">
+
+                                    <i class="bi bi-pencil-square"></i>
+                                    Gestionar
+                                </button>
+
+                            </td>
+
+                        </tr>
+                    }
+
+                    @if (tramites.Rows.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="6">
+                                No hay trámites que coincidan con los filtros.
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- MODAL TRÁMITES -->
+
+    <div class="modal fade"
+         id="modalTramite"
+         tabindex="-1"
+         aria-labelledby="tituloModalTramite"
+         aria-hidden="true">
+
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <form id="formTramite"
+                      asp-action="GuardarTramite"
+                      method="post"
+                      data-url-tramite="@Url.Action("GuardarTramite", "PanelAdministrativo")"
+                      data-url-averia="@Url.Action("Canal", "PanelAdministrativo")">
+
+                    @Html.AntiForgeryToken()
+
+                    <div class="modal-header">
+
+                        <h5 class="modal-title mpa-modal-title"
+                            id="tituloModalTramite">
+                            Gestionar trámite
+                        </h5>
+
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Cerrar">
+                        </button>
+
+                    </div>
+
+                    <div class="modal-body">
+
+                        <p class="mpa-muted" id="t-detalle"></p>
+
+                        <input id="t-id"
+                               name="idTramite"
+                               type="hidden" />
+
+                        <input id="t-id-alterno"
+                               name="idRegistroOrigen"
+                               type="hidden"
+                               disabled />
+
+                        <input id="t-origen"
+                               name="tipoOrigen"
+                               type="hidden"
+                               value="Averia"
+                               disabled />
+
+                        <div id="t-bloque-estado">
+
+                            <label for="t-estado" class="form-label">
+                                Estado del trámite
+                            </label>
+
+                            <select id="t-estado"
+                                    name="estado"
+                                    class="form-select mb-3"
+                                    required>
+
+                                <option value="" disabled selected>
+                                    Selecciona un estado
+                                </option>
+
+                                <option>Pendiente</option>
+                                <option>En proceso</option>
+                                <option>En revisión</option>
+                                <option>Cerrada</option>
+
+                            </select>
+
+                        </div>
+
+                        <label for="t-canal" class="form-label">
+                            Canal de ingreso
+                        </label>
+
+                        <select id="t-canal"
+                                name="canalOrigen"
+                                class="form-select">
+
+                            <option>Web</option>
+                            <option>Presencial</option>
+                            <option>Teléfono</option>
+                            <option>Correo</option>
+
+                        </select>
+
+                        <p id="t-aviso-averia"
+                           class="mpa-muted mt-2 d-none">
+                            Para cambiar el estado de una avería, utiliza MPA-05. Aquí puedes actualizar su canal.
+                        </p>
+
+                    </div>
+
+                    <div class="modal-footer">
+
+                        <button type="button"
+                                class="btn btn-outline-secondary"
+                                data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+
+                        <button class="btn btn-agua">
+                            Guardar cambios
+                        </button>
+
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ====================================== -->
+<!-- MPA-05: AVERÍAS -->
+<!-- ====================================== -->
+
+@if (tab == "averias")
+{
+    <div class="panel mb-3">
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+
+            <h3 class="mpa-subtitle mb-0">
+                Averías y órdenes de trabajo
+            </h3>
+
+            <button type="button"
+                    class="btn btn-outline-primary"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalFontanero">
+
+                Administrar fontaneros
+            </button>
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="table table-asada align-middle mb-0">
+
+                <thead>
+                    <tr>
+                        <th>Reporte</th>
+                        <th>Descripción</th>
+                        <th>Prioridad</th>
+                        <th>Estado del reporte</th>
+                        <th>Estado de orden</th>
+                        <th>Responsable</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach (DataRow a in averias.Rows)
+                    {
+                        <tr>
+                            <td>#@Texto(a, "IdAveria")</td>
+                            <td>@Texto(a, "Descripcion")</td>
+                            <td>@Texto(a, "Prioridad")</td>
+                            <td>@Texto(a, "EstadoReporte")</td>
+
+                            <td>
+                                @(string.IsNullOrWhiteSpace(Texto(a, "EstadoOrden"))
+                                    ? "Sin orden"
+                                    : Texto(a, "EstadoOrden"))
+                            </td>
+
+                            <td>
+                                @(string.IsNullOrWhiteSpace(Texto(a, "Fontanero"))
+                                    ? "Sin asignar"
+                                    : Texto(a, "Fontanero"))
+                            </td>
+
+                            <td>
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-primary js-averia-asignar"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalAsignar"
+                                        data-id="@Texto(a, "IdAveria")"
+                                        data-descripcion="@Texto(a, "Descripcion")"
+                                        data-fontanero="@Texto(a, "IdFontanero")"
+                                        data-observaciones="@Texto(a, "Observaciones")">
+
+                                    <i class="bi bi-tools"></i>
+                                    Gestionar orden
+                                </button>
+                            </td>
+
+                        </tr>
+                    }
+
+                    @if (averias.Rows.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="7">
+                                No hay averías registradas.
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+
+    <div class="panel">
+
+        <h3 class="mpa-subtitle mb-3">
+            Seguimiento de órdenes
+        </h3>
+
+        <div class="table-responsive">
+
+            <table class="table table-asada align-middle mb-0">
+
+                <thead>
+                    <tr>
+                        <th>Orden</th>
+                        <th>Avería</th>
+                        <th>Fontanero</th>
+                        <th>Estado</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach (DataRow o in ordenes.Rows)
+                    {
+                        <tr>
+                            <td>#@Texto(o, "IdOrden")</td>
+                            <td>#@Texto(o, "IdAveria")</td>
+
+                            <td>
+                                @(string.IsNullOrWhiteSpace(Texto(o, "Fontanero"))
+                                    ? "Sin asignar"
+                                    : Texto(o, "Fontanero"))
+                            </td>
+
+                            <td>@Texto(o, "Estado")</td>
+
+                            <td>
+                                @if (Texto(o, "Estado") == "Cerrada")
+                                {
+                                    <span class="text-success">
+                                        Cerrada
+                                    </span>
+                                }
+                                else
+                                {
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-primary js-orden-seguimiento"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalSeguimiento"
+                                            data-id="@Texto(o, "IdOrden")"
+                                            data-observaciones="@Texto(o, "Observaciones")">
+
+                                        Actualizar seguimiento
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+
+                    @if (ordenes.Rows.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="5">
+                                Todavía no hay órdenes de trabajo.
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+
+    <!-- MODAL ASIGNAR / REASIGNAR -->
+
+    <div class="modal fade"
+         id="modalAsignar"
+         tabindex="-1"
+         aria-labelledby="tituloModalAsignar"
+         aria-hidden="true">
+
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <form asp-action="Asignar" method="post">
+
+                    @Html.AntiForgeryToken()
+
+                    <div class="modal-header">
+
+                        <h5 id="tituloModalAsignar"
+                            class="modal-title mpa-modal-title">
+                            Gestionar orden
+                        </h5>
+
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Cerrar">
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        <input type="hidden"
+                               id="a-id"
+                               name="idAveria" />
+
+                        <p class="mpa-muted" id="a-descripcion"></p>
+
+                        <label for="a-fontanero" class="form-label">
+                            Fontanero responsable
+                        </label>
+
+                        <select id="a-fontanero"
+                                name="idFontanero"
+                                class="form-select mb-3"
+                                required>
+
+                            <option value="">Selecciona un fontanero</option>
+
+                            @foreach (DataRow f in fontaneros.Rows)
+                            {
+                                if (Texto(f, "Activo") == "True")
+                                {
+                                    <option value="@Texto(f, "IdFontanero")">
+                                        @Texto(f, "Nombre")
+                                    </option>
+                                }
+                            }
+
+                        </select>
+
+                        <label for="a-obs" class="form-label">
+                            Observaciones
+                        </label>
+
+                        <textarea id="a-obs"
+                                  name="observaciones"
+                                  maxlength="2000"
+                                  rows="3"
+                                  class="form-control"></textarea>
+
+                    </div>
+
+                    <div class="modal-footer">
+
+                        <button type="button"
+                                class="btn btn-outline-secondary"
+                                data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+
+                        <button class="btn btn-agua">
+                            Guardar asignación
+                        </button>
+
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL SEGUIMIENTO -->
+
+    <div class="modal fade"
+         id="modalSeguimiento"
+         tabindex="-1"
+         aria-labelledby="tituloModalSeguimiento"
+         aria-hidden="true">
+
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <form asp-action="RevisarOrden" method="post">
+
+                    @Html.AntiForgeryToken()
+
+                    <div class="modal-header">
+
+                        <h5 id="tituloModalSeguimiento"
+                            class="modal-title mpa-modal-title">
+                            Actualizar seguimiento
+                        </h5>
+
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Cerrar">
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        <input id="o-id"
+                               type="hidden"
+                               name="idOrden" />
+
+                        <label for="o-resuelto" class="form-label">
+                            ¿Se resolvió?
+                        </label>
+
+                        <select id="o-resuelto"
+                                name="seResolvio"
+                                class="form-select mb-3">
+
+                            <option value="false">
+                                No, mantener abierta
+                            </option>
+
+                            <option value="true">
+                                Sí, cerrar orden
+                            </option>
+
+                        </select>
+
+                        <label for="o-obs" class="form-label">
+                            Observaciones
+                        </label>
+
+                        <textarea id="o-obs"
+                                  name="observaciones"
+                                  class="form-control"
+                                  maxlength="2000"
+                                  rows="4"></textarea>
+
+                    </div>
+
+                    <div class="modal-footer">
+
+                        <button type="button"
+                                class="btn btn-outline-secondary"
+                                data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+
+                        <button class="btn btn-agua">
+                            Guardar seguimiento
+                        </button>
+
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL FONTANEROS -->
+
+    <div class="modal fade"
+         id="modalFontanero"
+         tabindex="-1"
+         aria-labelledby="tituloModalFontanero"
+         aria-hidden="true">
+
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header">
+
+                    <h5 id="tituloModalFontanero"
+                        class="modal-title mpa-modal-title">
+                        Fontaneros
+                    </h5>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Cerrar">
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <form asp-action="NuevoFontanero"
+                          method="post"
+                          class="mb-3">
+
+                        @Html.AntiForgeryToken()
+
+                        <label class="form-label">
+                            Nuevo fontanero
+                        </label>
+
+                        <input name="nombre"
+                               class="form-control mb-2"
+                               placeholder="Nombre completo"
+                               required
+                               maxlength="200" />
+
+                        <input name="telefono"
+                               class="form-control mb-2"
+                               placeholder="Teléfono"
+                               maxlength="30" />
+
+                        <button class="btn btn-agua">
+                            Registrar
+                        </button>
+
+                    </form>
+
+                    <hr />
+
+                    @foreach (DataRow f in fontaneros.Rows)
+                    {
+                        <form asp-action="ActualizarFontanero"
+                              method="post"
+                              class="row g-2 align-items-center mb-2">
+
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden"
+                                   name="idFontanero"
+                                   value="@Texto(f, "IdFontanero")" />
+
+                            <div class="col-5">
+                                <input class="form-control form-control-sm"
+                                       aria-label="Nombre"
+                                       name="nombre"
+                                       value="@Texto(f, "Nombre")"
+                                       required
+                                       maxlength="200" />
+                            </div>
+
+                            <div class="col-4">
+                                <input class="form-control form-control-sm"
+                                       aria-label="Teléfono"
+                                       name="telefono"
+                                       value="@Texto(f, "Telefono")"
+                                       maxlength="30" />
+                            </div>
+
+                            <div class="col-1">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       name="activo"
+                                       value="true"
+                                       checked="@(Texto(f, "Activo") == "True")"
+                                       title="Activo" />
+                            </div>
+
+                            <div class="col-2">
+                                <button class="btn btn-sm btn-outline-primary">
+                                    Guardar
+                                </button>
+                            </div>
+
+                        </form>
+                    }
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ====================================== -->
+<!-- MPA-06: ABONADOS -->
+<!-- ====================================== -->
+
+@if (tab == "abonados")
+{
+    <div class="panel">
+
+        <h3 class="mpa-subtitle mb-3">
+            Administración de abonados
+        </h3>
+
+        <div class="table-responsive">
+
+            <table class="table table-asada align-middle mb-0">
+
+                <thead>
+                    <tr>
+                        <th>NIS</th>
+                        <th>N.° paja</th>
+                        <th>Abonado</th>
+                        <th>Correo</th>
+                        <th>Estado de cuenta</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach (DataRow a in abonados.Rows)
+                    {
+                        <tr>
+                            <td>@Texto(a, "NIS")</td>
+                            <td>@Texto(a, "NumeroPaja")</td>
+                            <td>@Texto(a, "Nombres")</td>
+                            <td>@Texto(a, "CorreoElectronico")</td>
+
+                            <td>
+                                @if (Texto(a, "PosibleMora") == "1")
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        Revisar mora
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+                                        Sin alerta
+                                    </span>
+                                }
+                            </td>
+
+                            <td class="mpa-actions">
+
+                                <a asp-action="Index"
+                                   asp-route-tab="abonados"
+                                   asp-route-idAbonado="@Texto(a, "IdAbonado")"
+                                   class="btn btn-sm btn-outline-primary">
+
+                                    Editar / Ver historial
+                                </a>
+
+                                <a asp-action="Index"
+                                   asp-route-tab="abonados"
+                                   asp-route-idAbonado="@Texto(a, "IdAbonado")"
+                                   asp-fragment="contratos"
+                                   class="btn btn-sm btn-outline-secondary">
+
+                                    Contratos
+                                </a>
+
+                            </td>
+                        </tr>
+                    }
+
+                    @if (abonados.Rows.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="6">
+                                No hay abonados registrados.
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if (persona != null)
+    {
+        <div class="modal fade"
+             id="modalAbonado"
+             tabindex="-1"
+             aria-labelledby="tituloModalAbonado"
+             aria-hidden="true">
+
+            <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+
+                <div class="modal-content">
+
+                    <div class="modal-header">
+
+                        <h5 id="tituloModalAbonado"
+                            class="modal-title mpa-modal-title">
+
+                            Abonado @Texto(persona, "NIS")
+                        </h5>
+
+                        <a class="btn-close"
+                           asp-action="Index"
+                           asp-route-tab="abonados"
+                           aria-label="Cerrar"></a>
+
+                    </div>
+
+                    <div class="modal-body">
+
+                        <ul class="nav nav-tabs mb-3"
+                            id="tabsAbonado"
+                            role="tablist">
+
+                            <li class="nav-item">
+                                <button type="button"
+                                        class="nav-link active"
+                                        id="tab-datos"
+                                        data-bs-toggle="tab"
+                                        data-bs-target="#panel-datos">
+
+                                    Datos del abonado
+                                </button>
+                            </li>
+
+                            <li class="nav-item">
+                                <button type="button"
+                                        class="nav-link"
+                                        id="tab-contratos"
+                                        data-bs-toggle="tab"
+                                        data-bs-target="#panel-contratos">
+
+                                    Contratos
+                                </button>
+                            </li>
+
+                            <li class="nav-item">
+                                <button type="button"
+                                        class="nav-link"
+                                        data-bs-toggle="tab"
+                                        data-bs-target="#panel-historial">
+
+                                    Historial
+                                </button>
+                            </li>
+
+                        </ul>
+
+                        <div class="tab-content">
+
+                            <!-- DATOS DEL ABONADO -->
+
+                            <div class="tab-pane fade show active"
+                                 id="panel-datos">
+
+                                <form asp-action="EditarAbonado"
+                                      method="post"
+                                      class="row g-3">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="idAbonado"
+                                           value="@Texto(persona, "IdAbonado")" />
+
+                                    <div class="col-md-4">
+                                        <label class="form-label">Nombre</label>
+
+                                        <input name="nombres"
+                                               class="form-control"
+                                               value="@Texto(persona, "Nombres")"
+                                               maxlength="100"
+                                               required />
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label">Teléfono</label>
+
+                                        <input name="telefono"
+                                               class="form-control"
+                                               value="@Texto(persona, "Telefono")"
+                                               maxlength="20" />
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label">Correo</label>
+
+                                        <input name="correoElectronico"
+                                               type="email"
+                                               class="form-control"
+                                               value="@Texto(persona, "CorreoElectronico")"
+                                               maxlength="200"
+                                               required />
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label">Dirección</label>
+
+                                        <input name="direccion"
+                                               class="form-control"
+                                               value="@Texto(persona, "Direccion")"
+                                               maxlength="500"
+                                               required />
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label class="form-label">Finca</label>
+
+                                        <input name="numeroFinca"
+                                               class="form-control"
+                                               value="@Texto(persona, "NumeroFinca")"
+                                               maxlength="30" />
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label class="form-label">Plano</label>
+
+                                        <input name="numeroPlano"
+                                               class="form-control"
+                                               value="@Texto(persona, "NumeroPlano")"
+                                               maxlength="30" />
+                                    </div>
+
+                                    <div class="col-md-4">
+
+                                        <label class="form-label">Tarifa</label>
+
+                                        <select name="idTarifa"
+                                                class="form-select"
+                                                required>
+
+                                            @foreach (DataRow tarifa in tarifas.Rows)
+                                            {
+                                                if (Texto(tarifa, "IdTarifa") ==
+                                                    Texto(persona, "IdTarifa"))
+                                                {
+                                                    <option value="@Texto(tarifa, "IdTarifa")" selected>
+                                                        @Texto(tarifa, "Nombre")
+                                                    </option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@Texto(tarifa, "IdTarifa")">
+                                                        @Texto(tarifa, "Nombre")
+                                                    </option>
+                                                }
+                                            }
+
+                                        </select>
+                                    </div>
+
+                                    <div class="col-12">
+
+                                        <button class="btn btn-agua">
+                                            Guardar cambios
+                                        </button>
+
+                                    </div>
+
+                                </form>
+                            </div>
+
+                            <!-- CONTRATOS -->
+
+                            <div class="tab-pane fade"
+                                 id="panel-contratos">
+
+                                <form asp-action="RegenerarContrato"
+                                      method="post"
+                                      class="row g-3 mb-4">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="idAbonado"
+                                           value="@Texto(persona, "IdAbonado")" />
+
+                                    <div class="col-md-5">
+
+                                        <label class="form-label">
+                                            Versión del reglamento
+                                        </label>
+
+                                        <input class="form-control"
+                                               name="versionReglamento"
+                                               maxlength="100"
+                                               required />
+                                    </div>
+
+                                    <div class="col-12">
+
+                                        <label class="form-label">
+                                            Texto oficial de aceptación
+                                        </label>
+
+                                        <textarea class="form-control"
+                                                  name="textoReglamento"
+                                                  maxlength="900"
+                                                  rows="3"
+                                                  required></textarea>
+
+                                        <div class="form-text">
+                                            Utiliza el texto aprobado por la ASADA.
+                                        </div>
+
+                                    </div>
+
+                                    <div class="col-12">
+
+                                        <button class="btn btn-agua">
+                                            Generar nueva versión PDF
+                                        </button>
+
+                                    </div>
+
+                                </form>
+
+                                <h6 class="mpa-subtitle">
+                                    Contratos anteriores
+                                </h6>
+
+                                @foreach (DataRow contrato in contratos.Rows)
+                                {
+                                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+
+                                        <span>
+                                            Versión @Texto(contrato, "NumeroVersion")
+                                            · @Fecha(contrato, "FechaGeneracion")
+                                        </span>
+
+                                        <a class="btn btn-sm btn-outline-primary"
+                                           asp-action="DescargarContrato"
+                                           asp-route-id="@Texto(contrato, "IdContrato")">
+
+                                            Descargar
+                                        </a>
+
+                                    </div>
+                                }
+
+                                @if (contratos.Rows.Count == 0)
+                                {
+                                    <p class="mpa-muted">
+                                        No hay contratos anteriores.
+                                    </p>
+                                }
+
+                            </div>
+
+                            <!-- HISTORIAL -->
+
+                            <div class="tab-pane fade"
+                                 id="panel-historial">
+
+                                <div class="table-responsive">
+
+                                    <table class="table table-asada">
+
+                                        <thead>
+                                            <tr>
+                                                <th>Fecha</th>
+                                                <th>Campo</th>
+                                                <th>Valor anterior</th>
+                                                <th>Valor nuevo</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+
+                                            @foreach (DataRow cambio in cambios.Rows)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        @Fecha(cambio, "FechaModificacion")
+                                                    </td>
+                                                    <td>
+                                                        @Texto(cambio, "CampoModificado")
+                                                    </td>
+                                                    <td>
+                                                        @Texto(cambio, "ValorAnterior")
+                                                    </td>
+                                                    <td>
+                                                        @Texto(cambio, "ValorNuevo")
+                                                    </td>
+                                                </tr>
+                                            }
+
+                                            @if (cambios.Rows.Count == 0)
+                                            {
+                                                <tr>
+                                                    <td colspan="4">
+                                                        Sin modificaciones registradas.
+                                                    </td>
+                                                </tr>
+                                            }
+
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+
+                        <a asp-action="Index"
+                           asp-route-tab="abonados"
+                           class="btn btn-outline-secondary">
+
+                            Volver al listado
+                        </a>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    }
+}
+
+<!-- ====================================== -->
+<!-- JAVASCRIPT: FORMULARIOS PRECARGADOS -->
+<!-- ====================================== -->
+
+@section Scripts {
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        function all(selector, fn) {
+            document.querySelectorAll(selector).forEach(fn);
+        }
+
+        function set(id, value) {
+            const elemento = document.getElementById(id);
+
+            if (elemento) {
+                elemento.value = value || '';
+            }
+        }
+
+        function txt(id, value) {
+            const elemento = document.getElementById(id);
+
+            if (elemento) {
+                elemento.textContent = value || '';
+            }
+        }
+
+        // MPA-02: NUEVA NOTICIA
+
+        all('.js-noticia-nueva', boton => {
+            boton.addEventListener('click', function () {
+
+                txt('tituloModalNoticia', 'Nueva noticia');
+
+                set('n-id', '0');
+                set('n-titulo', '');
+                set('n-contenido', '');
+                set('n-fecha', '');
+                set('n-imagen', '');
+
+            });
+        });
+
+        // MPA-02: EDITAR NOTICIA
+
+        all('.js-noticia-editar', boton => {
+            boton.addEventListener('click', function () {
+
+                txt('tituloModalNoticia', 'Editar noticia');
+
+                set('n-id', boton.dataset.id);
+                set('n-titulo', boton.dataset.titulo);
+                set('n-contenido', boton.dataset.contenido);
+                set('n-fecha', boton.dataset.vigencia);
+                set('n-imagen', '');
+
+            });
+        });
+
+        // MPA-03: EDITAR DOCUMENTO
+
+        all('.js-doc-editar', boton => {
+            boton.addEventListener('click', function () {
+
+                set('d-id', boton.dataset.id);
+                set('d-titulo', boton.dataset.titulo);
+                set('d-tipo', boton.dataset.tipo);
+                set('d-descripcion', boton.dataset.descripcion);
+
+            });
+        });
+
+        // MPA-03: NUEVO DOCUMENTO
+
+        all('.js-version-nueva', boton => {
+            boton.addEventListener('click', function () {
+
+                txt('tituloModalVersion', 'Crear documento');
+
+                set('v-id', '0');
+                set('v-titulo', '');
+                set('v-tipo', 'Ficha institucional');
+
+                document.getElementById('v-titulo').readOnly = false;
+                document.getElementById('v-tipo').disabled = false;
+
+            });
+        });
+
+        // MPA-03: NUEVA VERSIÓN EXISTENTE
+
+        all('.js-version-existente', boton => {
+            boton.addEventListener('click', function () {
+
+                txt(
+                    'tituloModalVersion',
+                    'Nueva versión de ' + boton.dataset.titulo
+                );
+
+                set('v-id', boton.dataset.id);
+                set('v-titulo', boton.dataset.titulo);
+                set('v-tipo', boton.dataset.tipo);
+
+                document.getElementById('v-titulo').readOnly = true;
+                document.getElementById('v-tipo').disabled = false;
+
+            });
+        });
+
+        // MPA-04: EDITAR TRÁMITE
+
+        all('.js-tramite-editar', boton => {
+            boton.addEventListener('click', function () {
+
+                const esAveria =
+                    boton.dataset.tipoorigen === 'Averia';
+
+                const formulario =
+                    document.getElementById('formTramite');
+
+                formulario.action = esAveria
+                    ? formulario.dataset.urlAveria
+                    : formulario.dataset.urlTramite;
+
+                set('t-id', boton.dataset.id);
+                document.getElementById('t-id').disabled = esAveria;
+
+                set('t-id-alterno', boton.dataset.id);
+                document.getElementById('t-id-alterno').disabled = !esAveria;
+
+                document.getElementById('t-origen').disabled = !esAveria;
+
+                set('t-estado', boton.dataset.estado);
+
+                set(
+                    't-canal',
+                    boton.dataset.canal === 'No registrado'
+                        ? 'Web'
+                        : boton.dataset.canal
+                );
+
+                document.getElementById('t-bloque-estado')
+                    .classList.toggle('d-none', esAveria);
+
+                document.getElementById('t-estado').disabled = esAveria;
+
+                document.getElementById('t-aviso-averia')
+                    .classList.toggle('d-none', !esAveria);
+
+                txt(
+                    't-detalle',
+                    boton.dataset.tipo + ' · registro #' + boton.dataset.id
+                );
+
+            });
+        });
+
+        // MPA-05: GESTIONAR ORDEN
+
+        all('.js-averia-asignar', boton => {
+            boton.addEventListener('click', function () {
+
+                set('a-id', boton.dataset.id);
+                set('a-fontanero', boton.dataset.fontanero);
+                set('a-obs', boton.dataset.observaciones);
+
+                txt(
+                    'a-descripcion',
+                    'Avería #' + boton.dataset.id +
+                    ' — ' + boton.dataset.descripcion
+                );
+
+            });
+        });
+
+        // MPA-05: SEGUIMIENTO
+
+        all('.js-orden-seguimiento', boton => {
+            boton.addEventListener('click', function () {
+
+                set('o-id', boton.dataset.id);
+                set('o-obs', boton.dataset.observaciones);
+                set('o-resuelto', 'false');
+
+            });
+        });
+
+        // MPA-06: ABRIR AUTOMÁTICAMENTE EL ABONADO
+
+        const modalAbonado =
+            document.getElementById('modalAbonado');
+
+        if (modalAbonado && window.bootstrap) {
+
+            new bootstrap.Modal(modalAbonado).show();
+
+            if (window.location.hash === '#contratos') {
+
+                const pestaña =
+                    document.getElementById('tab-contratos');
+
+                if (pestaña) {
+                    bootstrap.Tab.getOrCreateInstance(pestaña).show();
+                }
+            }
+        }
+
+    });
+</script>
+
+}
