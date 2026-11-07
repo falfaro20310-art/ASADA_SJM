@@ -1,3 +1,4 @@
+
 @model List<AsadaSJM.Models.Abonado>
 
 @{
@@ -6,7 +7,8 @@
 
 <div class="panel">
 
-    <form method="get" class="d-flex justify-content-between align-items-center mb-3">
+    <form method="get"
+          class="d-flex justify-content-between align-items-center mb-3">
 
         <input type="text"
                name="buscar"
@@ -23,7 +25,6 @@
 
                     <i class="bi bi-file-earmark-arrow-up"></i>
                     Importar Excel/CSV
-
                 </a>
             }
 
@@ -32,13 +33,9 @@
 
                 <i class="bi bi-plus-lg"></i>
                 Registrar abonado
-
             </a>
-
         </div>
-
     </form>
-
 
     @if (TempData["ImportacionExitosa"] != null)
     {
@@ -54,10 +51,8 @@
                     data-bs-dismiss="alert"
                     aria-label="Cerrar">
             </button>
-
         </div>
     }
-
 
     <div class="table-responsive">
 
@@ -73,6 +68,12 @@
                     <th>Usuario</th>
                     <th>Tarifa</th>
                     <th>Sector</th>
+
+                    @if (User.IsInRole("Administrador"))
+                    {
+                        <th>Alerta de mora</th>
+                    }
+
                     <th></th>
                 </tr>
             </thead>
@@ -82,7 +83,6 @@
                 @foreach (var a in Model)
                 {
                     <tr>
-
                         <td>
                             @a.NIS
                         </td>
@@ -115,14 +115,23 @@
                             @a.IdSector
                         </td>
 
-                        <td>
+                        @if (User.IsInRole("Administrador"))
+                        {
+                            <td class="mpa-mora"
+                                data-abonado-id="@a.IdAbonado">
 
+                                <span class="text-muted">
+                                    Verificando...
+                                </span>
+                            </td>
+                        }
+
+                        <td>
                             <a asp-action="Edit"
                                asp-route-id="@a.IdAbonado"
                                title="Editar">
 
                                 <i class="bi bi-pencil-square"></i>
-
                             </a>
 
                             <a asp-action="Delete"
@@ -131,18 +140,64 @@
                                title="Eliminar">
 
                                 <i class="bi bi-trash"></i>
-
                             </a>
-
                         </td>
-
                     </tr>
                 }
-
             </tbody>
-
         </table>
-
     </div>
-
 </div>
+
+@if (User.IsInRole("Administrador"))
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            const celdas =
+                document.querySelectorAll('.mpa-mora');
+
+            try {
+                const respuesta = await fetch(
+                    '@Url.Action("Morosos", "PanelAdministrativo")',
+                    { credentials: 'same-origin' }
+                );
+
+                if (!respuesta.ok) {
+                    throw new Error(
+                        'No se pudieron consultar alertas'
+                    );
+                }
+
+                const morosos = new Set(
+                    (await respuesta.json()).map(Number)
+                );
+
+                celdas.forEach(celda => {
+                    const id = Number(
+                        celda.dataset.abonadoId
+                    );
+
+                    celda.textContent = '';
+
+                    const etiqueta =
+                        document.createElement('span');
+
+                    etiqueta.className = morosos.has(id)
+                        ? 'badge bg-warning text-dark'
+                        : 'text-muted';
+
+                    etiqueta.textContent = morosos.has(id)
+                        ? 'Posible mora > 3 días (revisar)'
+                        : 'Sin alerta detectada';
+
+                    celda.appendChild(etiqueta);
+                });
+
+            } catch (error) {
+                celdas.forEach(celda => {
+                    celda.textContent = 'No disponible';
+                });
+            }
+        });
+    </script>
+}
