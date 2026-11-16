@@ -500,21 +500,23 @@
 
                 </section>
 
+
                 @if (TempData["NumeroTramite"] != null)
-{
-    <div class="alert alert-success d-flex align-items-center gap-2 mb-4"
-         role="alert">
+                {
+                    <div class="alert alert-success d-flex align-items-center gap-2 mb-4"
+                         role="alert">
 
-        <i class="bi bi-check-circle-fill fs-5"></i>
+                        <i class="bi bi-check-circle-fill fs-5"></i>
 
-        <div>
-            <strong>Solicitud registrada correctamente.</strong>
-            Su número de trámite es
-            <strong>@TempData["NumeroTramite"]</strong>.
-        </div>
+                        <div>
+                            <strong>Solicitud registrada correctamente.</strong>
+                            Su número de trámite es
+                            <strong>@TempData["NumeroTramite"]</strong>.
+                        </div>
 
-    </div>
-}
+                    </div>
+                }
+
 
                 <div class="information-note">
 
@@ -686,9 +688,9 @@
 
                             <div class="owner-option">
 
-                                <input type="radio"
+                                <input asp-for="EsPropietarioRegistral"
+                                       type="radio"
                                        id="propietarioSi"
-                                       name="EsPropietarioRegistral"
                                        value="true" />
 
                                 <label for="propietarioSi">
@@ -712,11 +714,10 @@
 
                             <div class="owner-option">
 
-                                <input type="radio"
+                                <input asp-for="EsPropietarioRegistral"
+                                       type="radio"
                                        id="propietarioNo"
-                                       name="EsPropietarioRegistral"
-                                       value="false"
-                                       checked />
+                                       value="false" />
 
                                 <label for="propietarioNo">
 
@@ -729,6 +730,91 @@
 
                                         <small class="text-muted">
                                             Debe adjuntar autorización autenticada.
+                                        </small>
+                                    </span>
+
+                                </label>
+
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+                    <!-- MTG-02 - TIPO DE GESTIÓN -->
+                    <section class="panel form-panel">
+
+                        <div class="panel-heading">
+
+                            <div>
+                                <span class="eyebrow">
+                                    MTG-02
+                                </span>
+
+                                <h2>
+                                    Tipo de gestión
+                                </h2>
+
+                                <p>
+                                    Indique si la solicitud corresponde a una
+                                    segregación o fraccionamiento del inmueble.
+                                </p>
+                            </div>
+
+                            <div class="heading-icon">
+                                <i class="bi bi-signpost-split"></i>
+                            </div>
+
+                        </div>
+
+
+                        <div class="owner-options">
+
+                            <div class="owner-option">
+
+                                <input asp-for="EsSegregacionFraccionamiento"
+                                       type="radio"
+                                       id="segregacionSi"
+                                       value="true" />
+
+                                <label for="segregacionSi">
+
+                                    <i class="bi bi-diagram-3-fill"></i>
+
+                                    <span>
+                                        <strong class="d-block">
+                                            Sí, es segregación o fraccionamiento
+                                        </strong>
+
+                                        <small class="text-muted">
+                                            Se solicitará documentación adicional.
+                                        </small>
+                                    </span>
+
+                                </label>
+
+                            </div>
+
+
+                            <div class="owner-option">
+
+                                <input asp-for="EsSegregacionFraccionamiento"
+                                       type="radio"
+                                       id="segregacionNo"
+                                       value="false" />
+
+                                <label for="segregacionNo">
+
+                                    <i class="bi bi-house-check-fill"></i>
+
+                                    <span>
+                                        <strong class="d-block">
+                                            No corresponde a segregación
+                                        </strong>
+
+                                        <small class="text-muted">
+                                            No requiere plano de fracciones ni minuta de rechazo.
                                         </small>
                                     </span>
 
@@ -835,6 +921,134 @@
 
                             </div>
 
+
+                            <div class="col-12">
+
+                                <div class="document-box">
+
+                                    <div class="document-box-title">
+                                        <i class="bi bi-file-earmark-check"></i>
+
+                                        Certificación literal vigente
+                                        <span class="required-mark">*</span>
+                                    </div>
+
+                                    <p>
+                                        La certificación literal debe haber sido emitida
+                                        hace máximo 15 días.
+                                    </p>
+
+                                    <div class="row g-3">
+
+                                        <div class="col-md-4">
+
+                                            <label asp-for="FechaEmisionCertificacionLiteral"
+                                                   class="form-label">
+                                                Fecha de emisión
+                                                <span class="required-mark">*</span>
+                                            </label>
+
+                                            <input asp-for="FechaEmisionCertificacionLiteral"
+                                                   class="form-control"
+                                                   type="date"
+                                                   max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+
+                                            <span asp-validation-for="FechaEmisionCertificacionLiteral"
+                                                  class="field-validation-error">
+                                            </span>
+
+                                        </div>
+
+
+                                        <div class="col-md-8">
+
+                                            <label asp-for="CertificacionLiteral"
+                                                   class="form-label">
+                                                Archivo de certificación
+                                                <span class="required-mark">*</span>
+                                            </label>
+
+                                            <input asp-for="CertificacionLiteral"
+                                                   class="form-control"
+                                                   type="file"
+                                                   accept=".pdf,.jpg,.jpeg,.png" />
+
+                                            <span asp-validation-for="CertificacionLiteral"
+                                                  class="field-validation-error">
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-12 authorization-wrapper"
+                                 id="segregationDocumentsWrapper">
+
+                                <div class="document-box">
+
+                                    <div class="document-box-title">
+                                        <i class="bi bi-diagram-3"></i>
+
+                                        Documentación de segregación o fraccionamiento
+                                        <span class="required-mark">*</span>
+                                    </div>
+
+                                    <p>
+                                        Para continuar debe adjuntar al menos uno:
+                                        el plano de agrimensura de las fracciones
+                                        o la minuta de rechazo.
+                                    </p>
+
+                                    <div class="row g-3">
+
+                                        <div class="col-md-6">
+
+                                            <label asp-for="PlanoAgrimensuraFracciones"
+                                                   class="form-label">
+                                                Plano de agrimensura de las fracciones
+                                            </label>
+
+                                            <input asp-for="PlanoAgrimensuraFracciones"
+                                                   class="form-control"
+                                                   type="file"
+                                                   accept=".pdf,.jpg,.jpeg,.png" />
+
+                                            <span asp-validation-for="PlanoAgrimensuraFracciones"
+                                                  class="field-validation-error">
+                                            </span>
+
+                                        </div>
+
+
+                                        <div class="col-md-6">
+
+                                            <label asp-for="MinutaRechazo"
+                                                   class="form-label">
+                                                Minuta de rechazo
+                                            </label>
+
+                                            <input asp-for="MinutaRechazo"
+                                                   class="form-control"
+                                                   type="file"
+                                                   accept=".pdf,.jpg,.jpeg,.png" />
+
+                                            <span asp-validation-for="MinutaRechazo"
+                                                  class="field-validation-error">
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
                         </div>
 
                     </section>
@@ -903,53 +1117,84 @@
             const authorizationWrapper =
                 document.getElementById("authorizationWrapper");
 
+                    const segregacionSi =
+            document.getElementById("segregacionSi");
 
-            function actualizarAutorizacion() {
+             const segregacionNo =
+                   document.getElementById("segregacionNo");
 
-                if (propietarioNo.checked) {
-                    authorizationWrapper.classList.add("visible");
-                }
-                else {
-                    authorizationWrapper.classList.remove("visible");
-                }
-            }
+             const segregationDocumentsWrapper =
+                document.getElementById("segregationDocumentsWrapper");
 
 
-            menuToggle.addEventListener(
-                "click",
-                function() {
-                    sidebar.classList.toggle("sidebar-open");
-                });
+                    function actualizarAutorizacion() {
 
-
-            document.addEventListener(
-                "click",
-                function(event) {
-
-                    const isMobile =
-                        window.matchMedia("(max-width: 900px)").matches;
-
-                    if (
-                        isMobile &&
-                        !sidebar.contains(event.target) &&
-                        !menuToggle.contains(event.target)
-                    ) {
-                        sidebar.classList.remove("sidebar-open");
+            if (propietarioNo.checked) {
+                authorizationWrapper.classList.add("visible");
+                        }
+                        else {
+                authorizationWrapper.classList.remove("visible");
+                        }
                     }
-                });
 
 
-            propietarioSi.addEventListener(
-                "change",
-                actualizarAutorizacion);
+              function actualizarDocumentosSegregacion() {
+
+                  if (segregacionSi.checked) {
+                     segregationDocumentsWrapper.classList.add("visible");
+                        }
+                        else {
+                      segregationDocumentsWrapper.classList.remove("visible");
+                        }
+                    }
 
 
-            propietarioNo.addEventListener(
-                "change",
-                actualizarAutorizacion);
+                    menuToggle.addEventListener(
+                "click",
+                        function () {
+                            sidebar.classList.toggle("sidebar-open");
+            });
 
 
-            actualizarAutorizacion();
+                    document.addEventListener(
+                        "click",
+            function (event) {
+
+                const isMobile =
+                                window.matchMedia("(max-width: 900px)").matches;
+
+                if (
+                            isMobile &&
+                                !sidebar.contains(event.target) &&
+                                !menuToggle.contains(event.target)
+                            ) {
+                                sidebar.classList.remove("sidebar-open");
+                            }
+                        });
+
+
+                    propietarioSi.addEventListener(
+                        "change",
+                        actualizarAutorizacion);
+
+
+                    propietarioNo.addEventListener(
+                        "change",
+                        actualizarAutorizacion);
+
+
+                    segregacionSi.addEventListener(
+                        "change",
+                        actualizarDocumentosSegregacion);
+
+
+                    segregacionNo.addEventListener(
+                        "change",
+                        actualizarDocumentosSegregacion);
+
+
+                    actualizarAutorizacion();
+                    actualizarDocumentosSegregacion();
     </script>
 
 </body>
