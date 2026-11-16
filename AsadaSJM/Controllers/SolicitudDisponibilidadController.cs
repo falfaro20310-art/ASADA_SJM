@@ -21,20 +21,21 @@ public class SolicitudDisponibilidadController : Controller
 
 
     // =========================================================
-    // MTG-01 - FORMULARIO DE SOLICITUD
+    // FORMULARIO
     // =========================================================
 
     [HttpGet]
     public IActionResult Crear()
     {
-        var modelo = new SolicitudDisponibilidadViewModel();
+        var modelo =
+            new SolicitudDisponibilidadViewModel();
 
         return View(modelo);
     }
 
 
     // =========================================================
-    // MTG-01 - REGISTRAR SOLICITUD
+    // MTG-01 + MTG-02 - REGISTRAR SOLICITUD
     // =========================================================
 
     [HttpPost]
@@ -42,8 +43,10 @@ public class SolicitudDisponibilidadController : Controller
     public async Task<IActionResult> Crear(
         SolicitudDisponibilidadViewModel modelo)
     {
-        // Si no es propietario registral,
-        // la autorización es obligatoria.
+        // -----------------------------------------------------
+        // Validaciones MTG-01
+        // -----------------------------------------------------
+
         if (!modelo.EsPropietarioRegistral &&
             modelo.AutorizacionPropietario == null)
         {
@@ -52,6 +55,102 @@ public class SolicitudDisponibilidadController : Controller
                 "Debe adjuntar un poder especial o autorización autenticada por un abogado.");
         }
 
+
+        // -----------------------------------------------------
+        // MTG-02 - Vigencia certificación literal
+        // Máximo 15 días desde su emisión
+        // -----------------------------------------------------
+
+        if (modelo.FechaEmisionCertificacionLiteral.HasValue)
+        {
+            DateTime fechaEmision =
+                modelo.FechaEmisionCertificacionLiteral
+                    .Value.Date;
+
+            DateTime hoy =
+                DateTime.Today;
+
+
+            if (fechaEmision > hoy)
+            {
+                ModelState.AddModelError(
+                    nameof(modelo.FechaEmisionCertificacionLiteral),
+                    "La fecha de emisión no puede ser posterior a la fecha actual.");
+            }
+            else if (fechaEmision < hoy.AddDays(-15))
+            {
+                ModelState.AddModelError(
+                    nameof(modelo.FechaEmisionCertificacionLiteral),
+                    "La certificación literal está vencida. Debe presentar una certificación emitida hace máximo 15 días.");
+            }
+        }
+
+
+        // -----------------------------------------------------
+        // MTG-02 - Requisitos condicionales
+        // -----------------------------------------------------
+
+        if (modelo.EsSegregacionFraccionamiento &&
+            modelo.PlanoAgrimensuraFracciones == null &&
+            modelo.MinutaRechazo == null)
+        {
+            ModelState.AddModelError(
+                nameof(modelo.PlanoAgrimensuraFracciones),
+                "Para una segregación o fraccionamiento debe adjuntar el plano de agrimensura de las fracciones o la minuta de rechazo.");
+        }
+
+
+        // -----------------------------------------------------
+        // MTG-02 - Expediente incompleto
+        // -----------------------------------------------------
+
+        var documentosPendientes =
+            new List<string>();
+
+
+        if (modelo.Identificacion == null)
+        {
+            documentosPendientes.Add(
+                "Identificación vigente");
+        }
+
+
+        if (!modelo.EsPropietarioRegistral &&
+            modelo.AutorizacionPropietario == null)
+        {
+            documentosPendientes.Add(
+                "Poder especial o autorización autenticada");
+        }
+
+
+        if (modelo.CertificacionLiteral == null)
+        {
+            documentosPendientes.Add(
+                "Certificación literal vigente");
+        }
+
+
+        if (modelo.EsSegregacionFraccionamiento &&
+            modelo.PlanoAgrimensuraFracciones == null &&
+            modelo.MinutaRechazo == null)
+        {
+            documentosPendientes.Add(
+                "Plano de agrimensura de las fracciones o minuta de rechazo");
+        }
+
+
+        if (documentosPendientes.Count > 0)
+        {
+            ModelState.AddModelError(
+                string.Empty,
+                "Documentos pendientes: " +
+                string.Join(
+                    ", ",
+                    documentosPendientes) +
+                ".");
+        }
+
+
         if (!ModelState.IsValid)
         {
             return View(modelo);
@@ -59,11 +158,12 @@ public class SolicitudDisponibilidadController : Controller
 
 
         // -----------------------------------------------------
-        // Obtener usuario autenticado
+        // Usuario autenticado
         // -----------------------------------------------------
 
         int? idUsuario =
             ObtenerIdUsuarioActual();
+
 
         if (idUsuario == null)
         {
@@ -79,6 +179,7 @@ public class SolicitudDisponibilidadController : Controller
             _configuration.GetConnectionString(
                 "DefaultConnection");
 
+
         if (string.IsNullOrWhiteSpace(connectionString))
         {
             ModelState.AddModelError(
@@ -89,7 +190,6 @@ public class SolicitudDisponibilidadController : Controller
         }
 
 
-        // Un usuario puede no tener un abonado asociado.
         int? idAbonado =
             await ObtenerIdAbonadoAsync(
                 idUsuario.Value);
@@ -98,7 +198,9 @@ public class SolicitudDisponibilidadController : Controller
         using SqlConnection connection =
             new SqlConnection(connectionString);
 
+
         await connection.OpenAsync();
+
 
         using SqlTransaction transaction =
             connection.BeginTransaction();
@@ -107,11 +209,12 @@ public class SolicitudDisponibilidadController : Controller
         var archivosGuardados =
             new List<string>();
 
+
         try
         {
-            // -------------------------------------------------
+            // =================================================
             // Obtener tipo de trámite
-            // -------------------------------------------------
+            // =================================================
 
             const string consultaTipo = @"
                 SELECT TOP 1
@@ -152,12 +255,13 @@ public class SolicitudDisponibilidadController : Controller
 
 
             int idTipoTramite =
-                Convert.ToInt32(resultadoTipo);
+                Convert.ToInt32(
+                    resultadoTipo);
 
 
-            // -------------------------------------------------
-            // Crear trámite general
-            // -------------------------------------------------
+            // =================================================
+            // Crear TRAMITE
+            // =================================================
 
             const string insertarTramite = @"
                 INSERT INTO TRAMITE
@@ -199,7 +303,8 @@ public class SolicitudDisponibilidadController : Controller
 
             comandoTramite.Parameters.AddWithValue(
                 "@IdAbonado",
-                (object?)idAbonado ?? DBNull.Value);
+                (object?)idAbonado
+                ?? DBNull.Value);
 
 
             comandoTramite.Parameters.AddWithValue(
@@ -209,21 +314,21 @@ public class SolicitudDisponibilidadController : Controller
 
             int idTramite =
                 Convert.ToInt32(
-                    await comandoTramite.ExecuteScalarAsync());
+                    await comandoTramite
+                        .ExecuteScalarAsync());
 
 
-            // -------------------------------------------------
-            // Generar número único
-            // Ejemplo: DH-2026-000001
-            // -------------------------------------------------
+            // =================================================
+            // Número único
+            // =================================================
 
             string numeroTramite =
                 $"DH-{DateTime.Now.Year}-{idTramite:D6}";
 
 
-            // -------------------------------------------------
-            // Registrar datos específicos de disponibilidad
-            // -------------------------------------------------
+            // =================================================
+            // Datos específicos de disponibilidad
+            // =================================================
 
             const string insertarSolicitud = @"
                 INSERT INTO SOLICITUD_DISPONIBILIDAD_HIDRICA
@@ -234,7 +339,8 @@ public class SolicitudDisponibilidadController : Controller
                     PropositoDisponibilidad,
                     DescripcionProyecto,
                     EsPropietarioRegistral,
-                    FechaRegistro
+                    FechaRegistro,
+                    EsSegregacionFraccionamiento
                 )
                 VALUES
                 (
@@ -244,7 +350,8 @@ public class SolicitudDisponibilidadController : Controller
                     @PropositoDisponibilidad,
                     @DescripcionProyecto,
                     @EsPropietarioRegistral,
-                    GETDATE()
+                    GETDATE(),
+                    @EsSegregacionFraccionamiento
                 );";
 
 
@@ -259,33 +366,44 @@ public class SolicitudDisponibilidadController : Controller
                 "@IdTramite",
                 idTramite);
 
+
             comandoSolicitud.Parameters.AddWithValue(
                 "@NumeroTramite",
                 numeroTramite);
+
 
             comandoSolicitud.Parameters.AddWithValue(
                 "@NombreSolicitante",
                 modelo.NombreSolicitante);
 
+
             comandoSolicitud.Parameters.AddWithValue(
                 "@PropositoDisponibilidad",
                 modelo.PropositoDisponibilidad);
 
+
             comandoSolicitud.Parameters.AddWithValue(
                 "@DescripcionProyecto",
                 modelo.DescripcionProyecto);
+
 
             comandoSolicitud.Parameters.AddWithValue(
                 "@EsPropietarioRegistral",
                 modelo.EsPropietarioRegistral);
 
 
-            await comandoSolicitud.ExecuteNonQueryAsync();
+            comandoSolicitud.Parameters.AddWithValue(
+                "@EsSegregacionFraccionamiento",
+                modelo.EsSegregacionFraccionamiento);
 
 
-            // -------------------------------------------------
-            // Guardar identificación
-            // -------------------------------------------------
+            await comandoSolicitud
+                .ExecuteNonQueryAsync();
+
+
+            // =================================================
+            // Identificación
+            // =================================================
 
             var identificacionGuardada =
                 await GuardarDocumentoAsync(
@@ -305,12 +423,14 @@ public class SolicitudDisponibilidadController : Controller
                 ConstruirNombreDocumento(
                     "Identificación vigente",
                     modelo.Identificacion!.FileName),
-                identificacionGuardada.RutaPublica);
+                identificacionGuardada.RutaRegistrada,
+                "Identificacion",
+                null);
 
 
-            // -------------------------------------------------
-            // Guardar autorización cuando corresponda
-            // -------------------------------------------------
+            // =================================================
+            // Autorización
+            // =================================================
 
             if (!modelo.EsPropietarioRegistral &&
                 modelo.AutorizacionPropietario != null)
@@ -333,13 +453,102 @@ public class SolicitudDisponibilidadController : Controller
                     ConstruirNombreDocumento(
                         "Autorización autenticada",
                         modelo.AutorizacionPropietario.FileName),
-                    autorizacionGuardada.RutaPublica);
+                    autorizacionGuardada.RutaRegistrada,
+                    "AutorizacionPropietario",
+                    null);
             }
 
 
-            // -------------------------------------------------
-            // Confirmar todo
-            // -------------------------------------------------
+            // =================================================
+            // MTG-02 - Certificación literal
+            // =================================================
+
+            var certificacionGuardada =
+                await GuardarDocumentoAsync(
+                    modelo.CertificacionLiteral!,
+                    idTramite,
+                    "certificacion_literal");
+
+
+            archivosGuardados.Add(
+                certificacionGuardada.RutaFisica);
+
+
+            await RegistrarDocumentoAsync(
+                connection,
+                transaction,
+                idTramite,
+                ConstruirNombreDocumento(
+                    "Certificación literal",
+                    modelo.CertificacionLiteral!.FileName),
+                certificacionGuardada.RutaRegistrada,
+                "CertificacionLiteral",
+                modelo.FechaEmisionCertificacionLiteral);
+
+
+            // =================================================
+            // MTG-02 - Plano de agrimensura
+            // =================================================
+
+            if (modelo.PlanoAgrimensuraFracciones != null)
+            {
+                var planoGuardado =
+                    await GuardarDocumentoAsync(
+                        modelo.PlanoAgrimensuraFracciones,
+                        idTramite,
+                        "plano_agrimensura");
+
+
+                archivosGuardados.Add(
+                    planoGuardado.RutaFisica);
+
+
+                await RegistrarDocumentoAsync(
+                    connection,
+                    transaction,
+                    idTramite,
+                    ConstruirNombreDocumento(
+                        "Plano de agrimensura de las fracciones",
+                        modelo.PlanoAgrimensuraFracciones.FileName),
+                    planoGuardado.RutaRegistrada,
+                    "PlanoAgrimensuraFracciones",
+                    null);
+            }
+
+
+            // =================================================
+            // MTG-02 - Minuta de rechazo
+            // =================================================
+
+            if (modelo.MinutaRechazo != null)
+            {
+                var minutaGuardada =
+                    await GuardarDocumentoAsync(
+                        modelo.MinutaRechazo,
+                        idTramite,
+                        "minuta_rechazo");
+
+
+                archivosGuardados.Add(
+                    minutaGuardada.RutaFisica);
+
+
+                await RegistrarDocumentoAsync(
+                    connection,
+                    transaction,
+                    idTramite,
+                    ConstruirNombreDocumento(
+                        "Minuta de rechazo",
+                        modelo.MinutaRechazo.FileName),
+                    minutaGuardada.RutaRegistrada,
+                    "MinutaRechazo",
+                    null);
+            }
+
+
+            // =================================================
+            // Confirmar
+            // =================================================
 
             transaction.Commit();
 
@@ -359,11 +568,10 @@ public class SolicitudDisponibilidadController : Controller
             }
             catch
             {
-                // La transacción ya pudo haberse cerrado.
+                // La transacción ya pudo estar cerrada.
             }
 
 
-            // Eliminar archivos físicos si falló la BD.
             foreach (string ruta in archivosGuardados)
             {
                 if (System.IO.File.Exists(ruta))
@@ -377,24 +585,29 @@ public class SolicitudDisponibilidadController : Controller
                 string.Empty,
                 "Ocurrió un error al registrar la solicitud. Intente nuevamente.");
 
+
             return View(modelo);
         }
     }
 
 
     // =========================================================
-    // OBTENER ID DEL USUARIO AUTENTICADO
+    // USUARIO ACTUAL
     // =========================================================
 
     private int? ObtenerIdUsuarioActual()
     {
         string? valorIdUsuario =
-            User.FindFirst("IdUsuario")?.Value;
+            User.FindFirst(
+                "IdUsuario")?.Value;
 
-        if (string.IsNullOrWhiteSpace(valorIdUsuario))
+
+        if (string.IsNullOrWhiteSpace(
+            valorIdUsuario))
         {
             return null;
         }
+
 
         if (!int.TryParse(
             valorIdUsuario,
@@ -403,12 +616,13 @@ public class SolicitudDisponibilidadController : Controller
             return null;
         }
 
+
         return idUsuario;
     }
 
 
     // =========================================================
-    // OBTENER ABONADO ASOCIADO AL USUARIO
+    // ABONADO DEL USUARIO
     // =========================================================
 
     private async Task<int?> ObtenerIdAbonadoAsync(
@@ -418,13 +632,18 @@ public class SolicitudDisponibilidadController : Controller
             _configuration.GetConnectionString(
                 "DefaultConnection");
 
-        if (string.IsNullOrWhiteSpace(connectionString))
+
+        if (string.IsNullOrWhiteSpace(
+            connectionString))
         {
             return null;
         }
 
+
         using SqlConnection connection =
-            new SqlConnection(connectionString);
+            new SqlConnection(
+                connectionString);
+
 
         const string consulta = @"
             SELECT TOP 1
@@ -451,7 +670,8 @@ public class SolicitudDisponibilidadController : Controller
 
 
         object? resultado =
-            await comando.ExecuteScalarAsync();
+            await comando
+                .ExecuteScalarAsync();
 
 
         if (resultado == null ||
@@ -461,16 +681,18 @@ public class SolicitudDisponibilidadController : Controller
         }
 
 
-        return Convert.ToInt32(resultado);
+        return Convert.ToInt32(
+            resultado);
     }
 
 
     // =========================================================
-    // GUARDAR DOCUMENTO FÍSICO
-    // FUERA DE WWWROOT POR SEGURIDAD
+    // GUARDAR ARCHIVO PRIVADO
     // =========================================================
 
-    private async Task<(string RutaPublica, string RutaFisica)>
+    private async Task<(
+        string RutaRegistrada,
+        string RutaFisica)>
         GuardarDocumentoAsync(
             IFormFile archivo,
             int idTramite,
@@ -484,7 +706,8 @@ public class SolicitudDisponibilidadController : Controller
                 idTramite.ToString());
 
 
-        Directory.CreateDirectory(carpeta);
+        Directory.CreateDirectory(
+            carpeta);
 
 
         string extension =
@@ -509,7 +732,8 @@ public class SolicitudDisponibilidadController : Controller
                 FileMode.CreateNew);
 
 
-        await archivo.CopyToAsync(destino);
+        await archivo.CopyToAsync(
+            destino);
 
 
         string rutaRegistrada =
@@ -523,7 +747,7 @@ public class SolicitudDisponibilidadController : Controller
 
 
     // =========================================================
-    // REGISTRAR DOCUMENTO EN BASE DE DATOS
+    // REGISTRAR DOCUMENTO
     // =========================================================
 
     private static async Task RegistrarDocumentoAsync(
@@ -531,7 +755,9 @@ public class SolicitudDisponibilidadController : Controller
         SqlTransaction transaction,
         int idTramite,
         string nombreArchivo,
-        string rutaArchivo)
+        string rutaArchivo,
+        string tipoDocumento,
+        DateTime? fechaEmision)
     {
         const string insertarDocumento = @"
             INSERT INTO TRAMITE_DOCUMENTO
@@ -539,14 +765,18 @@ public class SolicitudDisponibilidadController : Controller
                 IdTramite,
                 NombreArchivo,
                 RutaArchivo,
-                FechaCarga
+                FechaCarga,
+                TipoDocumento,
+                FechaEmision
             )
             VALUES
             (
                 @IdTramite,
                 @NombreArchivo,
                 @RutaArchivo,
-                GETDATE()
+                GETDATE(),
+                @TipoDocumento,
+                @FechaEmision
             );";
 
 
@@ -561,22 +791,35 @@ public class SolicitudDisponibilidadController : Controller
             "@IdTramite",
             idTramite);
 
+
         comando.Parameters.AddWithValue(
             "@NombreArchivo",
             nombreArchivo);
+
 
         comando.Parameters.AddWithValue(
             "@RutaArchivo",
             rutaArchivo);
 
 
-        await comando.ExecuteNonQueryAsync();
+        comando.Parameters.AddWithValue(
+            "@TipoDocumento",
+            tipoDocumento);
+
+
+        comando.Parameters.AddWithValue(
+            "@FechaEmision",
+            (object?)fechaEmision?.Date
+            ?? DBNull.Value);
+
+
+        await comando
+            .ExecuteNonQueryAsync();
     }
 
 
     // =========================================================
-    // NOMBRE LEGIBLE DEL DOCUMENTO
-    // Máximo permitido por la BD: 200 caracteres
+    // NOMBRE LEGIBLE
     // =========================================================
 
     private static string ConstruirNombreDocumento(
