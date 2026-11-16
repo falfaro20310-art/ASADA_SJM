@@ -1,0 +1,956 @@
+﻿@model AsadaSJM.Models.SolicitudDisponibilidadViewModel
+
+@{
+    Layout = null;
+    ViewData["Title"] = "Solicitud de disponibilidad hídrica";
+
+    var nombreUsuario = User.Identity?.Name;
+
+    if (string.IsNullOrWhiteSpace(nombreUsuario))
+    {
+        nombreUsuario = "Usuario";
+    }
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Disponibilidad Hídrica | ASADA SJM</title>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"
+          rel="stylesheet" />
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css"
+          rel="stylesheet" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap"
+          rel="stylesheet" />
+
+    <link rel="stylesheet" href="~/css/oficina-virtual.css" />
+
+    <style>
+            .form-panel {
+                margin-bottom: 22px;
+            }
+
+            .form-section {
+                padding-top: 4px;
+            }
+
+            .form-label {
+                margin-bottom: 7px;
+                color: #35516f;
+                font-size: 12px;
+                font-weight: 600;
+            }
+
+            .required-mark {
+                color: #c34e58;
+            }
+
+            .form-control,
+            .form-select {
+                min-height: 43px;
+                border: 1px solid var(--border);
+                border-radius: 7px;
+                color: var(--text);
+                font-size: 13px;
+            }
+
+            textarea.form-control {
+                min-height: 125px;
+                resize: vertical;
+            }
+
+            .form-control:focus,
+            .form-select:focus {
+                border-color: #8ebbe8;
+                box-shadow: 0 0 0 .2rem rgba(7, 86, 166, .10);
+            }
+
+            .form-text {
+                color: var(--muted);
+                font-size: 11px;
+                line-height: 1.5;
+            }
+
+            .owner-options {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .owner-option {
+                flex: 1 1 210px;
+                min-width: 0;
+            }
+
+                .owner-option input {
+                    position: absolute;
+                    opacity: 0;
+                    pointer-events: none;
+                }
+
+                .owner-option label {
+                    display: flex;
+                    align-items: center;
+                    gap: 11px;
+                    width: 100%;
+                    min-height: 58px;
+                    margin: 0;
+                    padding: 13px 15px;
+                    border: 1px solid var(--border);
+                    border-radius: 9px;
+                    color: #35516f;
+                    background: #fff;
+                    cursor: pointer;
+                    transition: all .2s ease;
+                }
+
+                    .owner-option label i {
+                        color: var(--blue);
+                        font-size: 20px;
+                    }
+
+                .owner-option input:checked + label {
+                    border-color: #77aee2;
+                    background: var(--blue-soft);
+                    box-shadow: 0 0 0 2px rgba(7, 86, 166, .05);
+                }
+
+            .document-box {
+                padding: 17px;
+                border: 1px dashed #b9cce1;
+                border-radius: 10px;
+                background: #f9fcff;
+            }
+
+            .document-box-title {
+                display: flex;
+                align-items: center;
+                gap: 9px;
+                margin-bottom: 5px;
+                color: var(--navy);
+                font-size: 13px;
+                font-weight: 600;
+            }
+
+                .document-box-title i {
+                    color: var(--blue);
+                    font-size: 19px;
+                }
+
+            .document-box p {
+                margin: 0 0 12px;
+                color: var(--muted);
+                font-size: 11px;
+                line-height: 1.6;
+            }
+
+            .authorization-wrapper {
+                display: none;
+            }
+
+                .authorization-wrapper.visible {
+                    display: block;
+                }
+
+            .validation-summary-errors {
+                margin-bottom: 18px;
+                padding: 14px 16px;
+                border: 1px solid #efc0c4;
+                border-radius: 9px;
+                color: #a13c45;
+                background: #fff5f6;
+                font-size: 12px;
+            }
+
+                .validation-summary-errors ul {
+                    margin: 0;
+                    padding-left: 18px;
+                }
+
+            .field-validation-error {
+                display: block;
+                margin-top: 5px;
+                color: #b54851;
+                font-size: 11px;
+            }
+
+            .form-actions {
+                display: flex;
+                justify-content: flex-end;
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-top: 22px;
+            }
+
+                .form-actions .secondary-button,
+                .form-actions .primary-button {
+                    width: auto;
+                    min-width: 155px;
+                    margin-top: 0;
+                    padding-left: 18px;
+                    padding-right: 18px;
+                }
+
+            .information-note {
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+                margin-bottom: 22px;
+                padding: 16px 18px;
+                border: 1px solid #dceaf9;
+                border-radius: 10px;
+                background: #edf6ff;
+            }
+
+                .information-note i {
+                    flex: 0 0 auto;
+                    color: var(--blue);
+                    font-size: 21px;
+                }
+
+                .information-note strong {
+                    display: block;
+                    margin-bottom: 4px;
+                    color: var(--navy);
+                    font-size: 12px;
+                }
+
+                .information-note p {
+                    margin: 0;
+                    color: #5d7189;
+                    font-size: 11px;
+                    line-height: 1.7;
+                }
+
+            @@media (max-width: 600px) {
+                .form-actions {
+                    flex-direction: column-reverse;
+                }
+
+                    .form-actions .secondary-button,
+                    .form-actions .primary-button {
+                        width: 100%;
+                    }
+            }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard">
+
+        <!-- MENÚ LATERAL -->
+        <aside class="sidebar" id="sidebar">
+
+            <a class="brand"
+               asp-controller="OficinaVirtual"
+               asp-action="Index">
+
+                <span class="brand-icon">
+                    <i class="bi bi-droplet-fill"></i>
+                </span>
+
+                <span class="brand-text">
+                    <strong>ASADA SJM</strong>
+                    <small>San José de la Montaña</small>
+                </span>
+
+            </a>
+
+            <nav class="side-navigation">
+
+                <a class="side-link"
+                   asp-controller="OficinaVirtual"
+                   asp-action="Index">
+
+                    <i class="bi bi-house-door-fill"></i>
+                    <span>Inicio</span>
+
+                </a>
+
+                <div class="side-section">
+                    MI SERVICIO
+                </div>
+
+                <a class="side-link"
+                   asp-controller="OficinaVirtual"
+                   asp-action="MisRecibos">
+
+                    <i class="bi bi-receipt"></i>
+                    <span>Mis recibos</span>
+
+                </a>
+
+                <a class="side-link"
+                   asp-controller="OficinaVirtual"
+                   asp-action="RecibosPendientes">
+
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>Recibos pendientes</span>
+
+                </a>
+
+                <a class="side-link"
+                   asp-controller="OficinaVirtual"
+                   asp-action="MiConsumo">
+
+                    <i class="bi bi-bar-chart-line"></i>
+                    <span>Mi consumo</span>
+
+                </a>
+
+                <a class="side-link"
+                   asp-controller="OficinaVirtual"
+                   asp-action="MisPagos">
+
+                    <i class="bi bi-credit-card"></i>
+                    <span>Mis pagos</span>
+
+                </a>
+
+                <a class="side-link"
+                   asp-controller="OficinaVirtual"
+                   asp-action="CanalesPago">
+
+                    <i class="bi bi-wallet2"></i>
+                    <span>Canales de pago</span>
+
+                </a>
+
+                <div class="side-section">
+                    SOLICITUDES
+                </div>
+
+                <a class="side-link active"
+                   asp-controller="SolicitudDisponibilidad"
+                   asp-action="Crear">
+
+                    <i class="bi bi-droplet-half"></i>
+                    <span>Disponibilidad hídrica</span>
+
+                </a>
+
+                <a class="side-link"
+                   asp-controller="OficinaVirtual"
+                   asp-action="MisTramites">
+
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span>Mis trámites</span>
+
+                </a>
+
+                <a class="side-link"
+                   asp-controller="OficinaVirtual"
+                   asp-action="MisAverias">
+
+                    <i class="bi bi-tools"></i>
+                    <span>Mis averías</span>
+
+                </a>
+
+                <div class="side-section">
+                    INSTITUCIONAL
+                </div>
+
+                <a class="side-link"
+                   asp-controller="Portal"
+                   asp-action="Index">
+
+                    <i class="bi bi-globe2"></i>
+                    <span>Portal institucional</span>
+
+                </a>
+
+                <a class="side-link"
+                   asp-controller="GestionAmbiental"
+                   asp-action="Index">
+
+                    <i class="bi bi-tree"></i>
+                    <span>Gestión ambiental</span>
+
+                </a>
+
+            </nav>
+
+            <div class="sidebar-bottom">
+
+                <div class="water-symbol">
+                    <i class="bi bi-droplet-half"></i>
+                </div>
+
+                <p>
+                    Cuidamos el agua,<br />
+                    protegemos la vida.
+                </p>
+
+            </div>
+
+        </aside>
+
+
+        <!-- ÁREA PRINCIPAL -->
+        <div class="main-area">
+
+            <!-- BARRA SUPERIOR -->
+            <header class="topbar">
+
+                <button type="button"
+                        class="menu-toggle"
+                        id="menuToggle"
+                        aria-label="Abrir o cerrar menú">
+
+                    <i class="bi bi-list"></i>
+
+                </button>
+
+                <div class="topbar-right">
+
+                    <div class="topbar-user-icon">
+                        <i class="bi bi-person-circle"></i>
+                    </div>
+
+                    <span class="topbar-name">
+                        @nombreUsuario
+                    </span>
+
+                    <form asp-controller="Account"
+                          asp-action="Logout"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <button type="submit"
+                                class="logout-button">
+
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span>Cerrar sesión</span>
+
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </header>
+
+
+            <!-- CONTENIDO -->
+            <main class="content-area">
+
+                <!-- ENCABEZADO -->
+                <section class="welcome-section">
+
+                    <div class="welcome-text">
+
+                        <div class="breadcrumb-custom">
+
+                            <span>Inicio</span>
+                            <i class="bi bi-chevron-right"></i>
+
+                            <span>Solicitudes</span>
+                            <i class="bi bi-chevron-right"></i>
+
+                            <strong>
+                                Disponibilidad hídrica
+                            </strong>
+
+                        </div>
+
+                        <h1>
+                            Solicitud de disponibilidad hídrica
+                        </h1>
+
+                        <p>
+                            Complete la información requerida para iniciar
+                            su trámite de disponibilidad de agua para una
+                            conexión o proyecto de construcción.
+                        </p>
+
+                    </div>
+
+                    <div class="nis-card">
+
+                        <div class="nis-label">
+                            Estado inicial del trámite
+                        </div>
+
+                        <div class="nis-value"
+                             style="font-size:20px;">
+
+                            Pendiente
+
+                        </div>
+
+                        <div class="nis-detail">
+                            <span>Tipo:</span>
+                            <strong>Disponibilidad Hídrica</strong>
+                        </div>
+
+                        <div class="nis-detail">
+                            <span>Número de trámite:</span>
+                            <strong>Se asignará al enviar</strong>
+                        </div>
+
+                    </div>
+
+                </section>
+
+                @if (TempData["NumeroTramite"] != null)
+{
+    <div class="alert alert-success d-flex align-items-center gap-2 mb-4"
+         role="alert">
+
+        <i class="bi bi-check-circle-fill fs-5"></i>
+
+        <div>
+            <strong>Solicitud registrada correctamente.</strong>
+            Su número de trámite es
+            <strong>@TempData["NumeroTramite"]</strong>.
+        </div>
+
+    </div>
+}
+
+                <div class="information-note">
+
+                    <i class="bi bi-info-circle-fill"></i>
+
+                    <div>
+                        <strong>
+                            Antes de enviar la solicitud
+                        </strong>
+
+                        <p>
+                            Verifique que la información sea correcta y que
+                            los documentos adjuntos estén vigentes y sean legibles.
+                            Los campos marcados con * son obligatorios.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <form asp-controller="SolicitudDisponibilidad"
+                      asp-action="Crear"
+                      method="post"
+                      enctype="multipart/form-data">
+
+                    @Html.AntiForgeryToken()
+
+
+                    <div asp-validation-summary="ModelOnly"></div>
+
+
+                    <!-- INFORMACIÓN DEL SOLICITANTE -->
+                    <section class="panel form-panel">
+
+                        <div class="panel-heading">
+
+                            <div>
+                                <span class="eyebrow">
+                                    MTG-01
+                                </span>
+
+                                <h2>
+                                    Información de la solicitud
+                                </h2>
+
+                                <p>
+                                    Indique los datos principales de la
+                                    disponibilidad hídrica requerida.
+                                </p>
+                            </div>
+
+                            <div class="heading-icon">
+                                <i class="bi bi-file-earmark-text"></i>
+                            </div>
+
+                        </div>
+
+
+                        <div class="form-section">
+
+                            <div class="row g-3">
+
+                                <div class="col-12">
+
+                                    <label asp-for="NombreSolicitante"
+                                           class="form-label">
+
+                                        Nombre del solicitante
+                                        <span class="required-mark">*</span>
+
+                                    </label>
+
+                                    <input asp-for="NombreSolicitante"
+                                           class="form-control"
+                                           maxlength="200"
+                                           autocomplete="name"
+                                           placeholder="Ingrese el nombre completo del solicitante" />
+
+                                    <span asp-validation-for="NombreSolicitante"
+                                          class="field-validation-error">
+                                    </span>
+
+                                </div>
+
+
+                                <div class="col-12">
+
+                                    <label asp-for="PropositoDisponibilidad"
+                                           class="form-label">
+
+                                        Propósito de la disponibilidad
+                                        <span class="required-mark">*</span>
+
+                                    </label>
+
+                                    <input asp-for="PropositoDisponibilidad"
+                                           class="form-control"
+                                           maxlength="250"
+                                           placeholder="Ejemplo: nueva conexión de agua para vivienda" />
+
+                                    <span asp-validation-for="PropositoDisponibilidad"
+                                          class="field-validation-error">
+                                    </span>
+
+                                </div>
+
+
+                                <div class="col-12">
+
+                                    <label asp-for="DescripcionProyecto"
+                                           class="form-label">
+
+                                        Descripción del proyecto
+                                        <span class="required-mark">*</span>
+
+                                    </label>
+
+                                    <textarea asp-for="DescripcionProyecto"
+                                              class="form-control"
+                                              maxlength="1000"
+                                              placeholder="Describa brevemente el proyecto, construcción o uso para el cual requiere la disponibilidad de agua.">
+                                    </textarea>
+
+                                    <div class="form-text">
+                                        Máximo 1000 caracteres.
+                                    </div>
+
+                                    <span asp-validation-for="DescripcionProyecto"
+                                          class="field-validation-error">
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+                    <!-- CONDICIÓN DEL SOLICITANTE -->
+                    <section class="panel form-panel">
+
+                        <div class="panel-heading">
+
+                            <div>
+                                <span class="eyebrow">
+                                    PROPIEDAD
+                                </span>
+
+                                <h2>
+                                    Relación con el inmueble
+                                </h2>
+
+                                <p>
+                                    Indique si la persona solicitante corresponde
+                                    al propietario registral del inmueble.
+                                </p>
+                            </div>
+
+                            <div class="heading-icon">
+                                <i class="bi bi-house-check"></i>
+                            </div>
+
+                        </div>
+
+
+                        <div class="owner-options">
+
+                            <div class="owner-option">
+
+                                <input type="radio"
+                                       id="propietarioSi"
+                                       name="EsPropietarioRegistral"
+                                       value="true" />
+
+                                <label for="propietarioSi">
+
+                                    <i class="bi bi-person-check-fill"></i>
+
+                                    <span>
+                                        <strong class="d-block">
+                                            Sí, soy propietario registral
+                                        </strong>
+
+                                        <small class="text-muted">
+                                            No requiere autorización adicional.
+                                        </small>
+                                    </span>
+
+                                </label>
+
+                            </div>
+
+
+                            <div class="owner-option">
+
+                                <input type="radio"
+                                       id="propietarioNo"
+                                       name="EsPropietarioRegistral"
+                                       value="false"
+                                       checked />
+
+                                <label for="propietarioNo">
+
+                                    <i class="bi bi-person-exclamation"></i>
+
+                                    <span>
+                                        <strong class="d-block">
+                                            No soy propietario registral
+                                        </strong>
+
+                                        <small class="text-muted">
+                                            Debe adjuntar autorización autenticada.
+                                        </small>
+                                    </span>
+
+                                </label>
+
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+                    <!-- DOCUMENTOS -->
+                    <section class="panel form-panel">
+
+                        <div class="panel-heading">
+
+                            <div>
+
+                                <span class="eyebrow">
+                                    DOCUMENTOS
+                                </span>
+
+                                <h2>
+                                    Documentos requeridos
+                                </h2>
+
+                                <p>
+                                    Adjunte los documentos necesarios para
+                                    respaldar la solicitud.
+                                </p>
+
+                            </div>
+
+                            <div class="heading-icon">
+                                <i class="bi bi-paperclip"></i>
+                            </div>
+
+                        </div>
+
+
+                        <div class="row g-3">
+
+                            <div class="col-12">
+
+                                <div class="document-box">
+
+                                    <div class="document-box-title">
+                                        <i class="bi bi-person-vcard"></i>
+
+                                        Identificación vigente
+                                        <span class="required-mark">*</span>
+                                    </div>
+
+                                    <p>
+                                        Adjunte una copia legible y vigente de
+                                        la identificación de la persona solicitante.
+                                    </p>
+
+                                    <input asp-for="Identificacion"
+                                           class="form-control"
+                                           type="file"
+                                           accept=".pdf,.jpg,.jpeg,.png" />
+
+                                    <span asp-validation-for="Identificacion"
+                                          class="field-validation-error">
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-12 authorization-wrapper"
+                                 id="authorizationWrapper">
+
+                                <div class="document-box">
+
+                                    <div class="document-box-title">
+
+                                        <i class="bi bi-file-earmark-lock"></i>
+
+                                        Poder especial o autorización autenticada
+                                        <span class="required-mark">*</span>
+
+                                    </div>
+
+                                    <p>
+                                        Este documento es obligatorio cuando
+                                        el solicitante no corresponde al propietario
+                                        registral del inmueble.
+                                    </p>
+
+                                    <input asp-for="AutorizacionPropietario"
+                                           class="form-control"
+                                           type="file"
+                                           accept=".pdf,.jpg,.jpeg,.png" />
+
+                                    <span asp-validation-for="AutorizacionPropietario"
+                                          class="field-validation-error">
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+                    <!-- ACCIONES -->
+                    <div class="form-actions">
+
+                        <a asp-controller="OficinaVirtual"
+                           asp-action="Index"
+                           class="secondary-button">
+
+                            <i class="bi bi-arrow-left"></i>
+                            Cancelar
+
+                        </a>
+
+                        <button type="submit"
+                                class="primary-button">
+
+                            <i class="bi bi-send-fill"></i>
+                            Enviar solicitud
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+
+                <!-- PIE DE PÁGINA -->
+                <footer class="dashboard-footer">
+
+                    <span>
+                        © @DateTime.Now.Year ASADA San José de la Montaña.
+                        Todos los derechos reservados.
+                    </span>
+
+                    <span>
+                        <i class="bi bi-droplet-fill"></i>
+                        Cuidamos el agua, protegemos la vida.
+                    </span>
+
+                </footer>
+
+            </main>
+
+        </div>
+
+    </div>
+
+
+    <script>
+            const menuToggle =
+                document.getElementById("menuToggle");
+
+            const sidebar =
+                document.getElementById("sidebar");
+
+            const propietarioSi =
+                document.getElementById("propietarioSi");
+
+            const propietarioNo =
+                document.getElementById("propietarioNo");
+
+            const authorizationWrapper =
+                document.getElementById("authorizationWrapper");
+
+
+            function actualizarAutorizacion() {
+
+                if (propietarioNo.checked) {
+                    authorizationWrapper.classList.add("visible");
+                }
+                else {
+                    authorizationWrapper.classList.remove("visible");
+                }
+            }
+
+
+            menuToggle.addEventListener(
+                "click",
+                function() {
+                    sidebar.classList.toggle("sidebar-open");
+                });
+
+
+            document.addEventListener(
+                "click",
+                function(event) {
+
+                    const isMobile =
+                        window.matchMedia("(max-width: 900px)").matches;
+
+                    if (
+                        isMobile &&
+                        !sidebar.contains(event.target) &&
+                        !menuToggle.contains(event.target)
+                    ) {
+                        sidebar.classList.remove("sidebar-open");
+                    }
+                });
+
+
+            propietarioSi.addEventListener(
+                "change",
+                actualizarAutorizacion);
+
+
+            propietarioNo.addEventListener(
+                "change",
+                actualizarAutorizacion);
+
+
+            actualizarAutorizacion();
+    </script>
+
+</body>
+</html>

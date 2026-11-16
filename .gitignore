@@ -6,3 +6,5 @@ obj/
 /AsadaSJM/appsettings.json
 AsadaSJM/wwwroot/documentos/transparencia/
 *.json
+AsadaSJM/App_Data/
+AsadaSJM/wwwroot/documentos/tramites/
