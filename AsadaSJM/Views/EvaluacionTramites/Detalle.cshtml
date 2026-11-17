@@ -1,0 +1,343 @@
+@model AsadaSJM.Models.ViewModels.EvaluacionTramiteViewModel
+
+@{
+    ViewData["Title"] = "Evaluar trámite";
+
+    bool finalizado =
+        Model.Estado == "Aprobado" ||
+        Model.Estado == "Rechazado";
+}
+
+<div class="container py-4">
+
+    <div class="mb-4">
+        <a asp-controller="EvaluacionTramites"
+           asp-action="Index"
+           class="text-decoration-none">
+            ← Volver al listado
+        </a>
+    </div>
+
+    @if (TempData["MensajeEvaluacion"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["MensajeEvaluacion"]
+        </div>
+    }
+
+    @if (TempData["ErrorEvaluacion"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorEvaluacion"]
+        </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+        <div>
+            <h2 class="mb-1">@Model.NumeroTramite</h2>
+            <div class="text-muted">
+                Solicitud de disponibilidad hídrica
+            </div>
+        </div>
+
+        @{
+            string claseEstado = Model.Estado switch
+            {
+                "Aprobado" => "bg-success",
+                "Rechazado" => "bg-danger",
+                _ => "bg-warning text-dark"
+            };
+        }
+
+        <span class="badge @claseEstado fs-6">
+            @Model.Estado
+        </span>
+    </div>
+
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <strong>Información de la solicitud</strong>
+        </div>
+
+        <div class="card-body">
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <small class="text-muted d-block">
+                        Solicitante
+                    </small>
+                    <strong>@Model.NombreSolicitante</strong>
+                </div>
+
+                <div class="col-md-6">
+                    <small class="text-muted d-block">
+                        Fecha de solicitud
+                    </small>
+                    <strong>
+                        @Model.FechaSolicitud.ToString("dd/MM/yyyy HH:mm")
+                    </strong>
+                </div>
+
+                <div class="col-12">
+                    <small class="text-muted d-block">
+                        Propósito
+                    </small>
+                    <div>@Model.PropositoDisponibilidad</div>
+                </div>
+
+                <div class="col-12">
+                    <small class="text-muted d-block">
+                        Descripción
+                    </small>
+                    <div>@Model.DescripcionProyecto</div>
+                </div>
+
+                <div class="col-md-6">
+                    <small class="text-muted d-block">
+                        Propietario registral
+                    </small>
+                    <strong>
+                        @(Model.EsPropietarioRegistral ? "Sí" : "No")
+                    </strong>
+                </div>
+
+                <div class="col-md-6">
+                    <small class="text-muted d-block">
+                        Segregación / fraccionamiento
+                    </small>
+                    <strong>
+                        @(Model.EsSegregacionFraccionamiento ? "Sí" : "No")
+                    </strong>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <strong>Documentos del expediente</strong>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Documento</th>
+                            <th>Fecha de emisión</th>
+                            <th>Vigencia</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var documento in Model.Documentos)
+                        {
+                            <tr class="@(documento.EstaVencido ? "table-danger" : "")">
+
+                                <td>
+                                    <strong>@documento.TipoDocumento</strong>
+                                    <div class="small text-muted">
+                                        @documento.NombreArchivo
+                                    </div>
+                                </td>
+
+                                <td>
+                                    @(documento.FechaEmision.HasValue
+                                        ? documento.FechaEmision.Value.ToString("dd/MM/yyyy")
+                                        : "No aplica")
+                                </td>
+
+                                <td>
+                                    @(documento.VigenciaDias.HasValue
+                                        ? $"{documento.VigenciaDias} días"
+                                        : "Sin vencimiento configurado")
+                                </td>
+
+                                <td>
+                                    @if (documento.EstaVencido)
+                                    {
+                                        <span class="badge bg-danger">
+                                            Vencido
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">
+                                            Vigente
+                                        </span>
+                                    }
+                                </td>
+
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+    <form method="post">
+
+        @Html.AntiForgeryToken()
+
+        <input asp-for="IdTramite"
+               type="hidden" />
+
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <strong>
+                    Guía de disponibilidad hídrica
+                </strong>
+            </div>
+
+            <div class="card-body">
+
+                <p class="text-muted">
+                    Marque los 9 requisitos aplicables antes de aprobar.
+                </p>
+
+                <div class="row g-3">
+
+                    @for (int i = 1; i <= 9; i++)
+                    {
+                        string propiedad =
+                            $"Requisito{i}";
+
+                        <div class="col-md-6 col-lg-4">
+                            <div class="form-check border rounded p-3 ps-5 h-100">
+
+                                @if (i == 1)
+                                {
+                                    <input asp-for="Requisito1"
+                                           class="form-check-input" />
+                                }
+                                else if (i == 2)
+                                {
+                                    <input asp-for="Requisito2"
+                                           class="form-check-input" />
+                                }
+                                else if (i == 3)
+                                {
+                                    <input asp-for="Requisito3"
+                                           class="form-check-input" />
+                                }
+                                else if (i == 4)
+                                {
+                                    <input asp-for="Requisito4"
+                                           class="form-check-input" />
+                                }
+                                else if (i == 5)
+                                {
+                                    <input asp-for="Requisito5"
+                                           class="form-check-input" />
+                                }
+                                else if (i == 6)
+                                {
+                                    <input asp-for="Requisito6"
+                                           class="form-check-input" />
+                                }
+                                else if (i == 7)
+                                {
+                                    <input asp-for="Requisito7"
+                                           class="form-check-input" />
+                                }
+                                else if (i == 8)
+                                {
+                                    <input asp-for="Requisito8"
+                                           class="form-check-input" />
+                                }
+                                else
+                                {
+                                    <input asp-for="Requisito9"
+                                           class="form-check-input" />
+                                }
+
+                                <label class="form-check-label">
+                                    Requisito @i de la guía
+                                </label>
+
+                            </div>
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+        </div>
+
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <strong>Resolución</strong>
+            </div>
+
+            <div class="card-body">
+
+                <label asp-for="MotivoRechazo"
+                       class="form-label">
+                    Motivo de rechazo
+                </label>
+
+                <textarea asp-for="MotivoRechazo"
+                          class="form-control"
+                          rows="4"
+                          maxlength="1000"
+                          placeholder="Obligatorio únicamente si se rechaza el trámite."></textarea>
+
+                <div class="form-text">
+                    El sistema no permitirá rechazar sin indicar un motivo.
+                </div>
+
+            </div>
+        </div>
+
+
+        @if (!finalizado)
+        {
+            <div class="d-flex justify-content-end flex-wrap gap-2">
+
+                <button type="submit"
+                        asp-controller="EvaluacionTramites"
+                        asp-action="Rechazar"
+                        class="btn btn-outline-danger">
+                    Rechazar solicitud
+                </button>
+
+                <button type="submit"
+                        asp-controller="EvaluacionTramites"
+                        asp-action="Aprobar"
+                        class="btn btn-success">
+                    Aprobar solicitud
+                </button>
+
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-secondary">
+                Este trámite ya tiene una resolución final:
+                <strong>@Model.Estado</strong>.
+            </div>
+
+            @if (Model.Estado == "Aprobado")
+            {
+                <div class="d-flex justify-content-end">
+                    <a asp-controller="EvaluacionTramites"
+                       asp-action="DescargarConstancia"
+                       asp-route-id="@Model.IdTramite"
+                       class="btn btn-outline-primary">
+                        Descargar constancia PDF
+                    </a>
+                </div>
+            }
+        }
+
+    </form>
+
+</div>
