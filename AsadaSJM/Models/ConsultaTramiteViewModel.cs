@@ -22,4 +22,13 @@ public sealed class ConsultaTramiteResultadoViewModel
     public string Estado { get; set; } = string.Empty;
     public DateTime? FechaFinalizacion { get; set; }
     public string MotivoRechazo { get; set; } = string.Empty;
+
+    public List<DocumentoFinalTramiteViewModel> DocumentosFinales { get; set; } = new();
+}
+
+public sealed class DocumentoFinalTramiteViewModel
+{
+    public int IdDocumento { get; set; }
+    public string NombreArchivo { get; set; } = string.Empty;
+    public DateTime FechaCarga { get; set; }
 }
