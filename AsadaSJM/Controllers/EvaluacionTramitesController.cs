@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using System.Text;
+using AsadaSJM.Services.Notificaciones;
 
 namespace AsadaSJM.Controllers;
 
@@ -11,13 +12,16 @@ public class EvaluacionTramitesController : Controller
 {
     private readonly IConfiguration _configuration;
     private readonly IWebHostEnvironment _environment;
+    private readonly INotificacionTramiteService _notificacionTramiteService;
 
     public EvaluacionTramitesController(
-        IConfiguration configuration,
-        IWebHostEnvironment environment)
+    IConfiguration configuration,
+    IWebHostEnvironment environment,
+    INotificacionTramiteService notificacionTramiteService)
     {
         _configuration = configuration;
         _environment = environment;
+        _notificacionTramiteService = notificacionTramiteService;
     }
 
 
@@ -297,6 +301,18 @@ public class EvaluacionTramitesController : Controller
                 new { id = modelo.IdTramite });
         }
 
+        var notificacion =
+    await _notificacionTramiteService
+        .NotificarCambioEstadoAsync(
+            actual.IdTramite,
+            "Aprobado");
+
+        if (!notificacion.Exitoso)
+        {
+            TempData["Advertencia"] =
+                notificacion.Mensaje;
+        }
+
         TempData["MensajeEvaluacion"] =
             "El trámite fue aprobado correctamente.";
 
@@ -372,6 +388,19 @@ public class EvaluacionTramitesController : Controller
             return RedirectToAction(
                 nameof(Detalle),
                 new { id = modelo.IdTramite });
+        }
+
+        var notificacion =
+    await _notificacionTramiteService
+        .NotificarCambioEstadoAsync(
+            actual.IdTramite,
+            "Rechazado",
+            modelo.MotivoRechazo);
+
+        if (!notificacion.Exitoso)
+        {
+            TempData["Advertencia"] =
+                notificacion.Mensaje;
         }
 
         TempData["MensajeEvaluacion"] =

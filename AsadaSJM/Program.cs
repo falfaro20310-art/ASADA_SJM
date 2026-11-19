@@ -5,6 +5,7 @@ using AsadaSJM.Services.FotoGaleria;
 using AsadaSJM.Services.Galeria;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using AsadaSJM.Services.Notificaciones;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,7 +58,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddSingleton<IFirebaseStorageService, FirebaseStorageService>();
 builder.Services.AddScoped<IGaleriaService, GaleriaService>();
 builder.Services.AddScoped<IFotoGaleriaService, FotoGaleriaService>();
-
+builder.Services.AddScoped<INotificacionTramiteService, NotificacionTramiteService>();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
