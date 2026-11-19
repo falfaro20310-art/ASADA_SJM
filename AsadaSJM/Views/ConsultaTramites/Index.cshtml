@@ -1,0 +1,169 @@
+@model AsadaSJM.Models.ViewModels.ConsultaTramitesViewModel
+
+@{
+    ViewData["Title"] = "Consulta de trámites";
+}
+
+<div class="container py-4">
+
+    <div class="mb-4">
+        <h2 class="mb-1">
+            Consulta de trámites
+        </h2>
+
+        <p class="text-muted mb-0">
+            Consulte sus solicitudes mediante el número de trámite
+            o el número de paja asociado.
+        </p>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+
+            <form method="get"
+                  asp-controller="ConsultaTramites"
+                  asp-action="Index">
+
+                <div class="row g-3 align-items-end">
+
+                    <div class="col-md-9">
+                        <label asp-for="Busqueda"
+                               class="form-label fw-semibold">
+                        </label>
+
+                        <input asp-for="Busqueda"
+                               class="form-control"
+                               placeholder="Ej.: DH-2026-000003 o número de paja" />
+                    </div>
+
+                    <div class="col-md-3 d-grid">
+                        <button type="submit"
+                                class="btn btn-primary">
+                            <i class="bi bi-search me-1"></i>
+                            Consultar
+                        </button>
+                    </div>
+
+                </div>
+
+            </form>
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger mt-3 mb-0">
+                    <div asp-validation-summary="All"></div>
+                </div>
+            }
+
+        </div>
+    </div>
+
+    @if (Model.BusquedaRealizada)
+    {
+        if (Model.Resultados.Count == 0)
+        {
+            <div class="alert alert-info">
+                No se encontraron trámites asociados a ese número
+                dentro de su cuenta.
+            </div>
+        }
+        else
+        {
+            <div class="row g-3">
+
+                @foreach (var tramite in Model.Resultados)
+                {
+                    string badge =
+                        tramite.Estado switch
+                        {
+                            "Aprobado" => "bg-success",
+                            "Rechazado" => "bg-danger",
+                            "Pendiente" => "bg-warning text-dark",
+                            _ => "bg-secondary"
+                        };
+
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+
+                                <div class="d-flex flex-wrap
+                                            justify-content-between
+                                            align-items-start
+                                            gap-2 mb-3">
+
+                                    <div>
+                                        <h5 class="mb-1">
+                                            @tramite.NumeroTramite
+                                        </h5>
+
+                                        <div class="text-muted">
+                                            @tramite.TipoTramite
+                                        </div>
+                                    </div>
+
+                                    <span class="badge @badge fs-6">
+                                        @tramite.Estado
+                                    </span>
+
+                                </div>
+
+                                <div class="row g-3">
+
+                                    <div class="col-md-4">
+                                        <div class="text-muted small">
+                                            Fecha de solicitud
+                                        </div>
+
+                                        <div>
+                                            @tramite.FechaSolicitud.ToString("dd/MM/yyyy HH:mm")
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="text-muted small">
+                                            Número de paja
+                                        </div>
+
+                                        <div>
+                                            @(string.IsNullOrWhiteSpace(tramite.NumeroPaja)
+                                                ? "No asociado"
+                                                : tramite.NumeroPaja)
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="text-muted small">
+                                            Fecha de finalización
+                                        </div>
+
+                                        <div>
+                                            @(tramite.FechaFinalizacion.HasValue
+                                                ? tramite.FechaFinalizacion.Value.ToString("dd/MM/yyyy HH:mm")
+                                                : "Pendiente")
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                @if (tramite.Estado == "Rechazado" &&
+                                     !string.IsNullOrWhiteSpace(
+                                         tramite.MotivoRechazo))
+                                {
+                                    <div class="alert alert-danger mt-3 mb-0">
+                                        <strong>
+                                            Motivo del rechazo:
+                                        </strong>
+                                        @tramite.MotivoRechazo
+                                    </div>
+                                }
+
+                            </div>
+                        </div>
+                    </div>
+                }
+
+            </div>
+        }
+    }
+
+</div>
