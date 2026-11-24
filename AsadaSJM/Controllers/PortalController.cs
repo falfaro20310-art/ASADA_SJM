@@ -90,4 +90,20 @@ public class PortalController : Controller
 
         return View(expresidentes);
     }
+    public async Task<IActionResult> Organigrama()
+
+    {
+        // Información de contacto para el pie de página del portal
+        ViewBag.InformacionContacto = await _context.InformacionInstitucional
+            .AsNoTracking()
+            .OrderByDescending(i => i.IdInformacion)
+            .FirstOrDefaultAsync();
+
+        // Presidente actual (se muestra en la Presidencia del organigrama)
+        ViewBag.PresidenteActual = await _context.Expresidentes
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Estado);
+
+        return View();
+    }
 }

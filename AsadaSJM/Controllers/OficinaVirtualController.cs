@@ -1,5 +1,4 @@
-﻿
-using AsadaSJM.Models;
+﻿using AsadaSJM.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using Microsoft.AspNetCore.Http;
+using System.Linq;
 
 namespace AsadaSJM.Controllers;
 
@@ -412,6 +413,276 @@ public class OficinaVirtualController : Controller
             rutaCompleta,
             "application/pdf",
             Path.GetFileName(rutaCompleta));
+    }
+
+    // =========================================================
+    // REPORTE DE AVERÍAS (MRA-01 a MRA-06)
+    // =========================================================
+
+    private static readonly string[] ExtensionesImagen =
+        { ".jpg", ".jpeg", ".png", ".webp" };
+
+    private const int MaxFotos = 5;
+    private const long MaxBytesFoto = 5 * 1024 * 1024;
+
+    private List<CategoriaAveriaItem> ObtenerCategoriasAveria()
+    {
+        var categorias = new List<CategoriaAveriaItem>();
+
+        using SqlConnection connection = new SqlConnection(ObtenerConnectionString());
+        using SqlCommand command = new SqlCommand("SP_Averia_ObtenerCategorias", connection);
+        command.CommandType = CommandType.StoredProcedure;
+
+        connection.Open();
+        using SqlDataReader reader = command.ExecuteReader();
+
+        while (reader.Read())
+        {
+            categorias.Add(new CategoriaAveriaItem
+            {
+                IdCategoriaAveria = Convert.ToInt32(reader["IdCategoriaAveria"]),
+                Nombre = reader["Nombre"]?.ToString() ?? ""
+            });
+        }
+
+        return categorias;
+    }
+
+    // Devuelve la dirección del abonado, o null si el usuario no tiene abonado.
+    private string? ObtenerDireccionAbonado(int idUsuario)
+    {
+        using SqlConnection connection = new SqlConnection(ObtenerConnectionString());
+        using SqlCommand command = new SqlCommand("SP_ObtenerDatosOficinaVirtual", connection);
+        command.CommandType = CommandType.StoredProcedure;
+        command.Parameters.Add("@IdUsuario", SqlDbType.Int).Value = idUsuario;
+
+        connection.Open();
+        using SqlDataReader reader = command.ExecuteReader();
+
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+        return reader["Direccion"]?.ToString() ?? "";
+    }
+
+    // MRA-06: mis reportes + búsqueda por número de caso
+    [HttpGet]
+    public IActionResult MisAverias(string? numeroCaso)
+    {
+        int? idUsuario = ObtenerIdUsuarioAutenticado();
+
+        if (idUsuario == null)
+        {
+            return RedirectToAction("Login", "Account");
+        }
+
+        if (ObtenerDireccionAbonado(idUsuario.Value) == null)
+        {
+            return View("SinAbonado");
+        }
+
+        var modelo = new MisAveriasViewModel { NumeroCasoBuscado = numeroCaso };
+        int? idAveria = null;
+
+        if (!string.IsNullOrWhiteSpace(numeroCaso))
+        {
+            string digitos = new string(numeroCaso.Where(char.IsDigit).ToArray());
+
+            if (int.TryParse(digitos, out int id))
+            {
+                idAveria = id;
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty,
+                    "El número de caso no es válido. Ejemplo: AV-000123.");
+            }
+        }
+
+        using SqlConnection connection = new SqlConnection(ObtenerConnectionString());
+        using SqlCommand command = new SqlCommand("SP_Averia_ListarPorAbonado", connection);
+        command.CommandType = CommandType.StoredProcedure;
+        command.Parameters.Add("@IdUsuario", SqlDbType.Int).Value = idUsuario.Value;
+        command.Parameters.Add("@IdAveria", SqlDbType.Int).Value =
+            idAveria.HasValue ? idAveria.Value : DBNull.Value;
+
+        connection.Open();
+        using SqlDataReader reader = command.ExecuteReader();
+
+        while (reader.Read())
+        {
+            modelo.Averias.Add(AveriaLector.Leer(reader));
+        }
+
+        return View(modelo);
+    }
+
+    // MRA-01 / MRA-02 / MRA-03: formulario de reporte
+    [HttpGet]
+    public IActionResult ReportarAveria()
+    {
+        int? idUsuario = ObtenerIdUsuarioAutenticado();
+
+        if (idUsuario == null)
+        {
+            return RedirectToAction("Login", "Account");
+        }
+
+        string? direccion = ObtenerDireccionAbonado(idUsuario.Value);
+
+        if (direccion == null)
+        {
+            return View("SinAbonado");
+        }
+
+        var modelo = new ReportarAveriaViewModel
+        {
+            Ubicacion = direccion,
+            Categorias = ObtenerCategoriasAveria()
+        };
+
+        return View(modelo);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult ReportarAveria(ReportarAveriaViewModel modelo)
+    {
+        int? idUsuario = ObtenerIdUsuarioAutenticado();
+
+        if (idUsuario == null)
+        {
+            return RedirectToAction("Login", "Account");
+        }
+
+        var fotos = modelo.Fotografias
+            .Where(foto => foto != null && foto.Length > 0)
+            .ToList();
+
+        if (fotos.Count > MaxFotos)
+        {
+            ModelState.AddModelError("Fotografias",
+                $"Puede adjuntar un máximo de {MaxFotos} fotografías.");
+        }
+
+        foreach (var foto in fotos)
+        {
+            string extension = Path.GetExtension(foto.FileName).ToLowerInvariant();
+
+            if (!ExtensionesImagen.Contains(extension))
+            {
+                ModelState.AddModelError("Fotografias",
+                    $"\"{foto.FileName}\" no es una imagen válida (JPG, PNG o WEBP).");
+            }
+            else if (foto.Length > MaxBytesFoto)
+            {
+                ModelState.AddModelError("Fotografias",
+                    $"\"{foto.FileName}\" supera el tamaño máximo de 5 MB.");
+            }
+        }
+
+        if (!ModelState.IsValid)
+        {
+            modelo.Categorias = ObtenerCategoriasAveria();
+            return View(modelo);
+        }
+
+        int idAveria;
+
+        try
+        {
+            using SqlConnection connection = new SqlConnection(ObtenerConnectionString());
+            using SqlCommand command = new SqlCommand("SP_Averia_Registrar", connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.Add("@IdUsuario", SqlDbType.Int).Value = idUsuario.Value;
+            command.Parameters.Add("@IdCategoriaAveria", SqlDbType.Int).Value =
+                modelo.IdCategoriaAveria;
+            command.Parameters.Add("@Descripcion", SqlDbType.VarChar, -1).Value =
+                modelo.Descripcion.Trim();
+            command.Parameters.Add("@Ubicacion", SqlDbType.VarChar, 500).Value =
+                modelo.Ubicacion.Trim();
+
+            connection.Open();
+            idAveria = Convert.ToInt32(command.ExecuteScalar());
+        }
+        catch (SqlException ex)
+        {
+            ModelState.AddModelError(string.Empty, ex.Message);
+            modelo.Categorias = ObtenerCategoriasAveria();
+            return View(modelo);
+        }
+
+        // MRA-02: guardar las fotografías en wwwroot/uploads/averias
+        if (fotos.Count > 0)
+        {
+            string webRoot = _environment.WebRootPath
+                ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+
+            string carpeta = Path.Combine(webRoot, "uploads", "averias");
+            Directory.CreateDirectory(carpeta);
+
+            foreach (var foto in fotos)
+            {
+                string extension = Path.GetExtension(foto.FileName).ToLowerInvariant();
+                string nombreArchivo = $"{Guid.NewGuid():N}{extension}";
+                string rutaCompleta = Path.Combine(carpeta, nombreArchivo);
+
+                using (var stream = new FileStream(rutaCompleta, FileMode.Create))
+                {
+                    foto.CopyTo(stream);
+                }
+
+                using SqlConnection connection = new SqlConnection(ObtenerConnectionString());
+                using SqlCommand command = new SqlCommand("SP_Averia_AgregarImagen", connection);
+                command.CommandType = CommandType.StoredProcedure;
+
+                command.Parameters.Add("@IdUsuario", SqlDbType.Int).Value = idUsuario.Value;
+                command.Parameters.Add("@IdAveria", SqlDbType.Int).Value = idAveria;
+                command.Parameters.Add("@RutaImagen", SqlDbType.VarChar, 500).Value =
+                    "uploads/averias/" + nombreArchivo;
+
+                connection.Open();
+                command.ExecuteNonQuery();
+            }
+        }
+
+        // MRA-04: número de caso
+        TempData["AveriaCreada"] = $"AV-{idAveria:000000}";
+
+        return RedirectToAction(nameof(DetalleAveria), new { id = idAveria });
+    }
+
+    // Detalle de un reporte propio
+    [HttpGet]
+    public IActionResult DetalleAveria(int id)
+    {
+        int? idUsuario = ObtenerIdUsuarioAutenticado();
+
+        if (idUsuario == null)
+        {
+            return RedirectToAction("Login", "Account");
+        }
+
+        using SqlConnection connection = new SqlConnection(ObtenerConnectionString());
+        using SqlCommand command = new SqlCommand("SP_Averia_DetalleAbonado", connection);
+        command.CommandType = CommandType.StoredProcedure;
+        command.Parameters.Add("@IdUsuario", SqlDbType.Int).Value = idUsuario.Value;
+        command.Parameters.Add("@IdAveria", SqlDbType.Int).Value = id;
+
+        connection.Open();
+        using SqlDataReader reader = command.ExecuteReader();
+
+        AveriaViewModel? modelo = AveriaLector.LeerDetalle(reader);
+
+        if (modelo == null)
+        {
+            return NotFound("No se encontró el reporte solicitado.");
+        }
+
+        return View(modelo);
     }
 }
 

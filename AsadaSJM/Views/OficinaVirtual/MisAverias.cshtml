@@ -1,0 +1,115 @@
+﻿@model AsadaSJM.Models.MisAveriasViewModel
+
+@{
+    ViewData["Title"] = "Mis averías";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mis averías | ASADA SJM</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/oficina-virtual.css" />
+</head>
+<body>
+    <main class="container py-4">
+        <a asp-controller="OficinaVirtual" asp-action="Index"
+           class="btn btn-outline-secondary mb-3">
+            <i class="bi bi-arrow-left"></i> Volver a la Oficina Virtual
+        </a>
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+            <div>
+                <h1 class="h3 mb-1">Mis averías</h1>
+                <p class="text-muted mb-0">Reportes de fugas y averías de tu servicio.</p>
+            </div>
+
+            <a asp-controller="OficinaVirtual" asp-action="ReportarAveria"
+               class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Reportar avería
+            </a>
+        </div>
+
+        <form method="get" asp-controller="OficinaVirtual" asp-action="MisAverias"
+              class="row g-2 my-3">
+            <div class="col-sm-6 col-md-4">
+                <input type="text" name="numeroCaso" value="@Model.NumeroCasoBuscado"
+                       class="form-control" placeholder="Buscar por número de caso (AV-000123)" />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+                @if (!string.IsNullOrWhiteSpace(Model.NumeroCasoBuscado))
+                {
+                    <a asp-action="MisAverias" class="btn btn-link">Ver todos</a>
+                }
+            </div>
+        </form>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <div>@error.ErrorMessage</div>
+                }
+            </div>
+        }
+
+        @if (Model.Averias.Count == 0)
+        {
+            <div class="alert alert-info">
+                @(string.IsNullOrWhiteSpace(Model.NumeroCasoBuscado)
+                    ? "Todavía no has reportado ninguna avería."
+                    : "No se encontró un reporte tuyo con ese número de caso.")
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Caso</th>
+                            <th>Categoría</th>
+                            <th>Ubicación</th>
+                            <th>Fecha del reporte</th>
+                            <th>Estado</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in Model.Averias)
+                        {
+                            string badge = a.Estado == "Pendiente" ? "bg-warning text-dark"
+                                         : a.Estado == "En proceso" ? "bg-primary"
+                                         : a.Estado == "Resuelta" ? "bg-success"
+                                         : "bg-secondary";
+
+                            <tr>
+                                <td><strong>@a.NumeroCaso</strong></td>
+                                <td>@a.Categoria</td>
+                                <td>@a.Ubicacion</td>
+                                <td>@a.FechaReporte.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td><span class="badge @badge">@a.Estado</span></td>
+                                <td>
+                                    <a asp-controller="OficinaVirtual" asp-action="DetalleAveria"
+                                       asp-route-id="@a.IdAveria"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </main>
+</body>
+</html>

@@ -1,0 +1,99 @@
+﻿@model AsadaSJM.Models.AveriaViewModel
+
+@{
+    ViewData["Title"] = "Avería " + Model.NumeroCaso;
+    Layout = null;
+
+    string badge = Model.Estado == "Pendiente" ? "bg-warning text-dark"
+                 : Model.Estado == "En proceso" ? "bg-primary"
+                 : Model.Estado == "Resuelta" ? "bg-success"
+                 : "bg-secondary";
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Avería @Model.NumeroCaso | ASADA SJM</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/oficina-virtual.css" />
+</head>
+<body>
+    <main class="container py-4" style="max-width:820px;">
+        <a asp-controller="OficinaVirtual" asp-action="MisAverias"
+           class="btn btn-outline-secondary mb-3">
+            <i class="bi bi-arrow-left"></i> Volver a mis averías
+        </a>
+
+        @if (TempData["AveriaCreada"] != null)
+        {
+            <div class="alert alert-success">
+                <strong>¡Reporte enviado!</strong> Tu número de caso es
+                <strong>@TempData["AveriaCreada"]</strong>. Guárdalo para consultar el estado
+                de tu reporte.
+            </div>
+        }
+
+        <div class="card card-body mb-3">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <h1 class="h4 mb-0">Caso @Model.NumeroCaso</h1>
+                <span class="badge @badge fs-6">@Model.Estado</span>
+            </div>
+
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Categoría</dt>
+                <dd class="col-sm-8">@Model.Categoria</dd>
+
+                <dt class="col-sm-4">Ubicación</dt>
+                <dd class="col-sm-8">@Model.Ubicacion</dd>
+
+                <dt class="col-sm-4">Descripción</dt>
+                <dd class="col-sm-8">@Model.Descripcion</dd>
+
+                <dt class="col-sm-4">Fecha del reporte</dt>
+                <dd class="col-sm-8">@Model.FechaReporte.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                <dt class="col-sm-4">Fecha de atención</dt>
+                <dd class="col-sm-8">@(Model.FechaAtencion?.ToString("dd/MM/yyyy HH:mm") ?? "Aún sin atender")</dd>
+
+                @if (Model.FechaResolucion.HasValue)
+                {
+                    <dt class="col-sm-4">Fecha de resolución</dt>
+                    <dd class="col-sm-8">@Model.FechaResolucion.Value.ToString("dd/MM/yyyy HH:mm")</dd>
+                }
+            </dl>
+        </div>
+
+        @if (Model.Imagenes.Count > 0)
+        {
+            <div class="card card-body mb-3">
+                <h2 class="h6 mb-3">Fotografías adjuntas</h2>
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach (var ruta in Model.Imagenes)
+                    {
+                        <a href="@Url.Content("~/" + ruta)" target="_blank">
+                            <img src="@Url.Content("~/" + ruta)" alt="Fotografía de la avería"
+                                 style="height:120px; border-radius:8px; object-fit:cover;" />
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+
+        <div class="card card-body">
+            <h2 class="h6 mb-3">Seguimiento</h2>
+            @foreach (var s in Model.Seguimiento)
+            {
+                <div class="border-bottom pb-2 mb-2">
+                    <div class="small text-muted">
+                        @s.Fecha.ToString("dd/MM/yyyy HH:mm") — @s.EstadoNuevo
+                    </div>
+                    <div>@s.Comentario</div>
+                </div>
+            }
+        </div>
+    </main>
+</body>
+</html>

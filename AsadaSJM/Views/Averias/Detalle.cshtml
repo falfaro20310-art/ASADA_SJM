@@ -1,0 +1,150 @@
+﻿@model AsadaSJM.Models.AveriaViewModel
+
+@{
+    ViewData["Title"] = "Avería " + Model.NumeroCaso;
+    string clase = Model.Estado == "Pendiente" ? "pendiente"
+                 : Model.Estado == "En proceso" ? "proceso"
+                 : "resuelto";
+}
+
+<a asp-action="Index" class="btn btn-outline-secondary mb-3">
+    <i class="bi bi-arrow-left"></i> Volver a averías
+</a>
+
+@if (TempData["Exito"] != null)
+{
+    <div class="alert alert-success">@TempData["Exito"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<div class="row g-3">
+
+    <div class="col-lg-7">
+        <div class="panel mb-3">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <h4 class="mb-0">@Model.NumeroCaso</h4>
+                <span class="estado @clase">@Model.Estado</span>
+            </div>
+
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Abonado</dt>
+                <dd class="col-sm-8">@Model.Abonado</dd>
+
+                <dt class="col-sm-4">NIS</dt>
+                <dd class="col-sm-8">@Model.NIS</dd>
+
+                <dt class="col-sm-4">Teléfono</dt>
+                <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(Model.Telefono) ? "—" : Model.Telefono)</dd>
+
+                <dt class="col-sm-4">Categoría</dt>
+                <dd class="col-sm-8">@Model.Categoria</dd>
+
+                <dt class="col-sm-4">Ubicación</dt>
+                <dd class="col-sm-8">@Model.Ubicacion</dd>
+
+                <dt class="col-sm-4">Descripción</dt>
+                <dd class="col-sm-8">@Model.Descripcion</dd>
+
+                <dt class="col-sm-4">Prioridad</dt>
+                <dd class="col-sm-8">@Model.Prioridad</dd>
+
+                <dt class="col-sm-4">Fecha del reporte</dt>
+                <dd class="col-sm-8">@Model.FechaReporte.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                <dt class="col-sm-4">Fecha de atención</dt>
+                <dd class="col-sm-8">@(Model.FechaAtencion?.ToString("dd/MM/yyyy HH:mm") ?? "—")</dd>
+
+                <dt class="col-sm-4">Fecha de resolución</dt>
+                <dd class="col-sm-8">@(Model.FechaResolucion?.ToString("dd/MM/yyyy HH:mm") ?? "—")</dd>
+            </dl>
+        </div>
+
+        @if (Model.Imagenes.Count > 0)
+        {
+            <div class="panel mb-3">
+                <h5 class="mb-3">Fotografías</h5>
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach (var ruta in Model.Imagenes)
+                    {
+                        <a href="@Url.Content("~/" + ruta)" target="_blank">
+                            <img src="@Url.Content("~/" + ruta)" alt="Fotografía de la avería"
+                                 style="height:120px; border-radius:8px; object-fit:cover;" />
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+
+        <div class="panel">
+            <h5 class="mb-3">Historial de seguimiento</h5>
+            @foreach (var s in Model.Seguimiento)
+            {
+                <div class="border-bottom pb-2 mb-2">
+                    <div class="small text-muted">
+                        @s.Fecha.ToString("dd/MM/yyyy HH:mm") — @s.Usuario
+                        @if (!string.IsNullOrEmpty(s.EstadoAnterior))
+                        {
+                            <span>(@s.EstadoAnterior → @s.EstadoNuevo)</span>
+                        }
+                        else
+                        {
+                            <span>(@s.EstadoNuevo)</span>
+                        }
+                    </div>
+                    <div>@s.Comentario</div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="panel">
+            <h5 class="mb-3">Actualizar reporte</h5>
+
+            @if (Model.Estado == "Resuelta")
+            {
+                <div class="alert alert-success mb-0">
+                    Esta avería ya fue resuelta.
+                </div>
+            }
+            else
+            {
+                <form asp-action="ActualizarEstado" method="post">
+                    <input type="hidden" name="IdAveria" value="@Model.IdAveria" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Estado</label>
+                        <select name="Estado" class="form-select" required>
+                            @foreach (var e in new[] { "Pendiente", "En proceso", "Resuelta" })
+                            {
+                                <option value="@e" selected="@(Model.Estado == e)">@e</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Fecha de atención</label>
+                        <input type="datetime-local" name="FechaAtencion" class="form-control"
+                               value="@Model.FechaAtencion?.ToString("yyyy-MM-ddTHH:mm")" />
+                        <div class="form-text">
+                            Si la deja vacía, se usa la fecha actual al pasar a "En proceso".
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Comentario / observaciones</label>
+                        <textarea name="Observaciones" class="form-control" rows="4" required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-agua">
+                        <i class="bi bi-save"></i> Guardar cambios
+                    </button>
+                </form>
+            }
+        </div>
+    </div>
+
+</div>

@@ -1,0 +1,82 @@
+﻿@model AsadaSJM.Models.ReportarAveriaViewModel
+
+@{
+    ViewData["Title"] = "Reportar avería";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Reportar avería | ASADA SJM</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/oficina-virtual.css" />
+</head>
+<body>
+    <main class="container py-4" style="max-width:760px;">
+        <a asp-controller="OficinaVirtual" asp-action="MisAverias"
+           class="btn btn-outline-secondary mb-3">
+            <i class="bi bi-arrow-left"></i> Volver a mis averías
+        </a>
+
+        <h1 class="h3 mb-2">Reportar una fuga o avería</h1>
+        <p class="text-muted">
+            Al enviar el reporte recibirás un número de caso para darle seguimiento.
+        </p>
+
+        <form asp-controller="OficinaVirtual" asp-action="ReportarAveria"
+              method="post" enctype="multipart/form-data" class="card card-body">
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="IdCategoriaAveria" class="form-label">Tipo de avería</label>
+                <select asp-for="IdCategoriaAveria" class="form-select">
+                    <option value="0">Seleccione una categoría…</option>
+                    @foreach (var c in Model.Categorias)
+                    {
+                        <option value="@c.IdCategoriaAveria">@c.Nombre</option>
+                    }
+                </select>
+                <span asp-validation-for="IdCategoriaAveria" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Ubicacion" class="form-label">Ubicación de la avería</label>
+                <input asp-for="Ubicacion" class="form-control" maxlength="500" />
+                <div class="form-text">
+                    Te sugerimos la dirección de tu servicio. Edítala si la avería está en otro lugar
+                    e incluye una referencia (por ejemplo, "frente a la escuela").
+                </div>
+                <span asp-validation-for="Ubicacion" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Descripcion" class="form-label">Descripción</label>
+                <textarea asp-for="Descripcion" class="form-control" rows="4" maxlength="2000"></textarea>
+                <span asp-validation-for="Descripcion" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Fotografías (opcional)</label>
+                <input type="file" name="Fotografias" class="form-control"
+                       accept=".jpg,.jpeg,.png,.webp" multiple />
+                <div class="form-text">
+                    Hasta 5 imágenes (JPG, PNG o WEBP) de máximo 5 MB cada una.
+                    Puedes mostrar la fuga, el daño o el medidor.
+                </div>
+                <span asp-validation-for="Fotografias" class="text-danger"></span>
+            </div>
+
+            <div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-send"></i> Enviar reporte
+                </button>
+            </div>
+        </form>
+    </main>
+</body>
+</html>

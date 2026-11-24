@@ -1,4 +1,4 @@
-@model List<AsadaSJM.Models.Averia>
+@model AsadaSJM.Models.AveriasAdminViewModel
 
 @{
     ViewData["Title"] = "Averías";
@@ -7,105 +7,67 @@
 <div class="panel">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">Reportes de averías</h4>
 
-        <h4 class="mb-0">
-            Averías
-        </h4>
-
-        <a asp-action="Create" class="btn btn-agua">
-            <i class="bi bi-plus-lg"></i>
-            Registrar avería
-        </a>
-
-    </div>
-
-    <div class="table-responsive">
-
-        <table class="table table-asada mb-0">
-
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Abonado</th>
-                    <th>Usuario reporta</th>
-                    <th>Categoría</th>
-                    <th>Descripción</th>
-                    <th>Ubicación</th>
-                    <th>Prioridad</th>
-                    <th>Fecha reporte</th>
-                    <th></th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-                @foreach (var a in Model)
+        <form method="get" asp-action="Index" class="d-flex gap-2">
+            <select name="estado" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">Todos los estados</option>
+                @foreach (var e in new[] { "Pendiente", "En proceso", "Resuelta" })
                 {
-                    <tr>
-
-                        <td>
-                            @a.IdAveria
-                        </td>
-
-                        <td>
-                            @(a.IdAbonado?.ToString() ?? "No registrado")
-                        </td>
-
-                        <td>
-                            @a.IdUsuarioReporta
-                        </td>
-
-                        <td>
-                            @a.IdCategoriaAveria
-                        </td>
-
-                        <td>
-                            @a.Descripcion
-                        </td>
-
-                        <td>
-                            @a.Ubicacion
-                        </td>
-
-                        <td>
-                            @a.Prioridad
-                        </td>
-
-                        <td>
-                            @a.FechaReporte.ToString("dd/MM/yyyy HH:mm")
-                        </td>
-
-                        <td>
-
-                            <a asp-action="Details"
-                               asp-route-id="@a.IdAveria"
-                               title="Ver detalles">
-                                <i class="bi bi-eye"></i>
-                            </a>
-
-                            <a asp-action="Edit"
-                               asp-route-id="@a.IdAveria"
-                               class="ms-2"
-                               title="Editar">
-                                <i class="bi bi-pencil-square"></i>
-                            </a>
-
-                            <a asp-action="Delete"
-                               asp-route-id="@a.IdAveria"
-                               class="ms-2 text-danger"
-                               title="Eliminar">
-                                <i class="bi bi-trash"></i>
-                            </a>
-
-                        </td>
-
-                    </tr>
+                    <option value="@e" selected="@(Model.EstadoFiltro == e)">@e</option>
                 }
-
-            </tbody>
-
-        </table>
-
+            </select>
+        </form>
     </div>
+
+    @if (Model.Averias.Count == 0)
+    {
+        <div class="alert alert-info mb-0">No hay reportes de averías.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-asada mb-0">
+                <thead>
+                    <tr>
+                        <th>Caso</th>
+                        <th>Abonado</th>
+                        <th>NIS</th>
+                        <th>Categoría</th>
+                        <th>Ubicación</th>
+                        <th>Prioridad</th>
+                        <th>Estado</th>
+                        <th>Fecha reporte</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var a in Model.Averias)
+                    {
+                        string clase = a.Estado == "Pendiente" ? "pendiente"
+                                     : a.Estado == "En proceso" ? "proceso"
+                                     : "resuelto";
+
+                        <tr>
+                            <td><strong>@a.NumeroCaso</strong></td>
+                            <td>@a.Abonado</td>
+                            <td>@a.NIS</td>
+                            <td>@a.Categoria</td>
+                            <td>@a.Ubicacion</td>
+                            <td>@a.Prioridad</td>
+                            <td><span class="estado @clase">@a.Estado</span></td>
+                            <td>@a.FechaReporte.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                <a asp-action="Detalle" asp-route-id="@a.IdAveria"
+                                   title="Ver y actualizar">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 
 </div>

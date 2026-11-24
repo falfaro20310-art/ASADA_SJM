@@ -1,0 +1,457 @@
+﻿@{
+    Layout = "_LayoutNoAuth";
+    ViewData["Title"] = "Organigrama - ASADA San José de la Montaña";
+
+    var presidenteActual =
+        ViewBag.PresidenteActual as AsadaSJM.Models.Expresidente;
+
+    // Cargos de la Junta Directiva.
+    // Para mostrar el nombre de una persona, escríbalo en el segundo valor.
+    // Ejemplo: ("Secretaría", "María Pérez", "bi-journal-text")
+    var junta = new List<(string Cargo, string? Nombre, string Icono)>
+    {
+        ("Presidencia",     presidenteActual?.Nombre, "bi-person-badge-fill"),
+        ("Vicepresidencia", null,                     "bi-person-check-fill"),
+        ("Secretaría",      null,                     "bi-journal-text"),
+        ("Tesorería",       null,                     "bi-cash-coin"),
+        ("Vocalía 1",       null,                     "bi-person-fill"),
+        ("Vocalía 2",       null,                     "bi-person-fill"),
+        ("Fiscalía",        null,                     "bi-shield-check")
+    };
+
+    // Áreas que dependen de la Administración.
+    var areas = new List<(string Titulo, string Detalle, string Icono)>
+    {
+        ("Operación y Mantenimiento",
+         "Fontanería, mantenimiento de redes, tanques y nacientes.",
+         "bi-tools"),
+        ("Atención al Abonado",
+         "Trámites, reportes de averías y servicio al cliente.",
+         "bi-headset"),
+        ("Facturación y Cobro",
+         "Lecturas de consumo, recibos y control de pagos.",
+         "bi-receipt"),
+        ("Gestión Ambiental",
+         "Protección de nacientes y proyectos ambientales.",
+         "bi-tree-fill")
+    };
+}
+
+<style>
+    .org-page {
+        --org-blue: #004A99;
+        --org-blue-dark: #003977;
+        --org-green: #2D5A27;
+        --org-line: #9DB4CE;
+        --org-bg: #F5F7F9;
+        --org-text: #20384E;
+        --org-muted: #6B7986;
+        background: var(--org-bg);
+        color: var(--org-text);
+    }
+
+    /* ---------- Encabezado ---------- */
+    .org-hero {
+        background: linear-gradient(135deg, var(--org-blue) 0%, #00305e 100%);
+        color: #fff;
+        padding: 56px 0 48px;
+    }
+
+        .org-hero .kicker {
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-weight: 700;
+            opacity: .8;
+        }
+
+        .org-hero h1 {
+            color: #fff;
+            font-size: 38px;
+            margin: 8px 0 12px;
+        }
+
+        .org-hero p {
+            max-width: 640px;
+            opacity: .9;
+            margin-bottom: 22px;
+        }
+
+        .org-hero .btn-light-outline {
+            border: 1px solid rgba(255,255,255,.6);
+            color: #fff;
+            padding: 8px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            margin-right: 8px;
+            display: inline-block;
+        }
+
+            .org-hero .btn-light-outline:hover {
+                background: rgba(255,255,255,.15);
+                color: #fff;
+            }
+
+    /* ---------- Contenedor del organigrama ---------- */
+    .org-section {
+        padding: 44px 0 64px;
+    }
+
+    .org-board {
+        background: #fff;
+        border: 1px solid #e3e9ef;
+        border-radius: 16px;
+        padding: 36px 20px 40px;
+        overflow-x: auto;
+        box-shadow: 0 8px 24px rgba(0, 40, 90, .06);
+    }
+
+    /* ---------- Árbol ---------- */
+    .org-tree {
+        display: flex;
+        justify-content: center;
+        min-width: max-content;
+    }
+
+        .org-tree ul {
+            padding-top: 28px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            margin: 0;
+            padding-left: 0;
+        }
+
+        .org-tree > ul {
+            padding-top: 0;
+        }
+
+        .org-tree li {
+            position: relative;
+            padding: 28px 10px 0;
+            text-align: center;
+            list-style: none;
+        }
+
+        .org-tree > ul > li {
+            padding-top: 0;
+        }
+
+        /* Conectores horizontales */
+        .org-tree li::before,
+        .org-tree li::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 50%;
+            width: 50%;
+            height: 28px;
+            border-top: 2px solid var(--org-line);
+        }
+
+        .org-tree li::after {
+            right: auto;
+            left: 50%;
+            border-left: 2px solid var(--org-line);
+        }
+
+        .org-tree > ul > li::before,
+        .org-tree > ul > li::after,
+        .org-tree li:only-child::before,
+        .org-tree li:only-child::after {
+            display: none;
+        }
+
+        .org-tree li:only-child {
+            padding-top: 0;
+        }
+
+        .org-tree li:first-child::before,
+        .org-tree li:last-child::after {
+            border: 0 none;
+        }
+
+        .org-tree li:last-child::before {
+            border-right: 2px solid var(--org-line);
+            border-radius: 0 8px 0 0;
+        }
+
+        .org-tree li:first-child::after {
+            border-radius: 8px 0 0 0;
+        }
+
+        /* Conector vertical que baja desde el padre */
+        .org-tree ul ul::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 50%;
+            height: 28px;
+            border-left: 2px solid var(--org-line);
+        }
+
+    /* ---------- Nodos ---------- */
+    .org-node {
+        display: inline-block;
+        background: #fff;
+        border: 1px solid #d5dfea;
+        border-radius: 12px;
+        padding: 14px 18px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0, 40, 90, .08);
+    }
+
+        .org-node .org-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 19px;
+            margin-bottom: 8px;
+            background: #E6EEF8;
+            color: var(--org-blue);
+        }
+
+        .org-node h3 {
+            font-size: 15px;
+            margin: 0 0 4px;
+            color: var(--org-text);
+        }
+
+        .org-node p {
+            font-size: 12.5px;
+            color: var(--org-muted);
+            margin: 0;
+        }
+
+    .org-root {
+        background: var(--org-blue);
+        border-color: var(--org-blue);
+        min-width: 280px;
+    }
+
+        .org-root h3,
+        .org-root p {
+            color: #fff;
+        }
+
+        .org-root .org-icon {
+            background: rgba(255,255,255,.18);
+            color: #fff;
+        }
+
+    .org-admin {
+        background: var(--org-green);
+        border-color: var(--org-green);
+        min-width: 260px;
+    }
+
+        .org-admin h3,
+        .org-admin p {
+            color: #fff;
+        }
+
+        .org-admin .org-icon {
+            background: rgba(255,255,255,.18);
+            color: #fff;
+        }
+
+    .org-area {
+        width: 215px;
+    }
+
+        .org-area .org-icon {
+            background: #E8F1E6;
+            color: var(--org-green);
+        }
+
+    /* Junta Directiva */
+    .org-junta {
+        padding: 18px 20px 20px;
+        border: 2px solid var(--org-blue);
+        max-width: 760px;
+    }
+
+        .org-junta > h3 {
+            font-size: 17px;
+            color: var(--org-blue);
+            margin-bottom: 2px;
+        }
+
+        .org-junta > p {
+            margin-bottom: 14px;
+        }
+
+    .junta-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+    }
+
+    .junta-item {
+        background: #F5F8FC;
+        border: 1px solid #dde7f2;
+        border-radius: 10px;
+        padding: 10px 8px;
+    }
+
+        .junta-item i {
+            color: var(--org-blue);
+            font-size: 18px;
+        }
+
+        .junta-item strong {
+            display: block;
+            font-size: 13px;
+            color: var(--org-text);
+            margin-top: 2px;
+        }
+
+        .junta-item span {
+            display: block;
+            font-size: 12px;
+            color: var(--org-muted);
+            margin-top: 2px;
+        }
+
+    /* ---------- Responsive ---------- */
+    @@media (max-width: 767px) {
+        .org-hero h1 {
+            font-size: 28px;
+        }
+
+        .org-tree {
+            min-width: 0;
+        }
+
+            .org-tree ul {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .org-tree li {
+                padding: 28px 0 0;
+            }
+
+                .org-tree li::before,
+                .org-tree li::after {
+                    display: none;
+                }
+
+                .org-tree li:only-child {
+                    padding-top: 0;
+                }
+
+            .org-tree ul ul::before {
+                display: block;
+            }
+
+        .junta-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .org-area,
+        .org-root,
+        .org-admin {
+            width: 100%;
+            min-width: 0;
+        }
+    }
+</style>
+
+<div class="org-page">
+
+    <!-- ENCABEZADO -->
+    <header class="org-hero">
+        <div class="container">
+            <div class="kicker">Estructura organizacional</div>
+            <h1>Organigrama</h1>
+            <p>
+                Conozca cómo está organizada la ASADA de San José de la Montaña
+                para brindar un servicio de agua potable confiable, transparente
+                y cercano a la comunidad.
+            </p>
+
+            <a asp-controller="Portal" asp-action="Index" class="btn-light-outline">
+                <i class="bi bi-arrow-left"></i> Volver al portal
+            </a>
+            <a asp-controller="Portal" asp-action="Presidentes" class="btn-light-outline">
+                <i class="bi bi-people"></i> Ver presidentes
+            </a>
+        </div>
+    </header>
+
+    <!-- ORGANIGRAMA -->
+    <section class="org-section">
+        <div class="container">
+            <div class="org-board">
+                <div class="org-tree">
+                    <ul>
+                        <li>
+                            <!-- Nivel 1: Asamblea -->
+                            <div class="org-node org-root">
+                                <div class="org-icon"><i class="bi bi-people-fill"></i></div>
+                                <h3>Asamblea General de Asociados</h3>
+                                <p>Máxima autoridad de la ASADA</p>
+                            </div>
+
+                            <ul>
+                                <li>
+                                    <!-- Nivel 2: Junta Directiva -->
+                                    <div class="org-node org-junta">
+                                        <h3>Junta Directiva</h3>
+                                        <p>Dirige y representa a la organización</p>
+
+                                        <div class="junta-grid">
+                                            @foreach (var miembro in junta)
+                                            {
+                                                <div class="junta-item">
+                                                    <i class="bi @miembro.Icono"></i>
+                                                    <strong>@miembro.Cargo</strong>
+                                                    @if (!string.IsNullOrWhiteSpace(miembro.Nombre))
+                                                    {
+                                                        <span>@miembro.Nombre</span>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <ul>
+                                        <li>
+                                            <!-- Nivel 3: Administración -->
+                                            <div class="org-node org-admin">
+                                                <div class="org-icon"><i class="bi bi-briefcase-fill"></i></div>
+                                                <h3>Administración</h3>
+                                                <p>Gestión operativa y administrativa</p>
+                                            </div>
+
+                                            <ul>
+                                                @foreach (var area in areas)
+                                                {
+                                                    <li>
+                                                        <!-- Nivel 4: Áreas -->
+                                                        <div class="org-node org-area">
+                                                            <div class="org-icon"><i class="bi @area.Icono"></i></div>
+                                                            <h3>@area.Titulo</h3>
+                                                            <p>@area.Detalle</p>
+                                                        </div>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>

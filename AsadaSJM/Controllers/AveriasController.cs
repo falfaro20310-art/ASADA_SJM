@@ -1,147 +1,139 @@
-using AsadaSJM.Data;
 using AsadaSJM.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
+using System.Data;
 
 namespace AsadaSJM.Controllers;
 
 [Authorize(Roles = "Administrador,Operativo")]
 public class AveriasController : Controller
 {
-    private readonly ApplicationDbContext _context;
+    private static readonly string[] EstadosValidos =
+        { "Pendiente", "En proceso", "Resuelta" };
 
-    public AveriasController(ApplicationDbContext context)
+    private readonly IConfiguration _configuration;
+
+    public AveriasController(IConfiguration configuration)
     {
-        _context = context;
+        _configuration = configuration;
     }
 
-    // GET: Averias
-    public async Task<IActionResult> Index()
+    private string ObtenerConnectionString()
     {
-        var averias = await _context.Averias
-            .Include(a => a.Abonado)
-            .OrderByDescending(a => a.FechaReporte)
-            .ToListAsync();
+        string? cs = _configuration.GetConnectionString("DefaultConnection");
 
-        return View(averias);
+        if (string.IsNullOrWhiteSpace(cs))
+        {
+            throw new InvalidOperationException(
+                "No se encontró la conexión DefaultConnection en appsettings.json.");
+        }
+
+        return cs;
     }
 
-    // GET: Averias/Create
-    public IActionResult Create()
+    private int? ObtenerIdUsuarioAutenticado()
     {
-        return View();
+        string? valor = User.FindFirst("IdUsuario")?.Value;
+        return int.TryParse(valor, out int id) ? id : null;
     }
 
-    // POST: Averias/Create
+    // Lista de reportes de todos los abonados
+    [HttpGet]
+    public IActionResult Index(string? estado)
+    {
+        var modelo = new AveriasAdminViewModel
+        {
+            EstadoFiltro = string.IsNullOrWhiteSpace(estado) ? null : estado
+        };
+
+        using SqlConnection connection = new SqlConnection(ObtenerConnectionString());
+        using SqlCommand command = new SqlCommand("SP_Averia_ListarAdmin", connection);
+        command.CommandType = CommandType.StoredProcedure;
+        command.Parameters.Add("@Estado", SqlDbType.VarChar, 50).Value =
+            modelo.EstadoFiltro != null ? modelo.EstadoFiltro : DBNull.Value;
+
+        connection.Open();
+        using SqlDataReader reader = command.ExecuteReader();
+
+        while (reader.Read())
+        {
+            modelo.Averias.Add(AveriaLector.Leer(reader));
+        }
+
+        return View(modelo);
+    }
+
+    // Detalle del reporte + formulario para actualizar estado
+    [HttpGet]
+    public IActionResult Detalle(int id)
+    {
+        using SqlConnection connection = new SqlConnection(ObtenerConnectionString());
+        using SqlCommand command = new SqlCommand("SP_Averia_DetalleAdmin", connection);
+        command.CommandType = CommandType.StoredProcedure;
+        command.Parameters.Add("@IdAveria", SqlDbType.Int).Value = id;
+
+        connection.Open();
+        using SqlDataReader reader = command.ExecuteReader();
+
+        AveriaViewModel? modelo = AveriaLector.LeerDetalle(reader);
+
+        if (modelo == null)
+        {
+            return NotFound();
+        }
+
+        return View(modelo);
+    }
+
+    // MRA-05: actualizar estado, fecha de atención y observaciones
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(Averia averia)
+    public IActionResult ActualizarEstado(ActualizarEstadoAveriaViewModel form)
     {
-        if (!ModelState.IsValid)
+        int? idUsuario = ObtenerIdUsuarioAutenticado();
+
+        if (idUsuario == null)
         {
-            return View(averia);
+            return RedirectToAction("Login", "Account");
         }
 
-        _context.Averias.Add(averia);
-        await _context.SaveChangesAsync();
-
-        return RedirectToAction(nameof(Index));
-    }
-
-    // GET: Averias/Details/5
-    public async Task<IActionResult> Details(int? id)
-    {
-        if (id is null)
+        if (!EstadosValidos.Contains(form.Estado))
         {
-            return NotFound();
+            TempData["Error"] = "El estado seleccionado no es válido.";
+            return RedirectToAction(nameof(Detalle), new { id = form.IdAveria });
         }
 
-        var averia = await _context.Averias
-            .Include(a => a.Abonado)
-            .FirstOrDefaultAsync(a => a.IdAveria == id);
-
-        if (averia is null)
+        if (string.IsNullOrWhiteSpace(form.Observaciones))
         {
-            return NotFound();
+            TempData["Error"] = "Debe indicar un comentario sobre la atención.";
+            return RedirectToAction(nameof(Detalle), new { id = form.IdAveria });
         }
 
-        return View(averia);
-    }
-
-    // GET: Averias/Edit/5
-    public async Task<IActionResult> Edit(int? id)
-    {
-        if (id is null)
+        try
         {
-            return NotFound();
+            using SqlConnection connection = new SqlConnection(ObtenerConnectionString());
+            using SqlCommand command = new SqlCommand("SP_Averia_ActualizarEstado", connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.Add("@IdAveria", SqlDbType.Int).Value = form.IdAveria;
+            command.Parameters.Add("@IdUsuario", SqlDbType.Int).Value = idUsuario.Value;
+            command.Parameters.Add("@Estado", SqlDbType.VarChar, 50).Value = form.Estado;
+            command.Parameters.Add("@FechaAtencion", SqlDbType.DateTime).Value =
+                form.FechaAtencion.HasValue ? form.FechaAtencion.Value : DBNull.Value;
+            command.Parameters.Add("@Observaciones", SqlDbType.VarChar, -1).Value =
+                form.Observaciones.Trim();
+
+            connection.Open();
+            command.ExecuteNonQuery();
+        }
+        catch (SqlException ex)
+        {
+            TempData["Error"] = ex.Message;
+            return RedirectToAction(nameof(Detalle), new { id = form.IdAveria });
         }
 
-        var averia = await _context.Averias
-            .FirstOrDefaultAsync(a => a.IdAveria == id);
-
-        if (averia is null)
-        {
-            return NotFound();
-        }
-
-        return View(averia);
-    }
-
-    // POST: Averias/Edit/5
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, Averia averia)
-    {
-        if (id != averia.IdAveria)
-        {
-            return NotFound();
-        }
-
-        if (!ModelState.IsValid)
-        {
-            return View(averia);
-        }
-
-        _context.Update(averia);
-        await _context.SaveChangesAsync();
-
-        return RedirectToAction(nameof(Index));
-    }
-
-    // GET: Averias/Delete/5
-    public async Task<IActionResult> Delete(int? id)
-    {
-        if (id is null)
-        {
-            return NotFound();
-        }
-
-        var averia = await _context.Averias
-            .Include(a => a.Abonado)
-            .FirstOrDefaultAsync(a => a.IdAveria == id);
-
-        if (averia is null)
-        {
-            return NotFound();
-        }
-
-        return View(averia);
-    }
-
-    // POST: Averias/Delete/5
-    [HttpPost, ActionName("Delete")]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed(int id)
-    {
-        var averia = await _context.Averias.FindAsync(id);
-
-        if (averia is not null)
-        {
-            _context.Averias.Remove(averia);
-            await _context.SaveChangesAsync();
-        }
-
-        return RedirectToAction(nameof(Index));
+        TempData["Exito"] = "El reporte fue actualizado correctamente.";
+        return RedirectToAction(nameof(Detalle), new { id = form.IdAveria });
     }
 }
