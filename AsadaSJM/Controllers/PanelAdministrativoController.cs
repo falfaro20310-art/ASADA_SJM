@@ -1,5 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using System.Data;
@@ -66,10 +65,29 @@ public class PanelAdministrativoController : Controller
 
     private IActionResult Volver(
         string tab,
-        int? idAbonado = null) =>
+        int? idAbonado = null,
+        string? abrir = null) =>
         RedirectToAction(
             nameof(Index),
-            new { tab, idAbonado });
+            new { tab, idAbonado, abrir });
+
+    // Paginación del lado del servidor (MPA-04 y MPA-05).
+
+    private const int TamPagina = 20;
+
+    private static (int Pagina, int TotalPaginas) Paginar(
+        int totalFilas,
+        int pagina)
+    {
+        int totalPaginas = Math.Max(
+            1,
+            (int)Math.Ceiling(totalFilas / (double)TamPagina));
+
+        return (Math.Clamp(pagina, 1, totalPaginas), totalPaginas);
+    }
+
+    private static string? Limpio(string? texto) =>
+        string.IsNullOrWhiteSpace(texto) ? null : texto.Trim();
 
     private static string Col(string nombre) =>
         "[" + nombre.Replace("]", "]]", StringComparison.Ordinal) + "]";
@@ -86,6 +104,30 @@ public class PanelAdministrativoController : Controller
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
     }
 
+    private async Task<bool> ExisteTabla(string nombre)
+    {
+        var tabla = await Consultar(
+            "SELECT CASE WHEN OBJECT_ID(@Nombre, N'U') IS NULL THEN 0 ELSE 1 END;",
+            P("@Nombre", "dbo." + nombre));
+
+        return Convert.ToInt32(tabla.Rows[0][0]) == 1;
+    }
+
+    private async Task<bool> ExisteColumna(string tabla, string columna)
+    {
+        var resultado = await Consultar(
+            "SELECT CASE WHEN COL_LENGTH(@Tabla, @Columna) IS NULL THEN 0 ELSE 1 END;",
+            P("@Tabla", "dbo." + tabla),
+            P("@Columna", columna));
+
+        return Convert.ToInt32(resultado.Rows[0][0]) == 1;
+    }
+
+    private int? IdUsuarioActual() =>
+        int.TryParse(User.FindFirst("IdUsuario")?.Value, out var id)
+            ? id
+            : null;
+
     private static string? Elegir(
         HashSet<string> columnas,
         params string[] nombres) =>
@@ -98,9 +140,16 @@ public class PanelAdministrativoController : Controller
     [HttpGet]
     public async Task<IActionResult> Index(
         string tab = "noticias",
-        string? tipo = null,
+        string? buscar = null,
         string? estado = null,
-        bool pendientes = false,
+        string vista = "todos",
+        bool todos = false,
+        int pagina = 1,
+        int? categoria = null,
+        int? fontanero = null,
+        bool historial = false,
+        int paginaOrdenes = 1,
+        string? abrir = null,
         int? idAbonado = null)
     {
         string[] secciones =
@@ -118,10 +167,29 @@ public class PanelAdministrativoController : Controller
                 ? tab.ToLowerInvariant()
                 : "noticias";
 
+        buscar = Limpio(buscar);
+        estado = Limpio(estado);
+
+        vista = vista is "tramites" or "averias" ? vista : "todos";
+
         ViewBag.Tab = tab;
-        ViewBag.Tipo = tipo;
+        ViewBag.Buscar = buscar;
         ViewBag.Estado = estado;
-        ViewBag.Pendientes = pendientes;
+        ViewBag.Vista = vista;
+        ViewBag.Todos = todos;
+        ViewBag.Pagina = 1;
+        ViewBag.TotalPaginas = 1;
+        ViewBag.TotalFilas = 0;
+        ViewBag.Categoria = categoria;
+        ViewBag.Fontanero = fontanero;
+        ViewBag.Historial = historial;
+        ViewBag.PaginaOrdenes = 1;
+        ViewBag.TotalPaginasOrdenes = 1;
+        ViewBag.TotalOrdenes = 0;
+        ViewBag.Abrir = abrir;
+        ViewBag.Conteos = new DataTable();
+        ViewBag.ResumenAverias = new DataTable();
+        ViewBag.Categorias = new DataTable();
 
         ViewBag.Noticias = new DataTable();
         ViewBag.Documentos = new DataTable();
@@ -205,7 +273,9 @@ public class PanelAdministrativoController : Controller
                     v.NumeroVersion DESC;");
         }
 
-        // MPA-04: TRÁMITES
+        // MPA-04: TRÁMITES Y AVERÍAS EN UNA SOLA BANDEJA
+        // Por defecto solo se muestran casos abiertos,
+        // paginados de 20 en 20, con contadores arriba.
 
         else if (tab == "tramites")
         {
@@ -241,6 +311,35 @@ public class PanelAdministrativoController : Controller
                         ON tt.IdTipoTramite = t.IdTipoTramite"
                     : "";
 
+                // Conexión con MTG-01 a MTG-05.
+
+                bool existeSolicitud =
+                    await ExisteTabla("SOLICITUD_DISPONIBILIDAD_HIDRICA");
+
+                var numeroSql = existeSolicitud
+                    ? "CONVERT(nvarchar(30),s.NumeroTramite)"
+                    : "CAST(NULL AS nvarchar(30))";
+
+                var solicitanteSql = existeSolicitud
+                    ? "CONVERT(nvarchar(200),s.NombreSolicitante)"
+                    : "CAST(NULL AS nvarchar(200))";
+
+                var tieneSolicitudSql = existeSolicitud
+                    ? "CASE WHEN s.IdTramite IS NULL THEN 0 ELSE 1 END"
+                    : "0";
+
+                var joinSolicitud = existeSolicitud
+                    ? @"LEFT JOIN dbo.SOLICITUD_DISPONIBILIDAD_HIDRICA s
+                        ON s.IdTramite = t.IdTramite"
+                    : "";
+
+                // Conexión con MRA (averías): se excluyen las archivadas.
+
+                var filtroArchivada =
+                    await ExisteColumna("AVERIA", "Archivada")
+                        ? "WHERE a.Archivada = 0"
+                        : "";
+
                 var estadoSql = colEstado == null
                     ? "N'No registrado'"
                     : $"CONVERT(nvarchar(50),t.{Col(colEstado)})";
@@ -249,166 +348,412 @@ public class PanelAdministrativoController : Controller
                     ? "CAST(NULL AS datetime2(0))"
                     : $"TRY_CONVERT(datetime2(0),t.{Col(colFecha)})";
 
-                var consulta = $@"
+                var union = $@"
                     SELECT
-                        q.TipoRegistro,
-                        q.IdRegistro,
-                        q.Tipo,
-                        q.Estado,
-                        q.FechaRecepcion,
-                        q.EsAveria,
-                        q.EstadoReporte,
-                        COALESCE(
-                            o.CanalOrigen,
-                            N'No registrado'
-                        ) AS CanalOrigen
-                    FROM
+                        N'Tramite' AS TipoRegistro,
+                        t.IdTramite AS IdRegistro,
+                        {numeroSql} AS NumeroTramite,
+                        {solicitanteSql} AS Solicitante,
+                        {tieneSolicitudSql} AS TieneSolicitud,
+                        CONVERT(nvarchar(150), {tipoSql}) AS Tipo,
+                        {estadoSql} AS Estado,
+                        {fechaSql} AS FechaRecepcion,
+                        0 AS EsAveria
+
+                    FROM dbo.TRAMITE t
+                    {joinTipo}
+                    {joinSolicitud}
+
+                    UNION ALL
+
+                    SELECT
+                        N'Averia',
+                        a.IdAveria,
+                        CONVERT(nvarchar(30),
+                            'AV-' + RIGHT('000000' +
+                            CAST(a.IdAveria AS varchar(10)), 6)),
+                        CONVERT(nvarchar(200),
+                            NULLIF(LTRIM(RTRIM(
+                                COALESCE(u.Nombres, '') + ' ' +
+                                COALESCE(u.PrimerApellido, ''))), '')),
+                        0,
+                        CONVERT(nvarchar(150),
+                            N'Avería · ' +
+                            COALESCE(c.Nombre, N'Sin categoría')),
+                        CONVERT(nvarchar(50), a.Estado),
+                        TRY_CONVERT(datetime2(0), a.FechaReporte),
+                        1
+
+                    FROM dbo.AVERIA a
+
+                    LEFT JOIN dbo.CATEGORIA_AVERIA c
+                        ON c.IdCategoriaAveria = a.IdCategoriaAveria
+
+                    LEFT JOIN dbo.ABONADO ab
+                        ON ab.IdAbonado = a.IdAbonado
+
+                    LEFT JOIN dbo.USUARIO u
+                        ON u.IdUsuario = ab.IdUsuario
+
+                    {filtroArchivada}";
+
+                var filtrado = $@"
+                    WITH q AS ({union}),
+
+                    f AS
                     (
                         SELECT
-                            N'Tramite' AS TipoRegistro,
-                            t.IdTramite AS IdRegistro,
-                            {tipoSql} AS Tipo,
-                            {estadoSql} AS Estado,
-                            {fechaSql} AS FechaRecepcion,
-                            0 AS EsAveria,
-                            {estadoSql} AS EstadoReporte
-
-                        FROM dbo.TRAMITE t
-                        {joinTipo}
-
-                        UNION ALL
-
-                        SELECT
-                            N'Averia',
-                            a.IdAveria,
-                            N'Avería / fuga',
-
+                            q.*,
                             COALESCE(
-                                (
-                                    SELECT TOP 1 x.Estado
-                                    FROM dbo.MPA_ORDEN_TRABAJO x
-                                    WHERE x.IdAveria = a.IdAveria
-                                    ORDER BY x.IdOrden DESC
-                                ),
-                                N'Recibido'
-                            ),
+                                o.CanalOrigen,
+                                N'No registrado'
+                            ) AS CanalOrigen
 
-                            a.FechaReporte,
-                            1,
-                            a.Estado
+                        FROM q
 
-                        FROM dbo.AVERIA a
-                    ) q
+                        LEFT JOIN dbo.MPA_TRAMITE_ORIGEN o
+                            ON o.TipoOrigen = q.TipoRegistro
+                           AND o.IdRegistroOrigen = q.IdRegistro
 
-                    LEFT JOIN dbo.MPA_TRAMITE_ORIGEN o
-                        ON o.TipoOrigen = q.TipoRegistro
-                       AND o.IdRegistroOrigen = q.IdRegistro
-
-                    WHERE
-                        (
-                            @Tipo IS NULL
-                            OR q.Tipo LIKE N'%' + @Tipo + N'%'
-                        )
-                        AND
-                        (
-                            @Estado IS NULL
-                            OR q.Estado = @Estado
-                        )
-                        AND
-                        (
-                            @Solo = 0
-                            OR q.Estado IN
+                        WHERE
                             (
-                                N'Recibido',
-                                N'Pendiente',
-                                N'En proceso',
-                                N'En revisión'
+                                @Vista = N'todos'
+                                OR (@Vista = N'tramites' AND q.EsAveria = 0)
+                                OR (@Vista = N'averias' AND q.EsAveria = 1)
                             )
-                        )
+                            AND
+                            (
+                                @Buscar IS NULL
+                                OR q.Tipo LIKE N'%' + @Buscar + N'%'
+                                OR q.NumeroTramite LIKE N'%' + @Buscar + N'%'
+                                OR q.Solicitante LIKE N'%' + @Buscar + N'%'
+                            )
+                            AND
+                            (
+                                @Estado IS NULL
+                                OR q.Estado = @Estado
+                            )
+                            AND
+                            (
+                                @Estado IS NOT NULL
+                                OR @Todos = 1
+                                OR q.Estado IN
+                                (
+                                    N'Pendiente',
+                                    N'En proceso',
+                                    N'En revisión',
+                                    N'Recibido'
+                                )
+                            )
+                    )";
 
-                    ORDER BY
-                        q.EsAveria DESC,
-                        q.FechaRecepcion DESC;";
+                SqlParameter[] Filtros() => new[]
+                {
+                    P("@Vista", vista),
+                    P("@Buscar", buscar),
+                    P("@Estado", estado),
+                    P("@Todos", todos ? 1 : 0)
+                };
+
+                var total = await Consultar(
+                    filtrado + " SELECT COUNT(*) FROM f;",
+                    Filtros());
+
+                int totalFilas = Convert.ToInt32(total.Rows[0][0]);
+
+                var (paginaActual, totalPaginas) =
+                    Paginar(totalFilas, pagina);
+
+                var parametros = Filtros().ToList();
+
+                parametros.Add(P("@Skip", (paginaActual - 1) * TamPagina));
+                parametros.Add(P("@Take", TamPagina));
 
                 ViewBag.Tramites = await Consultar(
-                    consulta,
+                    filtrado + @"
+                    SELECT *
+                    FROM f
+                    ORDER BY
+                        CASE f.Estado
+                            WHEN N'Pendiente' THEN 0
+                            WHEN N'En proceso' THEN 1
+                            ELSE 2
+                        END,
+                        f.FechaRecepcion DESC,
+                        f.IdRegistro DESC
+                    OFFSET @Skip ROWS
+                    FETCH NEXT @Take ROWS ONLY;",
+                    parametros.ToArray());
 
-                    P(
-                        "@Tipo",
-                        string.IsNullOrWhiteSpace(tipo)
-                            ? null : tipo.Trim()
-                    ),
+                // Contadores sin filtros: carga de trabajo real.
 
-                    P(
-                        "@Estado",
-                        string.IsNullOrWhiteSpace(estado)
-                            ? null : estado.Trim()
-                    ),
+                ViewBag.Conteos = await Consultar($@"
+                    WITH q AS ({union})
+                    SELECT
+                        q.EsAveria,
+                        q.Estado,
+                        COUNT(*) AS Cantidad
+                    FROM q
+                    GROUP BY
+                        q.EsAveria,
+                        q.Estado;");
 
-                    P("@Solo", pendientes ? 1 : 0)
-                );
+                ViewBag.Pagina = paginaActual;
+                ViewBag.TotalPaginas = totalPaginas;
+                ViewBag.TotalFilas = totalFilas;
             }
         }
 
-        // MPA-05: AVERÍAS
+        // MPA-05: AVERÍAS, ÓRDENES Y FONTANEROS
 
         else if (tab == "averias")
         {
             ViewBag.Fontaneros = await Consultar(@"
                 SELECT
-                    IdFontanero,
-                    Nombre,
-                    Telefono,
-                    Activo
-                FROM dbo.MPA_FONTANERO
-                ORDER BY Nombre;");
+                    f.IdFontanero,
+                    f.Nombre,
+                    f.Telefono,
+                    f.Activo,
+                    (
+                        SELECT COUNT(*)
+                        FROM dbo.MPA_ORDEN_TRABAJO x
+                        WHERE x.IdFontanero = f.IdFontanero
+                          AND x.Estado <> 'Cerrada'
+                    ) AS OrdenesAbiertas
+                FROM dbo.MPA_FONTANERO f
+                ORDER BY
+                    f.Activo DESC,
+                    f.Nombre;");
 
-            ViewBag.Averias = await Consultar(@"
-                SELECT
-                    a.IdAveria,
-                    a.Descripcion,
-                    a.Prioridad,
-                    a.FechaReporte,
-                    a.Estado AS EstadoReporte,
+            if (await ExisteTabla("CATEGORIA_AVERIA"))
+            {
+                ViewBag.Categorias = await Consultar(@"
+                    SELECT IdCategoriaAveria, Nombre
+                    FROM dbo.CATEGORIA_AVERIA
+                    ORDER BY Nombre;");
+            }
 
-                    o.IdOrden,
-                    o.IdFontanero,
-                    o.Estado AS EstadoOrden,
-                    o.Observaciones,
+            // Conexión con MRA: caso, categoría, abonado y estado real.
 
-                    f.Nombre AS Fontanero
+            var filtroArchivada =
+                await ExisteColumna("AVERIA", "Archivada")
+                    ? "a.Archivada = 0"
+                    : "1 = 1";
 
-                FROM dbo.AVERIA a
-
-                OUTER APPLY
+            var cteAverias = $@"
+                x AS
                 (
-                    SELECT TOP 1
-                        IdOrden,
-                        IdFontanero,
-                        Estado,
-                        Observaciones
+                    SELECT
+                        a.IdAveria,
 
-                    FROM dbo.MPA_ORDEN_TRABAJO
-                    WHERE IdAveria = a.IdAveria
+                        'AV-' + RIGHT('000000' +
+                            CAST(a.IdAveria AS varchar(10)), 6) AS NumeroCaso,
 
-                    ORDER BY
-                        CASE
-                            WHEN Estado = 'Cerrada'
-                            THEN 1 ELSE 0
-                        END,
-                        IdOrden DESC
+                        a.IdCategoriaAveria,
+                        COALESCE(c.Nombre, N'Sin categoría') AS Categoria,
 
-                ) o
+                        a.Descripcion,
+                        a.Ubicacion,
+                        a.Prioridad,
+                        a.FechaReporte,
+                        a.Estado AS EstadoReporte,
 
-                LEFT JOIN dbo.MPA_FONTANERO f
-                    ON f.IdFontanero = o.IdFontanero
+                        LTRIM(RTRIM(
+                            COALESCE(u.Nombres, '') + ' ' +
+                            COALESCE(u.PrimerApellido, '')
+                        )) AS Abonado,
 
-                ORDER BY a.FechaReporte DESC;");
+                        o.IdOrden,
+                        o.IdFontanero,
+                        o.Estado AS EstadoOrden,
+                        o.Observaciones,
+
+                        f.Nombre AS Fontanero
+
+                    FROM dbo.AVERIA a
+
+                    LEFT JOIN dbo.CATEGORIA_AVERIA c
+                        ON c.IdCategoriaAveria = a.IdCategoriaAveria
+
+                    LEFT JOIN dbo.ABONADO ab
+                        ON ab.IdAbonado = a.IdAbonado
+
+                    LEFT JOIN dbo.USUARIO u
+                        ON u.IdUsuario = ab.IdUsuario
+
+                    OUTER APPLY
+                    (
+                        SELECT TOP 1
+                            IdOrden,
+                            IdFontanero,
+                            Estado,
+                            Observaciones
+
+                        FROM dbo.MPA_ORDEN_TRABAJO
+                        WHERE IdAveria = a.IdAveria
+
+                        ORDER BY
+                            CASE
+                                WHEN Estado = 'Cerrada'
+                                THEN 1 ELSE 0
+                            END,
+                            IdOrden DESC
+
+                    ) o
+
+                    LEFT JOIN dbo.MPA_FONTANERO f
+                        ON f.IdFontanero = o.IdFontanero
+
+                    WHERE {filtroArchivada}
+                )";
+
+            var filtradoAverias = $@"
+                WITH {cteAverias},
+
+                y AS
+                (
+                    SELECT *
+                    FROM x
+                    WHERE
+                        (
+                            @Buscar IS NULL
+                            OR x.NumeroCaso LIKE N'%' + @Buscar + N'%'
+                            OR x.Abonado LIKE N'%' + @Buscar + N'%'
+                            OR x.Ubicacion LIKE N'%' + @Buscar + N'%'
+                            OR x.Descripcion LIKE N'%' + @Buscar + N'%'
+                        )
+                        AND
+                        (
+                            @Categoria IS NULL
+                            OR x.IdCategoriaAveria = @Categoria
+                        )
+                        AND
+                        (
+                            @Fontanero IS NULL
+                            OR
+                            (
+                                @Fontanero = 0
+                                AND
+                                (
+                                    x.IdOrden IS NULL
+                                    OR x.EstadoOrden = 'Cerrada'
+                                )
+                            )
+                            OR
+                            (
+                                x.IdFontanero = @Fontanero
+                                AND x.EstadoOrden <> 'Cerrada'
+                            )
+                        )
+                        AND
+                        (
+                            @Estado IS NULL
+                            OR x.EstadoReporte = @Estado
+                        )
+                        AND
+                        (
+                            @Estado IS NOT NULL
+                            OR @Todos = 1
+                            OR x.EstadoReporte <> 'Resuelta'
+                        )
+                )";
+
+            SqlParameter[] FiltrosAverias() => new[]
+            {
+                P("@Buscar", buscar),
+                P("@Categoria", categoria),
+                P("@Fontanero", fontanero),
+                P("@Estado", estado),
+                P("@Todos", todos ? 1 : 0)
+            };
+
+            var totalAverias = await Consultar(
+                filtradoAverias + " SELECT COUNT(*) FROM y;",
+                FiltrosAverias());
+
+            int filasAverias = Convert.ToInt32(totalAverias.Rows[0][0]);
+
+            var (paginaAverias, paginasAverias) =
+                Paginar(filasAverias, pagina);
+
+            var parametrosAverias = FiltrosAverias().ToList();
+
+            parametrosAverias.Add(P("@Skip", (paginaAverias - 1) * TamPagina));
+            parametrosAverias.Add(P("@Take", TamPagina));
+
+            ViewBag.Averias = await Consultar(
+                filtradoAverias + @"
+                SELECT *
+                FROM y
+                ORDER BY
+                    CASE y.EstadoReporte
+                        WHEN 'Pendiente' THEN 0
+                        WHEN 'En proceso' THEN 1
+                        ELSE 2
+                    END,
+                    y.FechaReporte DESC,
+                    y.IdAveria DESC
+                OFFSET @Skip ROWS
+                FETCH NEXT @Take ROWS ONLY;",
+                parametrosAverias.ToArray());
+
+            ViewBag.Pagina = paginaAverias;
+            ViewBag.TotalPaginas = paginasAverias;
+            ViewBag.TotalFilas = filasAverias;
+
+            // Contadores sin filtros.
+
+            ViewBag.ResumenAverias = await Consultar($@"
+                WITH {cteAverias}
+                SELECT
+                    ISNULL(SUM(CASE WHEN EstadoReporte = 'Pendiente'
+                        THEN 1 ELSE 0 END), 0) AS Pendientes,
+
+                    ISNULL(SUM(CASE WHEN EstadoReporte = 'En proceso'
+                        THEN 1 ELSE 0 END), 0) AS EnProceso,
+
+                    ISNULL(SUM(CASE WHEN EstadoReporte = 'Resuelta'
+                        THEN 1 ELSE 0 END), 0) AS Resueltas,
+
+                    ISNULL(SUM(CASE WHEN EstadoReporte <> 'Resuelta'
+                        AND (IdOrden IS NULL OR EstadoOrden = 'Cerrada')
+                        THEN 1 ELSE 0 END), 0) AS SinFontanero
+                FROM x;");
+
+            // Seguimiento: por defecto solo órdenes abiertas.
+
+            SqlParameter[] FiltroOrdenes() => new[]
+            {
+                P("@Historial", historial ? 1 : 0)
+            };
+
+            var totalOrdenes = await Consultar(@"
+                SELECT COUNT(*)
+                FROM dbo.MPA_ORDEN_TRABAJO o
+                WHERE @Historial = 1
+                   OR o.Estado <> 'Cerrada';",
+                FiltroOrdenes());
+
+            int filasOrdenes = Convert.ToInt32(totalOrdenes.Rows[0][0]);
+
+            var (paginaOrd, paginasOrd) =
+                Paginar(filasOrdenes, paginaOrdenes);
+
+            var parametrosOrdenes = FiltroOrdenes().ToList();
+
+            parametrosOrdenes.Add(P("@Skip", (paginaOrd - 1) * TamPagina));
+            parametrosOrdenes.Add(P("@Take", TamPagina));
 
             ViewBag.Ordenes = await Consultar(@"
                 SELECT
                     o.IdOrden,
                     o.IdAveria,
+
+                    'AV-' + RIGHT('000000' +
+                        CAST(o.IdAveria AS varchar(10)), 6) AS NumeroCaso,
+
+                    a.Estado AS EstadoAveria,
+
                     f.Nombre AS Fontanero,
                     o.Estado,
                     o.SeResolvio,
@@ -416,15 +761,29 @@ public class PanelAdministrativoController : Controller
 
                 FROM dbo.MPA_ORDEN_TRABAJO o
 
+                LEFT JOIN dbo.AVERIA a
+                    ON a.IdAveria = o.IdAveria
+
                 LEFT JOIN dbo.MPA_FONTANERO f
                     ON f.IdFontanero = o.IdFontanero
+
+                WHERE @Historial = 1
+                   OR o.Estado <> 'Cerrada'
 
                 ORDER BY
                     CASE
                         WHEN o.Estado = 'Cerrada'
                         THEN 1 ELSE 0
                     END,
-                    o.IdOrden DESC;");
+                    o.IdOrden DESC
+
+                OFFSET @Skip ROWS
+                FETCH NEXT @Take ROWS ONLY;",
+                parametrosOrdenes.ToArray());
+
+            ViewBag.PaginaOrdenes = paginaOrd;
+            ViewBag.TotalPaginasOrdenes = paginasOrd;
+            ViewBag.TotalOrdenes = filasOrdenes;
         }
 
         // MPA-06: ABONADOS
@@ -1175,125 +1534,11 @@ public class PanelAdministrativoController : Controller
     }
 
     // =====================================================
-    // MPA-04: ESTADO Y CANAL DE TRÁMITES
+    // MPA-04: CANAL DE INGRESO DE TRÁMITES Y AVERÍAS
+    // El estado de los trámites se cambia en
+    // EvaluacionTramites (MTG-03), igual que en el flujo
+    // del equipo: Pendiente -> Aprobado / Rechazado.
     // =====================================================
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> GuardarTramite(
-        int idTramite,
-        string estado,
-        string canalOrigen)
-    {
-        if (
-            idTramite < 1 ||
-            estado is not (
-                "Pendiente" or
-                "En proceso" or
-                "En revisión" or
-                "Cerrada"
-            )
-            ||
-            canalOrigen is not (
-                "Web" or
-                "Presencial" or
-                "Teléfono" or
-                "Correo"
-            )
-        )
-        {
-            return BadRequest();
-        }
-
-        var columnas = await ColumnasTramite();
-
-        var fecha = Elegir(
-            columnas,
-            "FechaSolicitud",
-            "FechaRegistro",
-            "FechaCreacion",
-            "FechaTramite",
-            "Fecha");
-
-        if (fecha == null || !columnas.Contains("Estado"))
-        {
-            TempData["Error"] =
-                "No se encontró una fecha de recepción compatible.";
-
-            return Volver("tramites");
-        }
-
-        await using var cn = Conexion();
-        await cn.OpenAsync();
-
-        await using var tran =
-            (SqlTransaction)await cn.BeginTransactionAsync();
-
-        try
-        {
-            await using var cmd = new SqlCommand($@"
-                UPDATE dbo.TRAMITE
-
-                SET Estado = @Estado
-
-                WHERE IdTramite = @Id;
-
-                IF @@ROWCOUNT = 0
-                    THROW 51001,'Trámite no encontrado',1;
-
-                UPDATE dbo.MPA_TRAMITE_ORIGEN
-
-                SET CanalOrigen = @Canal
-
-                WHERE TipoOrigen = 'Tramite'
-                  AND IdRegistroOrigen = @Id;
-
-                IF @@ROWCOUNT = 0
-                    INSERT dbo.MPA_TRAMITE_ORIGEN
-                    (
-                        TipoOrigen,
-                        IdRegistroOrigen,
-                        CanalOrigen,
-                        FechaRecepcion
-                    )
-
-                    SELECT
-                        'Tramite',
-                        @Id,
-                        @Canal,
-                        TRY_CONVERT(
-                            datetime2(0),
-                            {Col(fecha)}
-                        )
-
-                    FROM dbo.TRAMITE
-
-                    WHERE IdTramite = @Id;",
-
-                cn,
-                tran);
-
-            cmd.Parameters.AddRange(new[]
-            {
-                P("@Estado", estado),
-                P("@Canal", canalOrigen),
-                P("@Id", idTramite)
-            });
-
-            await cmd.ExecuteNonQueryAsync();
-            await tran.CommitAsync();
-
-            TempData["Ok"] =
-                "Trámite actualizado correctamente.";
-        }
-        catch
-        {
-            await tran.RollbackAsync();
-            throw;
-        }
-
-        return Volver("tramites");
-    }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -1427,7 +1672,7 @@ public class PanelAdministrativoController : Controller
         TempData["Ok"] =
             "Fontanero registrado.";
 
-        return Volver("averias");
+        return Volver("averias", abrir: "fontaneros");
     }
 
     [HttpPost]
@@ -1468,7 +1713,36 @@ public class PanelAdministrativoController : Controller
                 ? "Fontanero actualizado."
                 : "No se encontró el fontanero.";
 
-        return Volver("averias");
+        return Volver("averias", abrir: "fontaneros");
+    }
+
+    // Ejecuta el procedimiento del módulo de averías (MRA-05)
+    // dentro de la misma transacción: actualiza el estado,
+    // registra el seguimiento y la bitácora.
+
+    private static async Task ActualizarEstadoAveria(
+        SqlConnection cn,
+        SqlTransaction tran,
+        int idAveria,
+        int idUsuario,
+        string estado,
+        string comentario)
+    {
+        await using var cmd = new SqlCommand(
+            "dbo.SP_Averia_ActualizarEstado",
+            cn,
+            tran)
+        {
+            CommandType = CommandType.StoredProcedure
+        };
+
+        cmd.Parameters.Add("@IdAveria", SqlDbType.Int).Value = idAveria;
+        cmd.Parameters.Add("@IdUsuario", SqlDbType.Int).Value = idUsuario;
+        cmd.Parameters.Add("@Estado", SqlDbType.VarChar, 50).Value = estado;
+        cmd.Parameters.Add("@FechaAtencion", SqlDbType.DateTime).Value = DBNull.Value;
+        cmd.Parameters.Add("@Observaciones", SqlDbType.VarChar, -1).Value = comentario;
+
+        await cmd.ExecuteNonQueryAsync();
     }
 
     [HttpPost]
@@ -1478,88 +1752,153 @@ public class PanelAdministrativoController : Controller
         int idFontanero,
         string? observaciones)
     {
-        var valido = await Consultar(@"
-            SELECT CASE
+        int? idUsuario = IdUsuarioActual();
 
-                WHEN EXISTS
-                (
-                    SELECT 1
-                    FROM dbo.AVERIA
-                    WHERE IdAveria = @A
-                )
+        if (idUsuario == null)
+        {
+            return RedirectToAction("Login", "Account");
+        }
 
-                AND EXISTS
-                (
-                    SELECT 1
-                    FROM dbo.MPA_FONTANERO
-                    WHERE IdFontanero = @F
-                      AND Activo = 1
-                )
+        var datos = await Consultar(@"
+            SELECT
+                a.Estado,
+                f.Nombre
 
-                THEN 1
-                ELSE 0
+            FROM dbo.AVERIA a
 
-            END;",
+            CROSS JOIN dbo.MPA_FONTANERO f
+
+            WHERE a.IdAveria = @A
+              AND f.IdFontanero = @F
+              AND f.Activo = 1;",
 
             P("@A", idAveria),
             P("@F", idFontanero));
 
-        if (Convert.ToInt32(valido.Rows[0][0]) != 1)
+        if (datos.Rows.Count == 0)
         {
             return BadRequest();
         }
 
-        await Ejecutar(@"
-            DECLARE @Orden INT =
-            (
-                SELECT TOP 1 IdOrden
+        string estadoAveria = datos.Rows[0][0].ToString() ?? "";
+        string nombreFontanero = datos.Rows[0][1].ToString() ?? "";
 
-                FROM dbo.MPA_ORDEN_TRABAJO
+        if (estadoAveria == "Resuelta")
+        {
+            TempData["Error"] =
+                "La avería ya está resuelta. No se puede asignar una nueva orden.";
 
-                WHERE IdAveria = @A
-                  AND Estado <> 'Cerrada'
+            return Volver("averias");
+        }
 
-                ORDER BY IdOrden DESC
-            );
+        await using var cn = Conexion();
+        await cn.OpenAsync();
 
-            IF @Orden IS NULL
+        await using var tran =
+            (SqlTransaction)await cn.BeginTransactionAsync();
 
-                INSERT dbo.MPA_ORDEN_TRABAJO
+        try
+        {
+            await using (var cmd = new SqlCommand(@"
+                DECLARE @Orden INT =
                 (
-                    IdAveria,
-                    IdFontanero,
-                    Estado,
-                    FechaAsignacion,
-                    Observaciones
-                )
+                    SELECT TOP 1 IdOrden
 
-                VALUES
-                (
-                    @A,
-                    @F,
-                    'En proceso',
-                    SYSDATETIME(),
-                    @O
+                    FROM dbo.MPA_ORDEN_TRABAJO
+
+                    WHERE IdAveria = @A
+                      AND Estado <> 'Cerrada'
+
+                    ORDER BY IdOrden DESC
                 );
 
-            ELSE
+                IF @Orden IS NULL
 
-                UPDATE dbo.MPA_ORDEN_TRABAJO
+                    INSERT dbo.MPA_ORDEN_TRABAJO
+                    (
+                        IdAveria,
+                        IdFontanero,
+                        Estado,
+                        FechaAsignacion,
+                        Observaciones
+                    )
 
-                SET
-                    IdFontanero = @F,
-                    Estado = 'En proceso',
-                    FechaAsignacion = SYSDATETIME(),
-                    Observaciones = @O
+                    VALUES
+                    (
+                        @A,
+                        @F,
+                        'En proceso',
+                        SYSDATETIME(),
+                        @O
+                    );
 
-                WHERE IdOrden = @Orden;",
+                ELSE
 
-            P("@A", idAveria),
-            P("@F", idFontanero),
-            P("@O", observaciones?.Trim()));
+                    UPDATE dbo.MPA_ORDEN_TRABAJO
 
-        TempData["Ok"] =
-            "Orden asignada o reasignada.";
+                    SET
+                        IdFontanero = @F,
+                        Estado = 'En proceso',
+                        FechaAsignacion = SYSDATETIME(),
+                        Observaciones = @O
+
+                    WHERE IdOrden = @Orden;",
+
+                cn,
+                tran))
+            {
+                cmd.Parameters.AddRange(new[]
+                {
+                    P("@A", idAveria),
+                    P("@F", idFontanero),
+                    P("@O", observaciones?.Trim())
+                });
+
+                await cmd.ExecuteNonQueryAsync();
+            }
+
+            // Igual que el flujo de averías:
+            // una avería Pendiente pasa a En proceso al asignarse.
+
+            if (estadoAveria == "Pendiente")
+            {
+                string comentario =
+                    "Orden de trabajo asignada al fontanero " +
+                    nombreFontanero + "." +
+                    (string.IsNullOrWhiteSpace(observaciones)
+                        ? ""
+                        : " " + observaciones.Trim());
+
+                await ActualizarEstadoAveria(
+                    cn,
+                    tran,
+                    idAveria,
+                    idUsuario.Value,
+                    "En proceso",
+                    comentario);
+            }
+
+            await tran.CommitAsync();
+        }
+        catch (SqlException ex)
+        {
+            try
+            {
+                await tran.RollbackAsync();
+            }
+            catch (InvalidOperationException)
+            {
+                // SQL Server ya revirtió la transacción.
+            }
+
+            TempData["Error"] = ex.Message;
+
+            return Volver("averias");
+        }
+
+        TempData["Ok"] = estadoAveria == "Pendiente"
+            ? "Orden asignada. La avería pasó a En proceso."
+            : "Orden asignada o reasignada.";
 
         return Volver("averias");
     }
@@ -1571,43 +1910,126 @@ public class PanelAdministrativoController : Controller
         bool seResolvio,
         string? observaciones)
     {
-        var filas = await Ejecutar(@"
-            UPDATE dbo.MPA_ORDEN_TRABAJO
+        int? idUsuario = IdUsuarioActual();
 
-            SET
-                SeResolvio = @R,
+        if (idUsuario == null)
+        {
+            return RedirectToAction("Login", "Account");
+        }
 
-                Estado =
-                    CASE
-                        WHEN @R = 1
-                        THEN 'Cerrada'
-                        ELSE 'En proceso'
-                    END,
+        var datos = await Consultar(@"
+            SELECT
+                o.IdAveria,
+                a.Estado
 
-                FechaCierre =
-                    CASE
-                        WHEN @R = 1
-                        THEN SYSDATETIME()
-                        ELSE NULL
-                    END,
+            FROM dbo.MPA_ORDEN_TRABAJO o
 
-                Observaciones = @O
+            JOIN dbo.AVERIA a
+                ON a.IdAveria = o.IdAveria
 
-            WHERE IdOrden = @Id
-              AND Estado <> 'Cerrada';",
+            WHERE o.IdOrden = @Id
+              AND o.Estado <> 'Cerrada';",
 
-            P("@Id", idOrden),
-            P("@R", seResolvio),
-            P("@O", observaciones?.Trim()));
+            P("@Id", idOrden));
 
-        TempData[filas == 1 ? "Ok" : "Error"] =
-            filas == 0
-                ? "La orden no existe o ya está cerrada."
-                : (
-                    seResolvio
-                        ? "Orden cerrada."
-                        : "Orden abierta para seguimiento."
-                  );
+        if (datos.Rows.Count == 0)
+        {
+            TempData["Error"] =
+                "La orden no existe o ya está cerrada.";
+
+            return Volver("averias");
+        }
+
+        int idAveria = Convert.ToInt32(datos.Rows[0][0]);
+        string estadoAveria = datos.Rows[0][1].ToString() ?? "";
+
+        await using var cn = Conexion();
+        await cn.OpenAsync();
+
+        await using var tran =
+            (SqlTransaction)await cn.BeginTransactionAsync();
+
+        try
+        {
+            await using (var cmd = new SqlCommand(@"
+                UPDATE dbo.MPA_ORDEN_TRABAJO
+
+                SET
+                    SeResolvio = @R,
+
+                    Estado =
+                        CASE
+                            WHEN @R = 1
+                            THEN 'Cerrada'
+                            ELSE 'En proceso'
+                        END,
+
+                    FechaCierre =
+                        CASE
+                            WHEN @R = 1
+                            THEN SYSDATETIME()
+                            ELSE NULL
+                        END,
+
+                    Observaciones = @O
+
+                WHERE IdOrden = @Id
+                  AND Estado <> 'Cerrada';",
+
+                cn,
+                tran))
+            {
+                cmd.Parameters.AddRange(new[]
+                {
+                    P("@Id", idOrden),
+                    P("@R", seResolvio),
+                    P("@O", observaciones?.Trim())
+                });
+
+                await cmd.ExecuteNonQueryAsync();
+            }
+
+            // Igual que el flujo de averías:
+            // si la orden se resolvió, la avería pasa a Resuelta.
+
+            if (seResolvio && estadoAveria != "Resuelta")
+            {
+                string comentario =
+                    string.IsNullOrWhiteSpace(observaciones)
+                        ? "Orden de trabajo #" + idOrden +
+                          " cerrada: la avería fue resuelta."
+                        : observaciones.Trim();
+
+                await ActualizarEstadoAveria(
+                    cn,
+                    tran,
+                    idAveria,
+                    idUsuario.Value,
+                    "Resuelta",
+                    comentario);
+            }
+
+            await tran.CommitAsync();
+        }
+        catch (SqlException ex)
+        {
+            try
+            {
+                await tran.RollbackAsync();
+            }
+            catch (InvalidOperationException)
+            {
+                // SQL Server ya revirtió la transacción.
+            }
+
+            TempData["Error"] = ex.Message;
+
+            return Volver("averias");
+        }
+
+        TempData["Ok"] = seResolvio
+            ? "Orden cerrada. La avería quedó como Resuelta."
+            : "Orden abierta para seguimiento.";
 
         return Volver("averias");
     }

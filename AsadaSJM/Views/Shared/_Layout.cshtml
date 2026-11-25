@@ -99,8 +99,8 @@
                     Averías
                 </a>
 
-                <a class="nav-link @(controladorActual == "Tramites" ? "active" : "")"
-                   asp-controller="Tramites"
+                <a class="nav-link @(controladorActual == "EvaluacionTramites" || controladorActual == "Tramites" ? "active" : "")"
+                   asp-controller="EvaluacionTramites"
                    asp-action="Index">
 
                     <i class="bi bi-file-earmark-text-fill"></i>

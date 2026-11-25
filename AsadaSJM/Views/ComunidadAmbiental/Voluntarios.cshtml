@@ -1,0 +1,467 @@
+﻿@using AsadaSJM.Models
+@model List<InscripcionVoluntariado>
+
+@{
+    ViewData["Title"] = "Personas inscritas en voluntariado";
+    Layout = "_Layout";
+
+    var campanas = ViewBag.Campanas as List<CampanaAmbiental>
+        ?? new List<CampanaAmbiental>();
+
+    var anios = ViewBag.Anios as List<int>
+        ?? new List<int>();
+
+    var nombresCampanas = campanas.ToDictionary(
+        c => c.IdCampana,
+        c => c.Titulo);
+
+    // Campañas agrupadas por año (la más reciente primero).
+
+    var campanasPorAnio = campanas
+        .GroupBy(c => c.Fecha.Year)
+        .OrderByDescending(g => g.Key)
+        .ToList();
+
+    string? buscar = ViewBag.Buscar as string;
+    int? anio = ViewBag.Anio as int?;
+    int? idCampana = ViewBag.IdCampana as int?;
+
+    int pagina = (int)(ViewBag.Pagina ?? 1);
+    int totalPaginas = (int)(ViewBag.TotalPaginas ?? 1);
+    int total = (int)(ViewBag.Total ?? 0);
+    int totalGeneral = (int)(ViewBag.TotalGeneral ?? 0);
+    int totalAnio = (int)(ViewBag.TotalAnio ?? 0);
+    int totalMes = (int)(ViewBag.TotalMes ?? 0);
+
+    bool hayFiltros =
+        !string.IsNullOrWhiteSpace(buscar) ||
+        anio.HasValue ||
+        idCampana.HasValue;
+
+    int desde = total == 0 ? 0 : ((pagina - 1) * 25) + 1;
+    int hasta = Math.Min(pagina * 25, total);
+
+    var filtros = new Dictionary<string, string>();
+
+    if (!string.IsNullOrWhiteSpace(buscar)) { filtros["buscar"] = buscar; }
+    if (anio.HasValue) { filtros["anio"] = anio.Value.ToString(); }
+    if (idCampana.HasValue) { filtros["idCampana"] = idCampana.Value.ToString(); }
+
+    Func<int, Dictionary<string, string>> rutaPagina = numeroPagina =>
+        new Dictionary<string, string>(filtros)
+        {
+            ["pagina"] = numeroPagina.ToString()
+        };
+
+    int anioActual = DateTime.Today.Year;
+}
+
+<style>
+    .ad-amb {
+        color: #20384E;
+    }
+
+    .ad-amb .ad-header {
+        background: #004A99;
+        color: #FFFFFF;
+        padding: 30px;
+        border-radius: 18px;
+        margin-bottom: 24px;
+    }
+
+    .ad-amb .ad-section {
+        background: #FFFFFF;
+        border: 1px solid #DDE7EF;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 25px;
+    }
+
+    .ad-amb .ad-section h2 {
+        color: #004A99;
+        font-size: 23px;
+        font-weight: 700;
+    }
+
+    .ad-amb .ad-btn {
+        background: #2D5A27;
+        color: #FFFFFF;
+        border: 0;
+        padding: 9px 15px;
+        border-radius: 8px;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .ad-amb .ad-btn:hover {
+        background: #21471c;
+        color: #FFFFFF;
+    }
+
+    .ad-amb .table {
+        vertical-align: middle;
+    }
+
+    .ad-amb .pagination .page-link {
+        color: #004A99;
+    }
+
+    .ad-amb .pagination .active .page-link {
+        background: #004A99;
+        border-color: #004A99;
+        color: #FFFFFF;
+    }
+
+    .ad-amb .ad-kpis {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+    }
+
+    .ad-amb .ad-kpi {
+        display: block;
+        background: rgba(255, 255, 255, .12);
+        border: 1px solid rgba(255, 255, 255, .35);
+        border-radius: 12px;
+        padding: 10px 16px;
+        color: #FFFFFF;
+        text-decoration: none;
+        min-width: 140px;
+    }
+
+    .ad-amb .ad-kpi:hover {
+        background: rgba(255, 255, 255, .2);
+        color: #FFFFFF;
+    }
+
+    .ad-amb .ad-kpi strong {
+        display: block;
+        font-size: 24px;
+        line-height: 1.1;
+    }
+</style>
+
+<div class="ad-amb">
+
+    <header class="ad-header">
+
+        <h1 class="h3 fw-bold mb-2">
+            MGA-04 · Personas inscritas
+        </h1>
+
+        <p class="mb-1">
+            Registro privado de voluntariado, visible solo para administradores.
+        </p>
+
+        <!-- CONTADORES (CLIC PARA FILTRAR) -->
+
+        <div class="ad-kpis">
+
+            <a class="ad-kpi"
+               asp-action="Voluntarios">
+
+                <strong>@totalGeneral</strong>
+                Total registrado
+            </a>
+
+            <a class="ad-kpi"
+               asp-action="Voluntarios"
+               asp-route-anio="@anioActual">
+
+                <strong>@totalAnio</strong>
+                Este año (@anioActual)
+            </a>
+
+            <div class="ad-kpi">
+                <strong>@totalMes</strong>
+                Este mes
+            </div>
+
+        </div>
+
+        <a asp-action="Administrar"
+           class="btn btn-light mt-3">
+
+            <i class="bi bi-arrow-left me-1"></i>
+            Volver a administración ambiental
+
+        </a>
+
+    </header>
+
+    <!-- FILTROS -->
+
+    <section class="ad-section">
+
+        <form asp-action="Voluntarios"
+              method="get"
+              class="row g-2 align-items-end">
+
+            <div class="col-md-4">
+
+                <label for="buscar"
+                       class="form-label fw-semibold">
+                    Buscar
+                </label>
+
+                <input id="buscar"
+                       name="buscar"
+                       value="@buscar"
+                       class="form-control"
+                       maxlength="100"
+                       placeholder="Nombre, correo o teléfono" />
+
+            </div>
+
+            <div class="col-md-2">
+
+                <label for="anio"
+                       class="form-label fw-semibold">
+                    Año
+                </label>
+
+                <select id="anio"
+                        name="anio"
+                        class="form-select">
+
+                    <option value="">Todos</option>
+
+                    @foreach (var valorAnio in anios)
+                    {
+                        if (anio == valorAnio)
+                        {
+                            <option value="@valorAnio" selected>@valorAnio</option>
+                        }
+                        else
+                        {
+                            <option value="@valorAnio">@valorAnio</option>
+                        }
+                    }
+
+                </select>
+
+            </div>
+
+            <div class="col-md-3">
+
+                <label for="idCampana"
+                       class="form-label fw-semibold">
+                    Campaña
+                </label>
+
+                <select id="idCampana"
+                        name="idCampana"
+                        class="form-select">
+
+                    <option value="">Todas</option>
+
+                    @if (idCampana == 0)
+                    {
+                        <option value="0" selected>General / sin campaña</option>
+                    }
+                    else
+                    {
+                        <option value="0">General / sin campaña</option>
+                    }
+
+                    @foreach (var grupo in campanasPorAnio)
+                    {
+                        <optgroup label="@grupo.Key">
+
+                            @foreach (var campana in grupo)
+                            {
+                                if (idCampana == campana.IdCampana)
+                                {
+                                    <option value="@campana.IdCampana" selected>
+                                        @campana.Titulo (@campana.Fecha.ToString("dd/MM"))
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@campana.IdCampana">
+                                        @campana.Titulo (@campana.Fecha.ToString("dd/MM"))
+                                    </option>
+                                }
+                            }
+
+                        </optgroup>
+                    }
+
+                </select>
+
+            </div>
+
+            <div class="col-md-3 d-flex gap-2">
+
+                <button type="submit"
+                        class="ad-btn flex-fill">
+
+                    <i class="bi bi-search me-1"></i>
+                    Filtrar
+
+                </button>
+
+                @if (hayFiltros)
+                {
+                    <a asp-action="Voluntarios"
+                       class="btn btn-outline-secondary">
+                        Limpiar
+                    </a>
+                }
+
+            </div>
+
+        </form>
+
+    </section>
+
+    <!-- LISTA -->
+
+    <section class="ad-section">
+
+        <div class="d-flex flex-wrap justify-content-between gap-2 align-items-center mb-3">
+
+            <h2 class="mb-0">
+                <i class="bi bi-people me-2"></i>
+                Lista de voluntarios
+            </h2>
+
+            <span class="text-muted">
+                @if (total > 0)
+                {
+                    <text>Mostrando @desde–@hasta de @total</text>
+                }
+                else
+                {
+                    <text>0 resultados</text>
+                }
+            </span>
+
+        </div>
+
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+
+                <table class="table table-hover">
+
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Nombre</th>
+                            <th>Correo</th>
+                            <th>Teléfono</th>
+                            <th>Campaña</th>
+                            <th>Inscripción</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @{
+                            int numeroFila = desde;
+                        }
+
+                        @foreach (var persona in Model)
+                        {
+                            <tr>
+
+                                <td class="text-muted">@numeroFila</td>
+
+                                <td class="fw-semibold">@persona.Nombre</td>
+
+                                <td>
+                                    <a href="mailto:@persona.Correo">@persona.Correo</a>
+                                </td>
+
+                                <td class="text-nowrap">@persona.Telefono</td>
+
+                                <td>
+
+                                    @if (persona.IdCampana.HasValue &&
+                                        nombresCampanas.TryGetValue(
+                                            persona.IdCampana.Value,
+                                            out var nombreCampana))
+                                    {
+                                        @nombreCampana
+                                    }
+                                    else
+                                    {
+                                        <text>General / campaña no disponible</text>
+                                    }
+
+                                </td>
+
+                                <td class="text-nowrap">
+                                    @persona.FechaRegistro.ToString("dd/MM/yyyy HH:mm")
+                                </td>
+
+                            </tr>
+
+                            numeroFila++;
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            @if (totalPaginas > 1)
+            {
+                <nav aria-label="Páginas de voluntarios"
+                     class="mt-3">
+
+                    <ul class="pagination flex-wrap mb-0">
+
+                        <li class="page-item @(pagina == 1 ? "disabled" : "")">
+                            <a class="page-link"
+                               asp-action="Voluntarios"
+                               asp-all-route-data="@rutaPagina(pagina - 1)">
+                                Anterior
+                            </a>
+                        </li>
+
+                        @for (int i = Math.Max(1, pagina - 2);
+                              i <= Math.Min(totalPaginas, pagina + 2);
+                              i++)
+                        {
+                            <li class="page-item @(i == pagina ? "active" : "")">
+                                <a class="page-link"
+                                   asp-action="Voluntarios"
+                                   asp-all-route-data="@rutaPagina(i)">
+                                    @i
+                                </a>
+                            </li>
+                        }
+
+                        <li class="page-item @(pagina == totalPaginas ? "disabled" : "")">
+                            <a class="page-link"
+                               asp-action="Voluntarios"
+                               asp-all-route-data="@rutaPagina(pagina + 1)">
+                                Siguiente
+                            </a>
+                        </li>
+
+                    </ul>
+
+                    <div class="text-muted small mt-1">
+                        Página @pagina de @totalPaginas
+                    </div>
+
+                </nav>
+            }
+        }
+        else
+        {
+            <div class="alert alert-light border mb-0">
+                @(hayFiltros
+                    ? "No hay personas inscritas que coincidan con los filtros."
+                    : "Todavía no hay voluntarios inscritos.")
+            </div>
+        }
+
+    </section>
+
+</div>

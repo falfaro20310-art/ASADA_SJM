@@ -11,8 +11,10 @@
     var campanas = ViewBag.CampanasAdmin as List<CampanaAmbiental>
         ?? new List<CampanaAmbiental>();
 
-    var inscripciones = ViewBag.InscripcionesAdmin as List<InscripcionVoluntariado>
-        ?? new List<InscripcionVoluntariado>();
+    var resumenVoluntarios = ViewBag.ResumenVoluntarios as List<ResumenVoluntariado>
+        ?? new List<ResumenVoluntariado>();
+
+    int totalVoluntarios = resumenVoluntarios.Sum(r => r.Total);
 
     var fotos = ViewBag.FotosAdmin as List<FotoProyectoAmbiental>
         ?? new List<FotoProyectoAmbiental>();
@@ -398,18 +400,30 @@
 
     <section class="ad-section" id="voluntarios">
 
-        <h2>
-            <i class="bi bi-people me-2"></i>
-            MGA-04 · Personas inscritas
-        </h2>
+        <div class="d-flex flex-wrap justify-content-between gap-2 align-items-center mb-3">
+
+            <h2 class="mb-0">
+                <i class="bi bi-people me-2"></i>
+                MGA-04 · Personas inscritas
+            </h2>
+
+            <a asp-action="Voluntarios"
+               class="ad-btn">
+
+                <i class="bi bi-list-ul me-1"></i>
+                Ver lista completa
+
+            </a>
+
+        </div>
 
         <p class="text-muted">
             Registro privado, visible solo para administradores.
 
-            Total: <strong>@inscripciones.Count</strong>
+            Total: <strong>@totalVoluntarios</strong>
         </p>
 
-        @if (inscripciones.Any())
+        @if (resumenVoluntarios.Any())
         {
             <div class="table-responsive">
 
@@ -417,46 +431,46 @@
 
                     <thead>
                         <tr>
-                            <th>Nombre</th>
-                            <th>Correo</th>
-                            <th>Teléfono</th>
                             <th>Campaña</th>
-                            <th>Inscripción</th>
+                            <th>Inscritos</th>
+                            <th>Última inscripción</th>
+                            <th>Lista</th>
                         </tr>
                     </thead>
 
                     <tbody>
 
-                        @foreach (var persona in inscripciones)
+                        @foreach (var resumen in resumenVoluntarios
+                            .OrderByDescending(r => r.Total))
                         {
+                            bool campanaExiste =
+                                resumen.IdCampana.HasValue &&
+                                nombresCampanas.ContainsKey(resumen.IdCampana.Value);
+
                             <tr>
 
-                                <td>@persona.Nombre</td>
+                                <td class="fw-semibold">
+                                    @(campanaExiste
+                                        ? nombresCampanas[resumen.IdCampana!.Value]
+                                        : "General / campaña no disponible")
+                                </td>
 
-                                <td>@persona.Correo</td>
-
-                                <td>@persona.Telefono</td>
+                                <td>@resumen.Total</td>
 
                                 <td>
-
-                                    @if (persona.IdCampana.HasValue &&
-                                        nombresCampanas.TryGetValue(
-                                            persona.IdCampana.Value,
-                                            out var nombreCampana))
-                                    {
-                                        @nombreCampana
-                                    }
-                                    else
-                                    {
-                                        <text>
-                                            General / campaña no disponible
-                                        </text>
-                                    }
-
+                                    @resumen.UltimaInscripcion.ToString("dd/MM/yyyy HH:mm")
                                 </td>
 
                                 <td>
-                                    @persona.FechaRegistro.ToString("dd/MM/yyyy HH:mm")
+
+                                    <a asp-action="Voluntarios"
+                                       asp-route-idCampana="@(campanaExiste ? resumen.IdCampana : 0)"
+                                       class="btn btn-outline-primary btn-sm">
+
+                                        Ver personas
+
+                                    </a>
+
                                 </td>
 
                             </tr>

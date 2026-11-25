@@ -1,5 +1,4 @@
-﻿
-using AsadaSJM.Data;
+﻿using AsadaSJM.Data;
 using AsadaSJM.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -330,10 +329,19 @@ public class ComunidadAmbientalController : Controller
                 .OrderByDescending(c => c.Fecha)
                 .ToListAsync();
 
-        ViewBag.InscripcionesAdmin =
+        // MGA-04: solo el resumen por campaña.
+        // La lista completa está en la acción Voluntarios.
+
+        ViewBag.ResumenVoluntarios =
             await _context.InscripcionesVoluntariado
                 .AsNoTracking()
-                .OrderByDescending(i => i.FechaRegistro)
+                .GroupBy(i => i.IdCampana)
+                .Select(g => new ResumenVoluntariado
+                {
+                    IdCampana = g.Key,
+                    Total = g.Count(),
+                    UltimaInscripcion = g.Max(i => i.FechaRegistro)
+                })
                 .ToListAsync();
 
         ViewBag.FotosAdmin =
@@ -343,6 +351,119 @@ public class ComunidadAmbientalController : Controller
                 .ToListAsync();
 
         return View();
+    }
+
+    // =====================================================
+    // MGA-04: LISTA DE PERSONAS INSCRITAS (PÁGINA APARTE)
+    // Filtros: texto, año, campaña y paginación.
+    // idCampana = 0 significa "General / sin campaña".
+    // =====================================================
+
+    private const int VoluntariosPorPagina = 25;
+
+    [Authorize(Roles = "Administrador")]
+    [HttpGet]
+    public async Task<IActionResult> Voluntarios(
+        string? buscar,
+        int? anio,
+        int? idCampana,
+        int pagina = 1)
+    {
+        var campanas =
+            await _context.CampanasAmbientales
+                .AsNoTracking()
+                .OrderByDescending(c => c.Fecha)
+                .ToListAsync();
+
+        // Años con inscripciones, del más reciente al más antiguo.
+
+        var anios =
+            await _context.InscripcionesVoluntariado
+                .AsNoTracking()
+                .Select(i => i.FechaRegistro.Year)
+                .Distinct()
+                .OrderByDescending(a => a)
+                .ToListAsync();
+
+        var consulta =
+            _context.InscripcionesVoluntariado
+                .AsNoTracking()
+                .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(buscar))
+        {
+            var texto = buscar.Trim();
+
+            consulta = consulta.Where(i =>
+                i.Nombre.Contains(texto) ||
+                i.Correo.Contains(texto) ||
+                i.Telefono.Contains(texto));
+        }
+
+        if (anio.HasValue)
+        {
+            var inicio = new DateTime(anio.Value, 1, 1);
+            var fin = inicio.AddYears(1);
+
+            consulta = consulta.Where(i =>
+                i.FechaRegistro >= inicio &&
+                i.FechaRegistro < fin);
+        }
+
+        if (idCampana.HasValue)
+        {
+            if (idCampana.Value == 0)
+            {
+                consulta = consulta.Where(i => i.IdCampana == null);
+            }
+            else
+            {
+                consulta = consulta.Where(i => i.IdCampana == idCampana.Value);
+            }
+        }
+
+        int total = await consulta.CountAsync();
+
+        int totalPaginas = Math.Max(
+            1,
+            (int)Math.Ceiling(total / (double)VoluntariosPorPagina));
+
+        pagina = Math.Clamp(pagina, 1, totalPaginas);
+
+        var inscripciones =
+            await consulta
+                .OrderByDescending(i => i.FechaRegistro)
+                .ThenByDescending(i => i.IdInscripcion)
+                .Skip((pagina - 1) * VoluntariosPorPagina)
+                .Take(VoluntariosPorPagina)
+                .ToListAsync();
+
+        // Contadores generales (sin filtros).
+
+        var inicioAnio = new DateTime(DateTime.Today.Year, 1, 1);
+        var inicioMes = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+
+        ViewBag.TotalGeneral =
+            await _context.InscripcionesVoluntariado.CountAsync();
+
+        ViewBag.TotalAnio =
+            await _context.InscripcionesVoluntariado
+                .CountAsync(i => i.FechaRegistro >= inicioAnio);
+
+        ViewBag.TotalMes =
+            await _context.InscripcionesVoluntariado
+                .CountAsync(i => i.FechaRegistro >= inicioMes);
+
+        ViewBag.Campanas = campanas;
+        ViewBag.Anios = anios;
+        ViewBag.Buscar = buscar;
+        ViewBag.Anio = anio;
+        ViewBag.IdCampana = idCampana;
+        ViewBag.Pagina = pagina;
+        ViewBag.TotalPaginas = totalPaginas;
+        ViewBag.Total = total;
+
+        return View(inscripciones);
     }
 
     // =====================================================

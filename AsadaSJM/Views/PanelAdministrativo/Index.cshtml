@@ -1,5 +1,4 @@
-﻿
-@using System.Data
+﻿@using System.Data
 
 @{
     ViewData["Title"] = "Gestión del Panel Administrativo";
@@ -83,6 +82,42 @@
     .mpa-tabs .btn {
         margin: 0 5px 6px 0;
     }
+
+    /* Contadores clicables (MPA-04 y MPA-05) */
+
+    .mpa-kpi {
+        display: block;
+        background: #ffffff;
+        border: 1px solid #dde7ef;
+        border-left: 5px solid #94a3b8;
+        border-radius: 12px;
+        padding: 14px 16px;
+        text-decoration: none;
+        color: #20384e;
+        transition: box-shadow .15s ease;
+    }
+
+    .mpa-kpi:hover {
+        box-shadow: 0 4px 14px rgba(0, 74, 153, .12);
+        color: #20384e;
+    }
+
+    .mpa-kpi-num {
+        display: block;
+        font-size: 26px;
+        font-weight: 700;
+        line-height: 1.1;
+    }
+
+    .mpa-kpi-label {
+        font-size: 13px;
+        color: #64748b;
+    }
+
+    .mpa-kpi-warning { border-left-color: #f2b705; }
+    .mpa-kpi-info { border-left-color: #0dcaf0; }
+    .mpa-kpi-success { border-left-color: #2d5a27; }
+    .mpa-kpi-danger { border-left-color: #dc3545; }
 </style>
 
 <!-- MENÚ DEL PANEL -->
@@ -826,11 +861,142 @@
 
 @if (tab == "tramites")
 {
+    var conteos = (DataTable)ViewBag.Conteos;
+
+    string vista = ViewBag.Vista as string ?? "todos";
+    string? buscarFiltro = ViewBag.Buscar as string;
+    string? estadoFiltroActual = ViewBag.Estado as string;
+    bool verTodos = (ViewBag.Todos as bool?) ?? false;
+
+    int paginaTramites = (int)(ViewBag.Pagina ?? 1);
+    int paginasTramites = (int)(ViewBag.TotalPaginas ?? 1);
+    int filasTramites = (int)(ViewBag.TotalFilas ?? 0);
+
+    Func<int, string[], int> contar = (esAveria, estados) =>
+        conteos.Rows.Cast<DataRow>()
+            .Where(r => Texto(r, "EsAveria") == esAveria.ToString()
+                     && estados.Contains(Texto(r, "Estado")))
+            .Sum(r => Convert.ToInt32(r["Cantidad"]));
+
+    string[] estadosAbiertos = { "Pendiente", "En proceso", "En revisión", "Recibido" };
+    string[] estadosCerrados = { "Aprobado", "Rechazado", "Resuelta", "Cerrada" };
+
+    int tramitesPendientes = contar(0, new[] { "Pendiente" });
+    int averiasPendientes = contar(1, new[] { "Pendiente" });
+    int averiasEnProceso = contar(1, new[] { "En proceso" });
+    int cerrados = contar(0, estadosCerrados) + contar(1, estadosCerrados);
+
+    int abiertosTramites = contar(0, estadosAbiertos);
+    int abiertosAverias = contar(1, estadosAbiertos);
+
+    var filtrosTramites = new Dictionary<string, string> { ["tab"] = "tramites" };
+
+    if (vista != "todos") { filtrosTramites["vista"] = vista; }
+    if (!string.IsNullOrWhiteSpace(buscarFiltro)) { filtrosTramites["buscar"] = buscarFiltro; }
+    if (!string.IsNullOrWhiteSpace(estadoFiltroActual)) { filtrosTramites["estado"] = estadoFiltroActual; }
+    if (verTodos) { filtrosTramites["todos"] = "true"; }
+
+    Func<int, Dictionary<string, string>> rutaPaginaTramites = numeroPagina =>
+        new Dictionary<string, string>(filtrosTramites)
+        {
+            ["pagina"] = numeroPagina.ToString()
+        };
+
+    int desdeTramites = filasTramites == 0 ? 0 : ((paginaTramites - 1) * 20) + 1;
+    int hastaTramites = Math.Min(paginaTramites * 20, filasTramites);
+
+    <!-- CONTADORES (CLIC PARA FILTRAR) -->
+
+    <div class="row g-3 mb-3">
+
+        <div class="col-6 col-lg-3">
+            <a class="mpa-kpi mpa-kpi-warning"
+               asp-action="Index"
+               asp-route-tab="tramites"
+               asp-route-vista="tramites"
+               asp-route-estado="Pendiente">
+
+                <span class="mpa-kpi-num">@tramitesPendientes</span>
+                <span class="mpa-kpi-label">Trámites pendientes</span>
+            </a>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <a class="mpa-kpi mpa-kpi-warning"
+               asp-action="Index"
+               asp-route-tab="tramites"
+               asp-route-vista="averias"
+               asp-route-estado="Pendiente">
+
+                <span class="mpa-kpi-num">@averiasPendientes</span>
+                <span class="mpa-kpi-label">Averías pendientes</span>
+            </a>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <a class="mpa-kpi mpa-kpi-info"
+               asp-action="Index"
+               asp-route-tab="tramites"
+               asp-route-vista="averias"
+               asp-route-estado="En proceso">
+
+                <span class="mpa-kpi-num">@averiasEnProceso</span>
+                <span class="mpa-kpi-label">Averías en proceso</span>
+            </a>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <a class="mpa-kpi mpa-kpi-success"
+               asp-action="Index"
+               asp-route-tab="tramites"
+               asp-route-todos="true">
+
+                <span class="mpa-kpi-num">@cerrados</span>
+                <span class="mpa-kpi-label">Cerrados (histórico)</span>
+            </a>
+        </div>
+
+    </div>
+
     <div class="panel mb-3">
 
-        <h3 class="mpa-subtitle mb-3">
-            Bandeja de trámites
-        </h3>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+
+            <h3 class="mpa-subtitle mb-0">
+                Bandeja de trámites
+            </h3>
+
+            <!-- VISTA: TODOS / TRÁMITES / AVERÍAS -->
+
+            <div class="btn-group" role="group" aria-label="Tipo de caso">
+
+                <a asp-action="Index"
+                   asp-route-tab="tramites"
+                   class="btn btn-sm @(vista == "todos" ? "btn-agua" : "btn-outline-primary")">
+                    Todos (@(abiertosTramites + abiertosAverias))
+                </a>
+
+                <a asp-action="Index"
+                   asp-route-tab="tramites"
+                   asp-route-vista="tramites"
+                   class="btn btn-sm @(vista == "tramites" ? "btn-agua" : "btn-outline-primary")">
+                    Trámites (@abiertosTramites)
+                </a>
+
+                <a asp-action="Index"
+                   asp-route-tab="tramites"
+                   asp-route-vista="averias"
+                   class="btn btn-sm @(vista == "averias" ? "btn-agua" : "btn-outline-primary")">
+                    Averías (@abiertosAverias)
+                </a>
+
+            </div>
+        </div>
+
+        <p class="mpa-muted mb-3">
+            Por defecto se muestran solo los casos abiertos. Los trámites se evalúan en
+            Evaluación de trámites; las averías se atienden en Averías.
+        </p>
 
         <form asp-action="Index"
               method="get"
@@ -840,20 +1006,24 @@
                    name="tab"
                    value="tramites" />
 
+            <input type="hidden"
+                   name="vista"
+                   value="@vista" />
+
             <div class="col-md-4">
 
-                <label for="f-tipo" class="form-label">
-                    Tipo de solicitud
+                <label for="f-buscar" class="form-label">
+                    Buscar
                 </label>
 
-                <input id="f-tipo"
-                       name="tipo"
-                       value="@ViewBag.Tipo"
+                <input id="f-buscar"
+                       name="buscar"
+                       value="@buscarFiltro"
                        class="form-control"
-                       placeholder="Buscar disponibilidad, inscripción..." />
+                       placeholder="Tipo, N.° de trámite / caso o solicitante" />
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-3">
 
                 <label for="f-estado" class="form-label">
                     Estado
@@ -863,27 +1033,27 @@
                         name="estado"
                         class="form-select">
 
-                    <option value="">Todos</option>
+                    <option value="">Abiertos</option>
 
-                    @foreach (var estadoFiltro in new[]
+                    @foreach (var estadoOpcion in new[]
                     {
-                        "Recibido",
                         "Pendiente",
                         "En proceso",
-                        "En revisión",
-                        "Cerrada"
+                        "Aprobado",
+                        "Rechazado",
+                        "Resuelta"
                     })
                     {
-                        if ((ViewBag.Estado as string) == estadoFiltro)
+                        if (estadoFiltroActual == estadoOpcion)
                         {
-                            <option value="@estadoFiltro" selected>
-                                @estadoFiltro
+                            <option value="@estadoOpcion" selected>
+                                @estadoOpcion
                             </option>
                         }
                         else
                         {
-                            <option value="@estadoFiltro">
-                                @estadoFiltro
+                            <option value="@estadoOpcion">
+                                @estadoOpcion
                             </option>
                         }
                     }
@@ -893,32 +1063,56 @@
 
             <div class="col-md-2">
 
-                <label class="form-label d-block"
-                       for="f-pendientes">
-                    Solo pendientes
-                </label>
+                <div class="form-check mt-4">
 
-                <input id="f-pendientes"
-                       type="checkbox"
-                       name="pendientes"
-                       value="true"
-                       checked="@ViewBag.Pendientes"
-                       class="form-check-input" />
+                    <input id="f-todos"
+                           type="checkbox"
+                           name="todos"
+                           value="true"
+                           checked="@verTodos"
+                           class="form-check-input" />
 
+                    <label class="form-check-label"
+                           for="f-todos">
+                        Incluir cerrados
+                    </label>
+
+                </div>
             </div>
 
-            <div class="col-md-2">
+            <div class="col-md-3 d-flex gap-2">
 
                 <button type="submit"
-                        class="btn btn-agua w-100">
+                        class="btn btn-agua flex-fill">
                     Aplicar filtros
                 </button>
+
+                <a asp-action="Index"
+                   asp-route-tab="tramites"
+                   class="btn btn-outline-secondary">
+                    Limpiar
+                </a>
 
             </div>
         </form>
     </div>
 
     <div class="panel">
+
+        <div class="d-flex justify-content-between align-items-center mb-2">
+
+            <span class="mpa-muted">
+                @if (filasTramites > 0)
+                {
+                    <text>Mostrando @desdeTramites–@hastaTramites de @filasTramites</text>
+                }
+                else
+                {
+                    <text>0 resultados</text>
+                }
+            </span>
+
+        </div>
 
         <div class="table-responsive">
 
@@ -928,6 +1122,7 @@
                     <tr>
                         <th>Tipo</th>
                         <th>N.°</th>
+                        <th>Solicitante</th>
                         <th>Estado</th>
                         <th>Canal</th>
                         <th>Fecha</th>
@@ -940,32 +1135,99 @@
                     @foreach (DataRow t in tramites.Rows)
                     {
                         bool esAveria = Texto(t, "TipoRegistro") == "Averia";
+                        bool tieneSolicitud = Texto(t, "TieneSolicitud") == "1";
+
+                        string numero = string.IsNullOrWhiteSpace(Texto(t, "NumeroTramite"))
+                            ? "#" + Texto(t, "IdRegistro")
+                            : Texto(t, "NumeroTramite");
+
+                        string estadoFila = Texto(t, "Estado");
+
+                        string claseEstado = estadoFila switch
+                        {
+                            "Aprobado" => "bg-success",
+                            "Resuelta" => "bg-success",
+                            "Cerrada" => "bg-success",
+                            "Rechazado" => "bg-danger",
+                            "En proceso" => "bg-info text-dark",
+                            _ => "bg-warning text-dark"
+                        };
 
                         <tr class="@(esAveria ? "table-warning" : "")">
 
                             <td>
-                                @(esAveria ? "⚠ Avería / fuga" : Texto(t, "Tipo"))
+                                @(esAveria ? "⚠ " + Texto(t, "Tipo") : Texto(t, "Tipo"))
                             </td>
 
-                            <td>#@Texto(t, "IdRegistro")</td>
-                            <td>@Texto(t, "Estado")</td>
+                            <td class="text-nowrap">@numero</td>
+
+                            <td>
+                                @(string.IsNullOrWhiteSpace(Texto(t, "Solicitante"))
+                                    ? "—"
+                                    : Texto(t, "Solicitante"))
+                            </td>
+
+                            <td>
+                                <span class="badge @claseEstado">
+                                    @estadoFila
+                                </span>
+                            </td>
+
                             <td>@Texto(t, "CanalOrigen")</td>
                             <td>@Fecha(t, "FechaRecepcion")</td>
 
-                            <td>
+                            <td class="mpa-actions">
+
+                                @if (esAveria)
+                                {
+                                    <a asp-controller="Averias"
+                                       asp-action="Detalle"
+                                       asp-route-id="@Texto(t, "IdRegistro")"
+                                       class="btn btn-sm btn-agua">
+
+                                        <i class="bi bi-clipboard-check"></i>
+                                        @(estadoFila == "Resuelta" ? "Ver detalle" : "Atender")
+                                    </a>
+
+                                    <a asp-action="Index"
+                                       asp-route-tab="averias"
+                                       asp-route-buscar="@numero"
+                                       class="btn btn-sm btn-outline-primary">
+
+                                        <i class="bi bi-tools"></i>
+                                        Orden
+                                    </a>
+                                }
+                                else if (tieneSolicitud)
+                                {
+                                    <a asp-controller="EvaluacionTramites"
+                                       asp-action="Detalle"
+                                       asp-route-id="@Texto(t, "IdRegistro")"
+                                       class="btn btn-sm btn-agua">
+
+                                        <i class="bi bi-clipboard-check"></i>
+                                        @(estadoFila == "Pendiente" ? "Evaluar" : "Ver detalle")
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="mpa-muted d-inline-block me-2">
+                                        Sin solicitud en línea
+                                    </span>
+                                }
 
                                 <button type="button"
-                                        class="btn btn-sm btn-outline-primary js-tramite-editar"
+                                        class="btn btn-sm btn-outline-primary js-tramite-canal"
                                         data-bs-toggle="modal"
                                         data-bs-target="#modalTramite"
                                         data-id="@Texto(t, "IdRegistro")"
                                         data-tipoorigen="@Texto(t, "TipoRegistro")"
                                         data-tipo="@Texto(t, "Tipo")"
-                                        data-estado="@Texto(t, "Estado")"
+                                        data-numero="@numero"
                                         data-canal="@Texto(t, "CanalOrigen")">
 
-                                    <i class="bi bi-pencil-square"></i>
-                                    Gestionar
+                                    <i class="bi bi-telephone-inbound"></i>
+                                    Canal
                                 </button>
 
                             </td>
@@ -976,8 +1238,8 @@
                     @if (tramites.Rows.Count == 0)
                     {
                         <tr>
-                            <td colspan="6">
-                                No hay trámites que coincidan con los filtros.
+                            <td colspan="7">
+                                No hay casos que coincidan con los filtros.
                             </td>
                         </tr>
                     }
@@ -985,9 +1247,56 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- PAGINACIÓN -->
+
+        @if (paginasTramites > 1)
+        {
+            <nav aria-label="Páginas de la bandeja"
+                 class="mt-3">
+
+                <ul class="pagination pagination-sm flex-wrap mb-0">
+
+                    <li class="page-item @(paginaTramites == 1 ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-all-route-data="@rutaPaginaTramites(paginaTramites - 1)">
+                            Anterior
+                        </a>
+                    </li>
+
+                    @for (int i = Math.Max(1, paginaTramites - 2);
+                          i <= Math.Min(paginasTramites, paginaTramites + 2);
+                          i++)
+                    {
+                        <li class="page-item @(i == paginaTramites ? "active" : "")">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-all-route-data="@rutaPaginaTramites(i)">
+                                @i
+                            </a>
+                        </li>
+                    }
+
+                    <li class="page-item @(paginaTramites == paginasTramites ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-all-route-data="@rutaPaginaTramites(paginaTramites + 1)">
+                            Siguiente
+                        </a>
+                    </li>
+
+                </ul>
+
+                <div class="mpa-muted mt-1">
+                    Página @paginaTramites de @paginasTramites
+                </div>
+
+            </nav>
+        }
     </div>
 
-    <!-- MODAL TRÁMITES -->
+    <!-- MODAL CANAL DE INGRESO -->
 
     <div class="modal fade"
          id="modalTramite"
@@ -998,11 +1307,8 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
 
-                <form id="formTramite"
-                      asp-action="GuardarTramite"
-                      method="post"
-                      data-url-tramite="@Url.Action("GuardarTramite", "PanelAdministrativo")"
-                      data-url-averia="@Url.Action("Canal", "PanelAdministrativo")">
+                <form asp-action="Canal"
+                      method="post">
 
                     @Html.AntiForgeryToken()
 
@@ -1010,7 +1316,7 @@
 
                         <h5 class="modal-title mpa-modal-title"
                             id="tituloModalTramite">
-                            Gestionar trámite
+                            Canal de ingreso
                         </h5>
 
                         <button type="button"
@@ -1026,46 +1332,15 @@
                         <p class="mpa-muted" id="t-detalle"></p>
 
                         <input id="t-id"
-                               name="idTramite"
-                               type="hidden" />
-
-                        <input id="t-id-alterno"
                                name="idRegistroOrigen"
-                               type="hidden"
-                               disabled />
+                               type="hidden" />
 
                         <input id="t-origen"
                                name="tipoOrigen"
-                               type="hidden"
-                               value="Averia"
-                               disabled />
-
-                        <div id="t-bloque-estado">
-
-                            <label for="t-estado" class="form-label">
-                                Estado del trámite
-                            </label>
-
-                            <select id="t-estado"
-                                    name="estado"
-                                    class="form-select mb-3"
-                                    required>
-
-                                <option value="" disabled selected>
-                                    Selecciona un estado
-                                </option>
-
-                                <option>Pendiente</option>
-                                <option>En proceso</option>
-                                <option>En revisión</option>
-                                <option>Cerrada</option>
-
-                            </select>
-
-                        </div>
+                               type="hidden" />
 
                         <label for="t-canal" class="form-label">
-                            Canal de ingreso
+                            ¿Por dónde ingresó?
                         </label>
 
                         <select id="t-canal"
@@ -1079,9 +1354,10 @@
 
                         </select>
 
-                        <p id="t-aviso-averia"
-                           class="mpa-muted mt-2 d-none">
-                            Para cambiar el estado de una avería, utiliza MPA-05. Aquí puedes actualizar su canal.
+                        <p class="mpa-muted mt-2 mb-0">
+                            El estado del trámite se cambia en Evaluación de trámites.
+                            El estado de una avería se cambia en Atender
+                            o al asignar / cerrar su orden en Averías · MPA-05.
                         </p>
 
                     </div>
@@ -1095,7 +1371,7 @@
                         </button>
 
                         <button class="btn btn-agua">
-                            Guardar cambios
+                            Guardar canal
                         </button>
 
                     </div>
@@ -1112,22 +1388,463 @@
 
 @if (tab == "averias")
 {
+    var resumenAverias = (DataTable)ViewBag.ResumenAverias;
+    var categorias = (DataTable)ViewBag.Categorias;
+
+    DataRow? resumen = resumenAverias.Rows.Count > 0
+        ? resumenAverias.Rows[0]
+        : null;
+
+    Func<string, string> ResumenValor = columna =>
+        resumen == null || string.IsNullOrWhiteSpace(Texto(resumen, columna))
+            ? "0"
+            : Texto(resumen, columna);
+
+    string? buscarAveria = ViewBag.Buscar as string;
+    string? estadoAveriaFiltro = ViewBag.Estado as string;
+    int? categoriaFiltro = ViewBag.Categoria as int?;
+    int? fontaneroFiltro = ViewBag.Fontanero as int?;
+    bool incluirResueltas = (ViewBag.Todos as bool?) ?? false;
+    bool verHistorial = (ViewBag.Historial as bool?) ?? false;
+    bool abrirFontaneros = (ViewBag.Abrir as string) == "fontaneros";
+
+    int paginaAverias = (int)(ViewBag.Pagina ?? 1);
+    int paginasAverias = (int)(ViewBag.TotalPaginas ?? 1);
+    int filasAverias = (int)(ViewBag.TotalFilas ?? 0);
+
+    int paginaOrdenes = (int)(ViewBag.PaginaOrdenes ?? 1);
+    int paginasOrdenes = (int)(ViewBag.TotalPaginasOrdenes ?? 1);
+    int filasOrdenes = (int)(ViewBag.TotalOrdenes ?? 0);
+
+    int fontanerosActivos = fontaneros.Rows.Cast<DataRow>()
+        .Count(fila => Texto(fila, "Activo") == "True");
+
+    int ordenesAbiertasTotal = fontaneros.Rows.Cast<DataRow>()
+        .Sum(fila => int.TryParse(Texto(fila, "OrdenesAbiertas"), out var n) ? n : 0);
+
+    var filtrosAverias = new Dictionary<string, string> { ["tab"] = "averias" };
+
+    if (!string.IsNullOrWhiteSpace(buscarAveria)) { filtrosAverias["buscar"] = buscarAveria; }
+    if (!string.IsNullOrWhiteSpace(estadoAveriaFiltro)) { filtrosAverias["estado"] = estadoAveriaFiltro; }
+    if (categoriaFiltro.HasValue) { filtrosAverias["categoria"] = categoriaFiltro.Value.ToString(); }
+    if (fontaneroFiltro.HasValue) { filtrosAverias["fontanero"] = fontaneroFiltro.Value.ToString(); }
+    if (incluirResueltas) { filtrosAverias["todos"] = "true"; }
+    if (verHistorial) { filtrosAverias["historial"] = "true"; }
+
+    Func<int, int, Dictionary<string, string>> rutaAverias = (pagAverias, pagOrdenes) =>
+        new Dictionary<string, string>(filtrosAverias)
+        {
+            ["pagina"] = pagAverias.ToString(),
+            ["paginaOrdenes"] = pagOrdenes.ToString()
+        };
+
+    var rutaHistorial = new Dictionary<string, string>(filtrosAverias);
+
+    if (verHistorial)
+    {
+        rutaHistorial.Remove("historial");
+    }
+    else
+    {
+        rutaHistorial["historial"] = "true";
+    }
+
+    int desdeAverias = filasAverias == 0 ? 0 : ((paginaAverias - 1) * 20) + 1;
+    int hastaAverias = Math.Min(paginaAverias * 20, filasAverias);
+
+    <!-- FONTANEROS (PLEGABLE) -->
+
     <div class="panel mb-3">
 
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+            <div>
+                <h3 class="mpa-subtitle mb-0">
+                    Fontaneros
+                </h3>
+
+                <span class="mpa-muted">
+                    Activos: @fontanerosActivos de @fontaneros.Rows.Count ·
+                    Órdenes abiertas: @ordenesAbiertasTotal
+                </span>
+            </div>
+
+            <div class="d-flex gap-2">
+
+                <button type="button"
+                        class="btn btn-outline-primary"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#panelFontaneros"
+                        aria-expanded="@(abrirFontaneros ? "true" : "false")"
+                        aria-controls="panelFontaneros">
+
+                    <i class="bi bi-people"></i>
+                    Ver / administrar
+                </button>
+
+                <button type="button"
+                        class="btn btn-agua js-fontanero-nuevo"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalFontanero">
+
+                    <i class="bi bi-person-plus"></i>
+                    Nuevo fontanero
+                </button>
+
+            </div>
+        </div>
+
+        <div id="panelFontaneros"
+             class="collapse @(abrirFontaneros ? "show" : "")">
+
+            <div class="table-responsive mt-3">
+
+                <table class="table table-asada align-middle mb-0">
+
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Teléfono</th>
+                            <th>Estado</th>
+                            <th>Órdenes abiertas</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (DataRow f in fontaneros.Rows)
+                        {
+                            bool activo = Texto(f, "Activo") == "True";
+
+                            <tr class="@(activo ? "" : "text-muted")">
+
+                                <td class="fw-semibold">@Texto(f, "Nombre")</td>
+
+                                <td>
+                                    @(string.IsNullOrWhiteSpace(Texto(f, "Telefono"))
+                                        ? "—"
+                                        : Texto(f, "Telefono"))
+                                </td>
+
+                                <td>
+                                    <span class="badge @(activo ? "bg-success" : "bg-secondary")">
+                                        @(activo ? "Activo" : "Inactivo")
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <a asp-action="Index"
+                                       asp-route-tab="averias"
+                                       asp-route-fontanero="@Texto(f, "IdFontanero")">
+                                        @Texto(f, "OrdenesAbiertas")
+                                    </a>
+                                </td>
+
+                                <td class="mpa-actions">
+
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-primary js-fontanero-editar"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalFontanero"
+                                            data-id="@Texto(f, "IdFontanero")"
+                                            data-nombre="@Texto(f, "Nombre")"
+                                            data-telefono="@Texto(f, "Telefono")"
+                                            data-activo="@(activo ? "true" : "false")">
+
+                                        <i class="bi bi-pencil-square"></i>
+                                        Editar
+                                    </button>
+
+                                    <form asp-action="ActualizarFontanero"
+                                          method="post"
+                                          class="d-inline"
+                                          onsubmit="return confirm('@(activo ? "¿Desactivar este fontanero? Ya no aparecerá para asignar órdenes." : "¿Activar este fontanero?")');">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden"
+                                               name="idFontanero"
+                                               value="@Texto(f, "IdFontanero")" />
+
+                                        <input type="hidden"
+                                               name="nombre"
+                                               value="@Texto(f, "Nombre")" />
+
+                                        <input type="hidden"
+                                               name="telefono"
+                                               value="@Texto(f, "Telefono")" />
+
+                                        <input type="hidden"
+                                               name="activo"
+                                               value="@(activo ? "false" : "true")" />
+
+                                        <button type="submit"
+                                                class="btn btn-sm @(activo ? "btn-outline-danger" : "btn-outline-success")">
+                                            @(activo ? "Desactivar" : "Activar")
+                                        </button>
+
+                                    </form>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                        @if (fontaneros.Rows.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="5">
+                                    No hay fontaneros registrados.
+                                </td>
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTADORES (CLIC PARA FILTRAR) -->
+
+    <div class="row g-3 mb-3">
+
+        <div class="col-6 col-lg-3">
+            <a class="mpa-kpi mpa-kpi-warning"
+               asp-action="Index"
+               asp-route-tab="averias"
+               asp-route-estado="Pendiente">
+
+                <span class="mpa-kpi-num">@ResumenValor("Pendientes")</span>
+                <span class="mpa-kpi-label">Pendientes</span>
+            </a>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <a class="mpa-kpi mpa-kpi-info"
+               asp-action="Index"
+               asp-route-tab="averias"
+               asp-route-estado="En proceso">
+
+                <span class="mpa-kpi-num">@ResumenValor("EnProceso")</span>
+                <span class="mpa-kpi-label">En proceso</span>
+            </a>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <a class="mpa-kpi mpa-kpi-danger"
+               asp-action="Index"
+               asp-route-tab="averias"
+               asp-route-fontanero="0">
+
+                <span class="mpa-kpi-num">@ResumenValor("SinFontanero")</span>
+                <span class="mpa-kpi-label">Abiertas sin fontanero</span>
+            </a>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <a class="mpa-kpi mpa-kpi-success"
+               asp-action="Index"
+               asp-route-tab="averias"
+               asp-route-estado="Resuelta">
+
+                <span class="mpa-kpi-num">@ResumenValor("Resueltas")</span>
+                <span class="mpa-kpi-label">Resueltas (histórico)</span>
+            </a>
+        </div>
+
+    </div>
+
+    <!-- AVERÍAS: FILTROS Y LISTA -->
+
+    <div class="panel mb-3">
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
 
             <h3 class="mpa-subtitle mb-0">
-                Averías y órdenes de trabajo
+                Averías reportadas
             </h3>
 
-            <button type="button"
-                    class="btn btn-outline-primary"
-                    data-bs-toggle="modal"
-                    data-bs-target="#modalFontanero">
+            <a asp-controller="Averias"
+               asp-action="Index"
+               class="btn btn-outline-primary">
 
-                Administrar fontaneros
-            </button>
+                <i class="bi bi-box-arrow-up-right"></i>
+                Ir a Averías
+            </a>
 
+        </div>
+
+        <p class="mpa-muted mb-3">
+            Por defecto se ocultan las resueltas. Al asignar un fontanero, una avería
+            Pendiente pasa a En proceso; al cerrar la orden como resuelta, pasa a Resuelta.
+        </p>
+
+        <form asp-action="Index"
+              method="get"
+              class="row g-2 align-items-end mb-3">
+
+            <input type="hidden"
+                   name="tab"
+                   value="averias" />
+
+            <div class="col-md-3">
+
+                <label for="av-buscar" class="form-label">
+                    Buscar
+                </label>
+
+                <input id="av-buscar"
+                       name="buscar"
+                       value="@buscarAveria"
+                       class="form-control"
+                       placeholder="Caso, abonado, ubicación…" />
+            </div>
+
+            <div class="col-md-2">
+
+                <label for="av-estado" class="form-label">
+                    Estado
+                </label>
+
+                <select id="av-estado"
+                        name="estado"
+                        class="form-select">
+
+                    <option value="">Abiertas</option>
+
+                    @foreach (var estadoOpcion in new[] { "Pendiente", "En proceso", "Resuelta" })
+                    {
+                        if (estadoAveriaFiltro == estadoOpcion)
+                        {
+                            <option value="@estadoOpcion" selected>@estadoOpcion</option>
+                        }
+                        else
+                        {
+                            <option value="@estadoOpcion">@estadoOpcion</option>
+                        }
+                    }
+
+                </select>
+            </div>
+
+            <div class="col-md-2">
+
+                <label for="av-categoria" class="form-label">
+                    Categoría
+                </label>
+
+                <select id="av-categoria"
+                        name="categoria"
+                        class="form-select">
+
+                    <option value="">Todas</option>
+
+                    @foreach (DataRow c in categorias.Rows)
+                    {
+                        if (categoriaFiltro?.ToString() == Texto(c, "IdCategoriaAveria"))
+                        {
+                            <option value="@Texto(c, "IdCategoriaAveria")" selected>
+                                @Texto(c, "Nombre")
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="@Texto(c, "IdCategoriaAveria")">
+                                @Texto(c, "Nombre")
+                            </option>
+                        }
+                    }
+
+                </select>
+            </div>
+
+            <div class="col-md-2">
+
+                <label for="av-fontanero" class="form-label">
+                    Fontanero
+                </label>
+
+                <select id="av-fontanero"
+                        name="fontanero"
+                        class="form-select">
+
+                    <option value="">Todos</option>
+
+                    @if (fontaneroFiltro == 0)
+                    {
+                        <option value="0" selected>Sin fontanero</option>
+                    }
+                    else
+                    {
+                        <option value="0">Sin fontanero</option>
+                    }
+
+                    @foreach (DataRow f in fontaneros.Rows)
+                    {
+                        if (fontaneroFiltro?.ToString() == Texto(f, "IdFontanero"))
+                        {
+                            <option value="@Texto(f, "IdFontanero")" selected>
+                                @Texto(f, "Nombre")
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="@Texto(f, "IdFontanero")">
+                                @Texto(f, "Nombre")
+                            </option>
+                        }
+                    }
+
+                </select>
+            </div>
+
+            <div class="col-md-1">
+
+                <div class="form-check mt-4">
+
+                    <input id="av-todos"
+                           type="checkbox"
+                           name="todos"
+                           value="true"
+                           checked="@incluirResueltas"
+                           class="form-check-input" />
+
+                    <label class="form-check-label"
+                           for="av-todos">
+                        Resueltas
+                    </label>
+
+                </div>
+            </div>
+
+            <div class="col-md-2 d-flex gap-2">
+
+                <button type="submit"
+                        class="btn btn-agua flex-fill">
+                    Filtrar
+                </button>
+
+                <a asp-action="Index"
+                   asp-route-tab="averias"
+                   class="btn btn-outline-secondary">
+                    Limpiar
+                </a>
+
+            </div>
+        </form>
+
+        <div class="mpa-muted mb-2">
+            @if (filasAverias > 0)
+            {
+                <text>Mostrando @desdeAverias–@hastaAverias de @filasAverias</text>
+            }
+            else
+            {
+                <text>0 resultados</text>
+            }
         </div>
 
         <div class="table-responsive">
@@ -1136,13 +1853,13 @@
 
                 <thead>
                     <tr>
-                        <th>Reporte</th>
+                        <th>Caso</th>
+                        <th>Categoría</th>
+                        <th>Abonado</th>
                         <th>Descripción</th>
-                        <th>Prioridad</th>
-                        <th>Estado del reporte</th>
-                        <th>Estado de orden</th>
-                        <th>Responsable</th>
-                        <th>Acción</th>
+                        <th>Estado</th>
+                        <th>Fontanero</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
 
@@ -1150,37 +1867,100 @@
 
                     @foreach (DataRow a in averias.Rows)
                     {
+                        string estadoAveria = Texto(a, "EstadoReporte");
+
+                        string claseAveria = estadoAveria switch
+                        {
+                            "Resuelta" => "bg-success",
+                            "En proceso" => "bg-info text-dark",
+                            _ => "bg-warning text-dark"
+                        };
+
+                        bool ordenAbierta =
+                            !string.IsNullOrWhiteSpace(Texto(a, "IdOrden")) &&
+                            Texto(a, "EstadoOrden") != "Cerrada";
+
                         <tr>
-                            <td>#@Texto(a, "IdAveria")</td>
-                            <td>@Texto(a, "Descripcion")</td>
-                            <td>@Texto(a, "Prioridad")</td>
-                            <td>@Texto(a, "EstadoReporte")</td>
+
+                            <td class="text-nowrap fw-semibold">
+                                @Texto(a, "NumeroCaso")
+
+                                <div class="mpa-muted">
+                                    @Fecha(a, "FechaReporte")
+                                </div>
+                            </td>
+
+                            <td>@Texto(a, "Categoria")</td>
 
                             <td>
-                                @(string.IsNullOrWhiteSpace(Texto(a, "EstadoOrden"))
-                                    ? "Sin orden"
-                                    : Texto(a, "EstadoOrden"))
+                                @(string.IsNullOrWhiteSpace(Texto(a, "Abonado"))
+                                    ? "—"
+                                    : Texto(a, "Abonado"))
                             </td>
 
                             <td>
-                                @(string.IsNullOrWhiteSpace(Texto(a, "Fontanero"))
-                                    ? "Sin asignar"
-                                    : Texto(a, "Fontanero"))
+                                <div class="mpa-long">
+                                    @Texto(a, "Descripcion")
+                                </div>
+
+                                @if (!string.IsNullOrWhiteSpace(Texto(a, "Ubicacion")))
+                                {
+                                    <div class="mpa-muted mpa-long">
+                                        <i class="bi bi-geo-alt"></i>
+                                        @Texto(a, "Ubicacion")
+                                    </div>
+                                }
                             </td>
 
                             <td>
-                                <button type="button"
-                                        class="btn btn-sm btn-outline-primary js-averia-asignar"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#modalAsignar"
-                                        data-id="@Texto(a, "IdAveria")"
-                                        data-descripcion="@Texto(a, "Descripcion")"
-                                        data-fontanero="@Texto(a, "IdFontanero")"
-                                        data-observaciones="@Texto(a, "Observaciones")">
+                                <span class="badge @claseAveria">
+                                    @estadoAveria
+                                </span>
+                            </td>
 
-                                    <i class="bi bi-tools"></i>
-                                    Gestionar orden
-                                </button>
+                            <td>
+                                @if (!ordenAbierta)
+                                {
+                                    <span class="mpa-muted">Sin asignar</span>
+                                }
+                                else
+                                {
+                                    @Texto(a, "Fontanero")
+
+                                    <div class="mpa-muted">
+                                        Orden: @Texto(a, "EstadoOrden")
+                                    </div>
+                                }
+                            </td>
+
+                            <td class="mpa-actions">
+
+                                <a asp-controller="Averias"
+                                   asp-action="Detalle"
+                                   asp-route-id="@Texto(a, "IdAveria")"
+                                   class="btn btn-sm btn-agua">
+
+                                    <i class="bi bi-clipboard-check"></i>
+                                    @(estadoAveria == "Resuelta" ? "Ver detalle" : "Atender")
+                                </a>
+
+                                @if (estadoAveria != "Resuelta")
+                                {
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-primary js-averia-asignar"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalAsignar"
+                                            data-id="@Texto(a, "IdAveria")"
+                                            data-caso="@Texto(a, "NumeroCaso")"
+                                            data-descripcion="@Texto(a, "Descripcion")"
+                                            data-fontanero="@(ordenAbierta ? Texto(a, "IdFontanero") : "")"
+                                            data-observaciones="@(ordenAbierta ? Texto(a, "Observaciones") : "")">
+
+                                        <i class="bi bi-tools"></i>
+                                        @(ordenAbierta ? "Reasignar" : "Asignar fontanero")
+                                    </button>
+                                }
+
                             </td>
 
                         </tr>
@@ -1190,7 +1970,7 @@
                     {
                         <tr>
                             <td colspan="7">
-                                No hay averías registradas.
+                                No hay averías que coincidan con los filtros.
                             </td>
                         </tr>
                     }
@@ -1199,13 +1979,80 @@
 
             </table>
         </div>
+
+        @if (paginasAverias > 1)
+        {
+            <nav aria-label="Páginas de averías"
+                 class="mt-3">
+
+                <ul class="pagination pagination-sm flex-wrap mb-0">
+
+                    <li class="page-item @(paginaAverias == 1 ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-all-route-data="@rutaAverias(paginaAverias - 1, paginaOrdenes)">
+                            Anterior
+                        </a>
+                    </li>
+
+                    @for (int i = Math.Max(1, paginaAverias - 2);
+                          i <= Math.Min(paginasAverias, paginaAverias + 2);
+                          i++)
+                    {
+                        <li class="page-item @(i == paginaAverias ? "active" : "")">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-all-route-data="@rutaAverias(i, paginaOrdenes)">
+                                @i
+                            </a>
+                        </li>
+                    }
+
+                    <li class="page-item @(paginaAverias == paginasAverias ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-all-route-data="@rutaAverias(paginaAverias + 1, paginaOrdenes)">
+                            Siguiente
+                        </a>
+                    </li>
+
+                </ul>
+
+                <div class="mpa-muted mt-1">
+                    Página @paginaAverias de @paginasAverias
+                </div>
+
+            </nav>
+        }
     </div>
+
+    <!-- SEGUIMIENTO DE ÓRDENES -->
 
     <div class="panel">
 
-        <h3 class="mpa-subtitle mb-3">
-            Seguimiento de órdenes
-        </h3>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+
+            <div>
+                <h3 class="mpa-subtitle mb-0">
+                    Seguimiento de órdenes
+                </h3>
+
+                <span class="mpa-muted">
+                    @(verHistorial
+                        ? "Historial completo: " + filasOrdenes + " órdenes"
+                        : "Órdenes abiertas: " + filasOrdenes)
+                </span>
+            </div>
+
+            <a class="btn btn-sm btn-outline-primary"
+               asp-action="Index"
+               asp-all-route-data="rutaHistorial">
+
+                <i class="bi bi-clock-history"></i>
+                @(verHistorial ? "Ver solo abiertas" : "Ver historial de órdenes")
+            </a>
+
+        </div>
 
         <div class="table-responsive">
 
@@ -1215,8 +2062,9 @@
                     <tr>
                         <th>Orden</th>
                         <th>Avería</th>
+                        <th>Estado de la avería</th>
                         <th>Fontanero</th>
-                        <th>Estado</th>
+                        <th>Estado de la orden</th>
                         <th>Acción</th>
                     </tr>
                 </thead>
@@ -1225,9 +2073,21 @@
 
                     @foreach (DataRow o in ordenes.Rows)
                     {
+                        bool ordenCerrada = Texto(o, "Estado") == "Cerrada";
+                        bool averiaResuelta = Texto(o, "EstadoAveria") == "Resuelta";
+
                         <tr>
                             <td>#@Texto(o, "IdOrden")</td>
-                            <td>#@Texto(o, "IdAveria")</td>
+
+                            <td class="text-nowrap">
+                                <a asp-controller="Averias"
+                                   asp-action="Detalle"
+                                   asp-route-id="@Texto(o, "IdAveria")">
+                                    @Texto(o, "NumeroCaso")
+                                </a>
+                            </td>
+
+                            <td>@Texto(o, "EstadoAveria")</td>
 
                             <td>
                                 @(string.IsNullOrWhiteSpace(Texto(o, "Fontanero"))
@@ -1238,7 +2098,7 @@
                             <td>@Texto(o, "Estado")</td>
 
                             <td>
-                                @if (Texto(o, "Estado") == "Cerrada")
+                                @if (ordenCerrada)
                                 {
                                     <span class="text-success">
                                         Cerrada
@@ -1246,6 +2106,13 @@
                                 }
                                 else
                                 {
+                                    if (averiaResuelta)
+                                    {
+                                        <div class="mpa-muted mb-1">
+                                            La avería ya está resuelta; cierra la orden.
+                                        </div>
+                                    }
+
                                     <button type="button"
                                             class="btn btn-sm btn-outline-primary js-orden-seguimiento"
                                             data-bs-toggle="modal"
@@ -1263,8 +2130,10 @@
                     @if (ordenes.Rows.Count == 0)
                     {
                         <tr>
-                            <td colspan="5">
-                                Todavía no hay órdenes de trabajo.
+                            <td colspan="6">
+                                @(verHistorial
+                                    ? "Todavía no hay órdenes de trabajo."
+                                    : "No hay órdenes abiertas.")
                             </td>
                         </tr>
                     }
@@ -1273,6 +2142,51 @@
 
             </table>
         </div>
+
+        @if (paginasOrdenes > 1)
+        {
+            <nav aria-label="Páginas de órdenes"
+                 class="mt-3">
+
+                <ul class="pagination pagination-sm flex-wrap mb-0">
+
+                    <li class="page-item @(paginaOrdenes == 1 ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-all-route-data="@rutaAverias(paginaAverias, paginaOrdenes - 1)">
+                            Anterior
+                        </a>
+                    </li>
+
+                    @for (int i = Math.Max(1, paginaOrdenes - 2);
+                          i <= Math.Min(paginasOrdenes, paginaOrdenes + 2);
+                          i++)
+                    {
+                        <li class="page-item @(i == paginaOrdenes ? "active" : "")">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-all-route-data="@rutaAverias(paginaAverias, i)">
+                                @i
+                            </a>
+                        </li>
+                    }
+
+                    <li class="page-item @(paginaOrdenes == paginasOrdenes ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-all-route-data="@rutaAverias(paginaAverias, paginaOrdenes + 1)">
+                            Siguiente
+                        </a>
+                    </li>
+
+                </ul>
+
+                <div class="mpa-muted mt-1">
+                    Página @paginaOrdenes de @paginasOrdenes
+                </div>
+
+            </nav>
+        }
     </div>
 
     <!-- MODAL ASIGNAR / REASIGNAR -->
@@ -1414,7 +2328,7 @@
                             </option>
 
                             <option value="true">
-                                Sí, cerrar orden
+                                Sí, cerrar orden (la avería pasa a Resuelta)
                             </option>
 
                         </select>
@@ -1450,7 +2364,7 @@
         </div>
     </div>
 
-    <!-- MODAL FONTANEROS -->
+    <!-- MODAL FONTANERO: NUEVO / EDITAR -->
 
     <div class="modal fade"
          id="modalFontanero"
@@ -1461,100 +2375,91 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
 
-                <div class="modal-header">
+                <form id="formFontanero"
+                      asp-action="NuevoFontanero"
+                      method="post"
+                      data-url-nuevo="@Url.Action("NuevoFontanero", "PanelAdministrativo")"
+                      data-url-editar="@Url.Action("ActualizarFontanero", "PanelAdministrativo")">
 
-                    <h5 id="tituloModalFontanero"
-                        class="modal-title mpa-modal-title">
-                        Fontaneros
-                    </h5>
+                    @Html.AntiForgeryToken()
 
-                    <button type="button"
-                            class="btn-close"
-                            data-bs-dismiss="modal"
-                            aria-label="Cerrar">
-                    </button>
+                    <div class="modal-header">
 
-                </div>
-
-                <div class="modal-body">
-
-                    <form asp-action="NuevoFontanero"
-                          method="post"
-                          class="mb-3">
-
-                        @Html.AntiForgeryToken()
-
-                        <label class="form-label">
+                        <h5 id="tituloModalFontanero"
+                            class="modal-title mpa-modal-title">
                             Nuevo fontanero
+                        </h5>
+
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Cerrar">
+                        </button>
+
+                    </div>
+
+                    <div class="modal-body">
+
+                        <input type="hidden"
+                               id="f-id"
+                               name="idFontanero"
+                               disabled />
+
+                        <label for="f-nombre" class="form-label">
+                            Nombre completo
                         </label>
 
-                        <input name="nombre"
-                               class="form-control mb-2"
-                               placeholder="Nombre completo"
+                        <input id="f-nombre"
+                               name="nombre"
+                               class="form-control mb-3"
                                required
                                maxlength="200" />
 
-                        <input name="telefono"
-                               class="form-control mb-2"
-                               placeholder="Teléfono"
+                        <label for="f-telefono" class="form-label">
+                            Teléfono
+                        </label>
+
+                        <input id="f-telefono"
+                               name="telefono"
+                               class="form-control mb-3"
                                maxlength="30" />
 
-                        <button class="btn btn-agua">
-                            Registrar
+                        <div id="f-bloque-activo"
+                             class="d-none">
+
+                            <label for="f-activo" class="form-label">
+                                Estado
+                            </label>
+
+                            <select id="f-activo"
+                                    name="activo"
+                                    class="form-select"
+                                    disabled>
+
+                                <option value="true">Activo</option>
+                                <option value="false">Inactivo</option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+
+                        <button type="button"
+                                class="btn btn-outline-secondary"
+                                data-bs-dismiss="modal">
+                            Cancelar
                         </button>
 
-                    </form>
+                        <button class="btn btn-agua">
+                            Guardar
+                        </button>
 
-                    <hr />
+                    </div>
 
-                    @foreach (DataRow f in fontaneros.Rows)
-                    {
-                        <form asp-action="ActualizarFontanero"
-                              method="post"
-                              class="row g-2 align-items-center mb-2">
-
-                            @Html.AntiForgeryToken()
-
-                            <input type="hidden"
-                                   name="idFontanero"
-                                   value="@Texto(f, "IdFontanero")" />
-
-                            <div class="col-5">
-                                <input class="form-control form-control-sm"
-                                       aria-label="Nombre"
-                                       name="nombre"
-                                       value="@Texto(f, "Nombre")"
-                                       required
-                                       maxlength="200" />
-                            </div>
-
-                            <div class="col-4">
-                                <input class="form-control form-control-sm"
-                                       aria-label="Teléfono"
-                                       name="telefono"
-                                       value="@Texto(f, "Telefono")"
-                                       maxlength="30" />
-                            </div>
-
-                            <div class="col-1">
-                                <input class="form-check-input"
-                                       type="checkbox"
-                                       name="activo"
-                                       value="true"
-                                       checked="@(Texto(f, "Activo") == "True")"
-                                       title="Activo" />
-                            </div>
-
-                            <div class="col-2">
-                                <button class="btn btn-sm btn-outline-primary">
-                                    Guardar
-                                </button>
-                            </div>
-
-                        </form>
-                    }
-
-                </div>
+                </form>
 
             </div>
         </div>
@@ -2102,30 +3007,13 @@
             });
         });
 
-        // MPA-04: EDITAR TRÁMITE
+        // MPA-04: CANAL DE INGRESO (TRÁMITE O AVERÍA)
 
-        all('.js-tramite-editar', boton => {
+        all('.js-tramite-canal', boton => {
             boton.addEventListener('click', function () {
 
-                const esAveria =
-                    boton.dataset.tipoorigen === 'Averia';
-
-                const formulario =
-                    document.getElementById('formTramite');
-
-                formulario.action = esAveria
-                    ? formulario.dataset.urlAveria
-                    : formulario.dataset.urlTramite;
-
                 set('t-id', boton.dataset.id);
-                document.getElementById('t-id').disabled = esAveria;
-
-                set('t-id-alterno', boton.dataset.id);
-                document.getElementById('t-id-alterno').disabled = !esAveria;
-
-                document.getElementById('t-origen').disabled = !esAveria;
-
-                set('t-estado', boton.dataset.estado);
+                set('t-origen', boton.dataset.tipoorigen);
 
                 set(
                     't-canal',
@@ -2134,18 +3022,61 @@
                         : boton.dataset.canal
                 );
 
-                document.getElementById('t-bloque-estado')
-                    .classList.toggle('d-none', esAveria);
-
-                document.getElementById('t-estado').disabled = esAveria;
-
-                document.getElementById('t-aviso-averia')
-                    .classList.toggle('d-none', !esAveria);
-
                 txt(
                     't-detalle',
-                    boton.dataset.tipo + ' · registro #' + boton.dataset.id
+                    boton.dataset.tipo + ' · ' + boton.dataset.numero
                 );
+
+            });
+        });
+
+        // MPA-05: NUEVO FONTANERO
+
+        all('.js-fontanero-nuevo', boton => {
+            boton.addEventListener('click', function () {
+
+                const formulario =
+                    document.getElementById('formFontanero');
+
+                formulario.action = formulario.dataset.urlNuevo;
+
+                txt('tituloModalFontanero', 'Nuevo fontanero');
+
+                set('f-id', '');
+                set('f-nombre', '');
+                set('f-telefono', '');
+
+                document.getElementById('f-id').disabled = true;
+                document.getElementById('f-activo').disabled = true;
+
+                document.getElementById('f-bloque-activo')
+                    .classList.add('d-none');
+
+            });
+        });
+
+        // MPA-05: EDITAR FONTANERO
+
+        all('.js-fontanero-editar', boton => {
+            boton.addEventListener('click', function () {
+
+                const formulario =
+                    document.getElementById('formFontanero');
+
+                formulario.action = formulario.dataset.urlEditar;
+
+                txt('tituloModalFontanero', 'Editar fontanero');
+
+                set('f-id', boton.dataset.id);
+                set('f-nombre', boton.dataset.nombre);
+                set('f-telefono', boton.dataset.telefono);
+                set('f-activo', boton.dataset.activo);
+
+                document.getElementById('f-id').disabled = false;
+                document.getElementById('f-activo').disabled = false;
+
+                document.getElementById('f-bloque-activo')
+                    .classList.remove('d-none');
 
             });
         });
@@ -2161,7 +3092,7 @@
 
                 txt(
                     'a-descripcion',
-                    'Avería #' + boton.dataset.id +
+                    boton.dataset.caso +
                     ' — ' + boton.dataset.descripcion
                 );
 
