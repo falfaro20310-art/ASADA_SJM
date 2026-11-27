@@ -1,3 +1,4 @@
+using AsadaSJM.Models.Pagos;
 using System.ComponentModel.DataAnnotations;
 
 namespace AsadaSJM.Models;
@@ -39,4 +40,6 @@ public class Abonado
     public ICollection<Tramite> Tramites { get; set; } = new List<Tramite>();
 
     public ICollection<Recibo> Recibos { get; set; } = new List<Recibo>();
+
+    public List<PagoDTO> Pagos { get; set; } = new List<PagoDTO>();
 }

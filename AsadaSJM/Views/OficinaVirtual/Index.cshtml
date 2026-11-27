@@ -87,8 +87,9 @@
                 </a>
 
                 <a class="side-link"
-                   asp-controller="OficinaVirtual"
-                   asp-action="CanalesPago">
+                   href="#modalCanalesPago"
+                   data-bs-toggle="modal"
+                   data-bs-target="#modalCanalesPago">
                     <i class="bi bi-wallet2"></i>
                     <span>Canales de pago</span>
                 </a>
@@ -475,8 +476,9 @@
                                 opciones de pago disponibles.
                             </p>
 
-                            <a asp-controller="OficinaVirtual"
-                               asp-action="CanalesPago"
+                            <a href="#modalCanalesPago"
+                               data-bs-toggle="modal"
+                               data-bs-target="#modalCanalesPago"
                                class="primary-button">
                                 <i class="bi bi-wallet2"></i>
                                 Ver canales de pago
@@ -510,6 +512,21 @@
                     </aside>
 
                 </section>
+
+                <!-- Modal Canales de Pago -->
+                <div class="modal fade" id="modalCanalesPago" tabindex="-1" aria-labelledby="modalCanalesPagoLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                        <div class="modal-content payment-modal-content">
+                            <div class="modal-header payment-modal-header">
+                                <h5 class="modal-title" id="modalCanalesPagoLabel">Canales de pago</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                            </div>
+                            <div class="modal-body">
+                                @await Html.PartialAsync("_CanalesPagoPartial", (IEnumerable<AsadaSJM.Models.Pagos.FormaPagoDTO>)ViewBag.CanalesPago)
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- PIE DE PÁGINA -->
                 <footer class="dashboard-footer">
@@ -547,6 +564,8 @@
                 }
             });
     </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>

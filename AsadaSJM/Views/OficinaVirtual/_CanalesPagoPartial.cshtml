@@ -1,0 +1,70 @@
+﻿@model IEnumerable<AsadaSJM.Models.Pagos.FormaPagoDTO>
+
+@{
+    var canalesActivos = Model?.ToList() ?? new List<AsadaSJM.Models.Pagos.FormaPagoDTO>();
+}
+
+<section class="payment-channels">
+    <div class="payment-channels-intro">
+        <div class="payment-intro-copy">
+            <span class="eyebrow">INFORMACIÓN DISPONIBLE</span>
+            <p>Medios habilitados para realizar el pago de tu recibo desde tu dispositivo móvil.</p>
+        </div>
+
+        <div class="help-panel payment-notice" role="note">
+            <div class="help-icon">
+                <i class="bi bi-info-circle" aria-hidden="true"></i>
+            </div>
+            <div>
+                <strong style="font-size: 13px;">Pago externo</strong>
+                <p style="font-size: 13px;">Este portal no procesa pagos. Usa directamente el canal de tu preferencia.</p>
+            </div>
+        </div>
+    </div>
+
+    @if (canalesActivos.Any())
+    {
+        <div class="payment-channels-heading">
+            <span class="eyebrow">OPCIONES HABILITADAS</span>
+        </div>
+
+        <div class="payment-channel-grid">
+            @foreach (var canal in canalesActivos)
+            {
+                var nombreNormalizado = canal.Nombre?.ToLowerInvariant() ?? string.Empty;
+                var icono = nombreNormalizado.Contains("sinpe")
+                    ? "bi-phone"
+                    : nombreNormalizado.Contains("tarjeta")
+                        ? "bi-credit-card"
+                        : nombreNormalizado.Contains("efectivo")
+                            ? "bi-cash-stack"
+                            : nombreNormalizado.Contains("transfer") || nombreNormalizado.Contains("banco")
+                                ? "bi-bank"
+                                : "bi-wallet2";
+
+                <article class="payment-channel-card">
+                    <div class="payment-channel-icon" aria-hidden="true">
+                        <i class="bi @icono"></i>
+                    </div>
+                    <div class="payment-channel-content">
+                        <h6>@canal.Nombre</h6>
+                        <p>@(string.IsNullOrWhiteSpace(canal.Descripcion) ? "Sin descripción adicional" : canal.Descripcion)</p>
+                    </div>
+                    <i class="bi bi-chevron-right payment-channel-arrow" aria-hidden="true"></i>
+                </article>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="payment-channels-empty" role="status">
+            <div class="payment-channel-icon">
+                <i class="bi bi-wallet2" aria-hidden="true"></i>
+            </div>
+            <div>
+                <strong>Sin canales activos</strong>
+                <p>No hay canales de pago disponibles en este momento.</p>
+            </div>
+        </div>
+    }
+</section>

@@ -1,3 +1,4 @@
+using AsadaSJM.Models.Pagos;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -16,4 +17,6 @@ public class Recibo
     public decimal Monto { get; set; }
 
     public DateTime FechaEmision { get; set; } = DateTime.Now;
+
+    public List<PagoDTO> Pagos { get; set; } = new List<PagoDTO>();
 }

@@ -36,6 +36,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<FotoGaleriaEntidad> FotosGaleria
         => Set<FotoGaleriaEntidad>();
 
+    public DbSet<FormaPagoEntidad> FormasPago
+        => Set<FormaPagoEntidad>();
+
     // =====================================================
     // MGA-01: GESTIÓN AMBIENTAL EXISTENTE
     // =====================================================
@@ -102,6 +105,9 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<FotoGaleriaEntidad>()
             .ToTable("FOTO_GALERIA");
+
+        modelBuilder.Entity<FormaPagoEntidad>()
+            .ToTable("FORMA_PAGO");
 
         // =====================================================
         // MGA-01: TABLA NACIENTE

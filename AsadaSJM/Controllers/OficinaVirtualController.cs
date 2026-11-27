@@ -1,9 +1,12 @@
 ﻿
+using AsadaSJM.Data;
 using AsadaSJM.Models;
+using AsadaSJM.Models.Pagos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -16,13 +19,13 @@ public class OficinaVirtualController : Controller
 {
     private readonly IConfiguration _configuration;
     private readonly IWebHostEnvironment _environment;
+    private readonly ApplicationDbContext _context;
 
-    public OficinaVirtualController(
-        IConfiguration configuration,
-        IWebHostEnvironment environment)
+    public OficinaVirtualController(IConfiguration configuration, IWebHostEnvironment environment, ApplicationDbContext context)
     {
         _configuration = configuration;
         _environment = environment;
+        _context = context;
     }
 
     // Métodos auxiliares 
@@ -53,10 +56,10 @@ public class OficinaVirtualController : Controller
         return connectionString;
     }
 
+    #region Index
     // Inicio de la Oficina Virtual del abonado
-
     [HttpGet]
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
         int? idUsuario = ObtenerIdUsuarioAutenticado();
 
@@ -118,11 +121,19 @@ public class OficinaVirtualController : Controller
             Sector = reader["Sector"]?.ToString() ?? ""
         };
 
+        // Canales de Pago
+        var canalesPago = await _context.Database
+        .SqlQueryRaw<FormaPagoDTO>("EXEC dbo.SP_FormasPagoActivas")
+        .ToListAsync();
+
+        ViewBag.CanalesPago = canalesPago;
+
         return View(modelo);
     }
+#endregion
 
+    #region Mis Recibos
     // Mis recibos del abonado 
-
     [HttpGet]
     public IActionResult MisRecibos()
     {
@@ -204,9 +215,10 @@ public class OficinaVirtualController : Controller
 
         return View(recibos);
     }
+#endregion
 
+    #region Recibos Pendientes
     // Recibos pendientes del abonado 
-
     [HttpGet]
     public IActionResult RecibosPendientes()
     {
@@ -251,9 +263,10 @@ public class OficinaVirtualController : Controller
 
         return View(recibos);
     }
+    #endregion
 
-    // Mi consumo de agua con filtro de fechas 
-
+    #region Mi Consumo
+    // Mi consumo de agua con filtro de fechas
     [HttpGet]
     public IActionResult MiConsumo(
         DateTime? fechaInicio,
@@ -325,9 +338,10 @@ public class OficinaVirtualController : Controller
 
         return View(modelo);
     }
+    #endregion
 
+    #region Descargar Recibo
     // Para descargar el PDF del recibo, si está disponible.
-
     [HttpGet]
     public IActionResult DescargarRecibo(int id)
     {
@@ -413,5 +427,6 @@ public class OficinaVirtualController : Controller
             "application/pdf",
             Path.GetFileName(rutaCompleta));
     }
+    #endregion
 }
 
